@@ -1,0 +1,50 @@
+/* Design tokens: single source of truth (SPEC.md §4). Components must not hard-code these. */
+:root {
+  color-scheme: dark;
+
+  /* Colour */
+  --bg: #070b14;
+  --surface: #0e1524;
+  --border: #1e293b;
+  --text: #e6edf7;
+  --text-muted: #94a3b8;
+  --accent: #22d3ee;
+  --accent-2: #8b5cf6;
+  --on-accent: #04121a;
+  --gradient: linear-gradient(90deg, var(--accent), var(--accent-2));
+
+  /* Type */
+  --font-heading: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-zh: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --fs-hero: 64px;
+  --lh-hero: 1.1;
+  --fs-h2: 40px;
+  --fs-body: 17px;
+  --lh-body: 1.7;
+  --lh-body-zh: 1.8;
+  --fs-small: 14px;
+
+  /* Layout */
+  --max-w: 1120px;
+  --pad-x: 48px;
+  --section-gap: 128px;
+  --nav-h: 64px;
+  --radius: 16px;
+
+  /* Motion */
+  --t-fast: 200ms;
+  --t-reveal: 500ms;
+  --t-hero: 600ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-hero: 36px;
+    --fs-h2: 28px;
+    --pad-x: 20px;
+    --section-gap: 72px;
+  }
+}

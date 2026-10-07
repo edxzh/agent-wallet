@@ -1,0 +1,25 @@
+{
+  "name": "agent-wallet-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:contracts": "cd contracts && forge build",
+    "test:contracts": "cd contracts && forge test -vvv",
+    "test": "npm run test -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "snapshot": "tsx scripts/snapshot.ts",
+    "scenario": "npm run cli -w packages/agent -- run-scenario"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "tsx": "^4.23.15"
+  }
+}

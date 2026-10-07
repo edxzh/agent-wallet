@@ -1,0 +1,30 @@
+{
+  "name": "agent-wallet",
+  "version": "0.1.0",
+  "description": "Agent SDK and CLI for x402 payments from a policy wallet (Base Sepolia testnet only)",
+  "type": "module",
+  "bin": {
+    "agent-wallet": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "cli": "tsx src/cli.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@x402/core": "^2.28.0",
+    "@x402/evm": "^2.28.0",
+    "@x402/fetch": "^2.28.0",
+    "dotenv": "^17.2.0",
+    "viem": "^2.57.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.3",
+    "@types/node": "^22.0.0"
+  }
+}

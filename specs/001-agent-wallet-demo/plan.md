@@ -69,6 +69,8 @@ and both satisfy the spec.
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
+*Update 2026-10-07: this repo now has its own constitution (Agent Wallet v1.0.0), whose Principles I–V formalise the plan-level gates below. The check still holds.*
+
 The repo constitution (v1.0.1) governs the **yunshu.ai website**. This product is applied
 against it as follows. Contract security has no governing principle, so this plan sets its own
 gates (below) until a product constitution is ratified in the new repo (follow-up).

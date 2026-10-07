@@ -1,0 +1,26 @@
+---
+// Inline Yunshu AI mark, coloured from the design tokens. Decorative: pair it with the brand name.
+import { logoGeometry } from '../lib/logo-geometry.mjs';
+
+interface Props {
+  size?: number;
+  small?: boolean;
+  class?: string;
+}
+const { size = 26, small = size <= 32, class: className } = Astro.props;
+const g = logoGeometry({ small });
+---
+
+<svg class:list={['logo', className]} width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+  <g style="stroke: var(--accent)" stroke-width={g.stroke} stroke-linecap="round">
+    {g.lines.map(([x1, y1, x2, y2]) => <line x1={x1} y1={y1} x2={x2} y2={y2} />)}
+  </g>
+  {g.nodes.map((n) => <circle cx={n.cx} cy={n.cy} r={n.r} style={`fill: var(${n.hub ? '--accent-2' : '--accent'})`} />)}
+</svg>
+
+<style>
+  .logo {
+    flex-shrink: 0;
+    display: block;
+  }
+</style>

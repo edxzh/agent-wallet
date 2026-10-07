@@ -1,0 +1,95 @@
+---
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import Logo from './Logo.astro';
+import { t, pathFor, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const d = t(lang);
+const abs = (p: string) => new URL(p, Astro.site!).href;
+const langs: { code: Lang; label: string; hreflang: string }[] = [
+  { code: 'zh', label: '中文', hreflang: 'zh-Hans' },
+  { code: 'en', label: 'EN', hreflang: 'en' },
+];
+---
+
+<!doctype html>
+<html lang={d.meta.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{d.meta.title}</title>
+    <meta name="description" content={d.meta.description} />
+    <link rel="canonical" href={abs(pathFor(lang))} />
+    <link rel="alternate" hreflang="zh-Hans" href={abs('/zh/')} />
+    <link rel="alternate" hreflang="en" href={abs('/')} />
+    <link rel="alternate" hreflang="x-default" href={abs('/')} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <p class="banner" role="note">{d.banner}</p>
+    <header class="container bar">
+      <a class="brand" href="https://yunshu.ai/"><Logo size={24} /><span>{d.backToSite}</span></a>
+      <nav class="lang" aria-label={d.langSwitchLabel}>
+        {
+          langs.map((o) => (
+            <a href={pathFor(o.code)} lang={o.hreflang} hreflang={o.hreflang} aria-current={o.code === lang ? 'true' : undefined}>
+              {o.label}
+            </a>
+          ))
+        }
+      </nav>
+    </header>
+    <main class="container">
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  .banner {
+    margin: 0;
+    padding: 8px 16px;
+    text-align: center;
+    font: 13px var(--font-mono);
+    color: var(--bg);
+    background: var(--accent);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 20px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font: 600 17px var(--font-heading);
+  }
+  .lang {
+    display: flex;
+    gap: 4px;
+    font: 13px var(--font-mono);
+  }
+  .lang a {
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .lang a[aria-current='true'] {
+    color: var(--text);
+    background: rgb(34 211 238 / 0.15);
+  }
+  main {
+    padding-block: 48px 96px;
+  }
+</style>

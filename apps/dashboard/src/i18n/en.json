@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "htmlLang": "en",
+    "title": "Agent Wallet Demo · Yunshu AI",
+    "description": "Watch an AI agent pay for services on its own, get stopped when it goes over budget or out of scope, and verify every payment on a public record."
+  },
+  "banner": "Test network only. No real money.",
+  "heading": "Agent wallet, live",
+  "intro": "An agent with spending limits pays for services on its own. Payments that break a rule are stopped before any money moves, and every payment and refusal is on a public record.",
+  "status": "Coming soon: the first payments will appear here once the wallet is deployed.",
+  "langSwitchLabel": "Language",
+  "backToSite": "Yunshu AI"
+}

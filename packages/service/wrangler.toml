@@ -1,0 +1,8 @@
+name = "agent-wallet-api"
+main = "src/index.ts"
+compatibility_date = "2026-10-07"
+
+[vars]
+NETWORK = "eip155:84532"
+PAYEE_ADDRESS = ""
+FACILITATOR_URL = "https://www.x402.org/facilitator"

@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "htmlLang": "zh-Hans",
+    "title": "Agent 钱包演示 · 云书 AI",
+    "description": "看一个 AI agent 自主付费、在超预算或越权时被拦下，并在公开记录上核对每一笔付款。"
+  },
+  "banner": "仅测试网络，不涉及真实资金。",
+  "heading": "Agent 钱包实时演示",
+  "intro": "一个设了支出上限的 agent 自主为服务付费。违反规则的付款在资金动用前就被拦下，每一笔付款和拒绝都记录在公开账本上。",
+  "status": "即将上线：钱包部署后，第一批付款会显示在这里。",
+  "langSwitchLabel": "语言",
+  "backToSite": "云书 AI"
+}

@@ -1,0 +1,29 @@
+---
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+const d = t(Astro.props.lang);
+---
+
+<h1>{d.heading}</h1>
+<p class="intro">{d.intro}</p>
+<p class="status card">{d.status}</p>
+
+<style>
+  h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    max-width: 18ch;
+  }
+  .intro {
+    max-width: 60ch;
+    margin-top: 16px;
+    color: var(--text-muted);
+  }
+  .status {
+    margin-top: 40px;
+    font-family: var(--font-mono);
+    font-size: 15px;
+  }
+</style>

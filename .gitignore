@@ -24,3 +24,6 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+# Foundry libraries (installed in CI with forge install)
+contracts/lib/
