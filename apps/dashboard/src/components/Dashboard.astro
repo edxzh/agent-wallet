@@ -18,8 +18,7 @@ const pct = (a: number, b: number) => `${Math.max(2, (a / b) * 100)}%`;
   <p class="intro">{d.intro}</p>
   <p class="status card">
     <span class="dot" aria-hidden="true"></span>
-    <strong>{d.statusLabel}:</strong>
-    {d.status}
+    <strong>{d.statusLabel}:</strong>{' '}{d.status}
   </p>
   <div class="ctas">
     <a class="btn btn-primary" href={repo}>{d.repoCta}</a>
