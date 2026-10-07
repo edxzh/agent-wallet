@@ -2,12 +2,70 @@
   "meta": {
     "htmlLang": "en",
     "title": "Agent Wallet Demo · Yunshu AI",
-    "description": "Watch an AI agent pay for services on its own, get stopped when it goes over budget or out of scope, and verify every payment on a public record."
+    "description": "An AI agent wallet with spending limits enforced on-chain: it pays for services on its own, is stopped when it goes over budget or out of scope, and every payment is on a public record."
   },
   "banner": "Test network only. No real money.",
-  "heading": "Agent wallet, live",
-  "intro": "An agent with spending limits pays for services on its own. Payments that break a rule are stopped before any money moves, and every payment and refusal is on a public record.",
-  "status": "Coming soon: the first payments will appear here once the wallet is deployed.",
+  "eyebrow": "Agent Wallet · Base Sepolia · x402",
+  "heading": "An agent that pays on its own, and can't overspend",
+  "intro": "An AI agent gets its own wallet with spending limits written into a smart contract. It pays for API calls by itself. Any payment that breaks a rule is refused before money moves, and every payment and refusal is on a public record anyone can check.",
+  "statusLabel": "Status",
+  "status": "In development. The contracts aren't deployed yet; live payments will appear on this page once they are.",
+  "repoCta": "View on GitHub",
+  "specCta": "Read the spec",
+  "how": {
+    "heading": "How a payment works",
+    "steps": [
+      { "title": "The agent calls a paid API", "body": "The API answers 402 Payment Required with a price, for example 0.01 test USDC, using the open x402 standard." },
+      { "title": "The wallet checks the rules", "body": "Before signing, the agent asks its wallet contract to authorise the payment. The contract checks every limit on-chain, where the agent can't get around it." },
+      { "title": "Allowed: the payment settles", "body": "The agent signs a standard x402 payment with the wallet as payer. The x402 facilitator settles it in test USDC and the API returns its data." },
+      { "title": "Refused: nothing moves", "body": "The contract records the refusal as a public event with its reason. No money moves and the API is never paid." }
+    ]
+  },
+  "rules": {
+    "heading": "The rules each agent wallet enforces",
+    "intro": "The operator sets these. A change applies from the agent's very next payment.",
+    "items": [
+      { "name": "Per-payment cap", "body": "No single payment may be larger than this.", "example": "Demo: 1 USDC" },
+      { "name": "Daily budget", "body": "Total spend per day (UTC) can't go over this.", "example": "Demo: 5 USDC" },
+      { "name": "Task budget", "body": "Each task the agent works on has its own budget.", "example": "Demo: market-research, 2 USDC" },
+      { "name": "Allowed payees", "body": "The agent can only pay addresses on its list.", "example": "Demo: the demo API only" },
+      { "name": "Pause switch", "body": "The operator can stop all payments at once.", "example": "Demo: off" }
+    ]
+  },
+  "reasons": {
+    "heading": "Why a payment can be refused",
+    "intro": "Every refusal carries exactly one of these reasons, checked in this order.",
+    "items": [
+      { "code": "PAUSED", "body": "The operator has paused this agent." },
+      { "code": "INVALID_AMOUNT", "body": "The amount is zero, or the payment has already expired." },
+      { "code": "PAYEE_NOT_ALLOWED", "body": "The recipient isn't on the agent's allowed list." },
+      { "code": "OVER_PER_PAYMENT_CAP", "body": "This single payment is above the per-payment cap." },
+      { "code": "OVER_TASK_BUDGET", "body": "It would push the task over its budget." },
+      { "code": "OVER_DAILY_BUDGET", "body": "It would push today's spending over the daily budget." },
+      { "code": "INSUFFICIENT_FUNDS", "body": "The wallet doesn't hold enough USDC." }
+    ]
+  },
+  "preview": {
+    "heading": "What this page will show",
+    "note": "Sample data for illustration. Nothing below is on-chain yet.",
+    "agent": "research-bot-01",
+    "dailyLabel": "Today",
+    "taskLabel": "Task: market-research",
+    "colTime": "Time",
+    "colWhat": "Payment",
+    "colAmount": "Amount",
+    "colResult": "Result",
+    "rows": [
+      { "time": "09:00:12", "what": "api.demo.yunshu.ai/quote", "amount": "0.01", "result": "Paid" },
+      { "time": "09:00:15", "what": "api.demo.yunshu.ai/quote", "amount": "1.50", "result": "Refused · OVER_PER_PAYMENT_CAP" },
+      { "time": "09:00:19", "what": "unlisted-service.example", "amount": "0.01", "result": "Refused · PAYEE_NOT_ALLOWED" }
+    ]
+  },
+  "stack": {
+    "heading": "Built with",
+    "items": ["Solidity + Foundry", "OpenZeppelin", "x402", "USDC on Base Sepolia", "viem", "Cloudflare Workers", "Astro"]
+  },
+  "footer": "Open source under the MIT licence. Runs on a free test network at $0 a month.",
   "langSwitchLabel": "Language",
   "backToSite": "Yunshu AI"
 }
