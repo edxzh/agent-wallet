@@ -39,7 +39,7 @@ by their "(B)" variant described in the same task.
 - [X] T005 [P] Scaffold `packages/service/` as a Cloudflare Worker: `package.json` (deps `hono`, `@x402/hono@^2.28`, `@x402/evm@^2.28`; devDeps `wrangler`, `vitest`), `wrangler.toml` (`name = "agent-wallet-api"`, `main = "src/index.ts"`, `compatibility_date` = today, vars `NETWORK = "eip155:84532"`, `PAYEE_ADDRESS`, `FACILITATOR_URL = "https://www.x402.org/facilitator"`)
 - [X] T006 [P] Scaffold `apps/dashboard/` as an Astro 7 static site matching yunshu.ai. Copy from the yunshu.ai repo: `src/styles/tokens.css`, `fonts.css`, `global.css`, `src/lib/logo-geometry.mjs`, `src/components/Logo.astro`, `LangSwitch.astro` (adapted to `/` and `/zh/`), `scripts/check-i18n.mjs`, `scripts/check-budget.mjs`. Add `astro.config.mjs` (`site: 'https://demo.yunshu.ai'`, `output: 'static'`, `trailingSlash: 'always'`)
 - [X] T007 [P] Create `.github/workflows/ci.yml`: on push/PR, Node 22 and `foundry-rs/foundry-toolchain`, then `forge build && forge test -vvv` in `contracts/`, then `npm ci`, `npm test -ws`, `npm run build -w apps/dashboard`, the budget check and Playwright smoke tests for the dashboard
-- [ ] T008 **(owner)** Generate keys locally with `cast wallet new` (operator, agent, service payee). Fund operator and agent with Base Sepolia ETH and the operator with test USDC from Circle's faucet. Fill `.env` (never committed)
+- [X] T008 *(done 2026-10-08: operator 0.0001 ETH + 10 USDC, agent 0.0001 ETH, from the CDP faucet)* **(owner)** Generate keys locally with `cast wallet new` (operator, agent, service payee). Fund operator and agent with Base Sepolia ETH and the operator with test USDC from Circle's faucet. Fill `.env` (never committed)
 - [X] T009 **(owner approval)** Run `/speckit-constitution` in the new repo to ratify a product constitution: testnet-only, contract security gates (fuzz + invariants must pass), key handling (operator key never in CI), $0 cost ceiling, bilingual accessible dashboard, minimal dependencies. Write it to `.specify/memory/constitution.md`
 
 ---
@@ -48,7 +48,7 @@ by their "(B)" variant described in the same task.
 
 **⚠️ CRITICAL**: T010 decides the payment design for every later phase.
 
-- [ ] T010 Payment-design test (research R2, quickstart scenario 0):
+- [X] T010 *(done 2026-10-08: **Design A confirmed**, see research.md R2 "Result of the test")* Payment-design test (research R2, quickstart scenario 0):
   - write `contracts/src/spike/SpikeWallet1271.sol` (stores an owner key, returns `0x1626ba7e` from `isValidSignature` when the signature recovers to it, can `approve` nothing and holds USDC);
   - write `scripts/spike-x402-1271.ts`, which deploys it to Base Sepolia, funds it with 0.05 test USDC, starts a local `@x402/hono` endpoint priced 0.01 USDC using the x402.org facilitator, and pays it with `@x402/fetch` using a custom `ClientEvmSigner` (`address` = spike wallet, `signTypedData` = agent key);
   - log the 402 body, payment headers, facilitator response and settlement transaction hash;

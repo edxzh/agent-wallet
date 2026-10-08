@@ -69,6 +69,49 @@ For our **policy wallet contract** to be `from`, three things must hold:
   (custom signer) pay a local `@x402/hono` endpoint through the x402.org facilitator, and confirm
   the settlement transaction. Pass means Design A; fail means Design B, recorded here.
 
+### Result of the test (T010, 2026-10-08): **Design A confirmed**
+
+The x402.org facilitator settles standard `exact` payments **from a contract wallet** that
+validates the agent's signature through ERC-1271. Run with `scripts/spike-x402-1271.ts` against
+`contracts/src/spike/SpikeWallet1271.sol`:
+
+| Item | Observed |
+| --- | --- |
+| Test wallet | `0xb2dDeFFD49ab0a6254f4B1db3b26aaeE607F7727` (agent = `0x1F19…C3DB`), [deploy](https://sepolia.basescan.org/tx/0x86ed31026dc8e2ed1f43fa6817461cd0401bf9ac4635c98c86ee14726a775cd4), 357k gas |
+| Payment 1 | 200 OK, [settlement](https://sepolia.basescan.org/tx/0xe733dc33b67f89295fd6c8c04e8c375356aa1c06562e44456faaa7f3f54b5005): USDC `AuthorizationUsed(authorizer = wallet)` and `Transfer(wallet → payee, 0.01)`, 105k gas |
+| Payment 2 | 200 OK, [settlement](https://sepolia.basescan.org/tx/0x899b7ca024d528cdb7ed69643df7b4be92ad9f40af689975252d878a96b08184), the same wallet again |
+| Balances | wallet 0.05 → 0.03 USDC, payee 0 → 0.02 USDC |
+| Who pays gas | The facilitator (`0xd407…f1bf`) submits the settlement. The agent needs no ETH to pay, only to call `authorize` |
+
+**How it works**:
+- The agent signs the EIP-3009 typed data as a normal 65-byte ECDSA signature with
+  `from = wallet`.
+- The facilitator's `@x402/evm` code checks the payer's code. For a contract it verifies through
+  `isValidSignature`, then calls USDC's `transferWithAuthorization(…, v, r, s)`.
+- USDC (FiatToken v2.2) routes that through `SignatureChecker`, which calls the wallet's
+  ERC-1271 check.
+
+So `PolicyWallet.isValidSignature` is the single gate: it accepts only reserved digests (R2,
+step 4).
+
+**Observed x402 v2 wire format (`@x402/*` 2.28)**:
+- **Unpaid**: status `402`, with the requirements in the `PAYMENT-REQUIRED` response **header**
+  (base64 JSON: `x402Version: 2`, `resource`, `accepts[]` with `scheme`, `network`, `amount`,
+  `asset`, `payTo`, `maxTimeoutSeconds` and `extra: { name: "USDC", version: "2" }`). The body
+  is `{}`. contracts/paid-service.md's "body" example therefore lives in this header.
+- **Paying**: the client sends the payload in the `PAYMENT-SIGNATURE` request header.
+- **Paid**: the response carries `PAYMENT-RESPONSE` (base64 JSON
+  `{ success, payer, transaction, network }`).
+- **Legacy names**: v1 used `X-PAYMENT` and `X-PAYMENT-RESPONSE`, and the libraries still
+  recognise them.
+
+**Practical note**: right after a receipt, `https://sepolia.base.org` sometimes answered
+`balanceOf` from a node that was one block behind. Verify by events, or read at the receipt's
+block, never "latest" immediately after.
+
+**Consequence**: Design B (`pay()`, the custom scheme) is not needed. Tasks marked "(B: …)"
+are dropped.
+
 ## R3. Rules on-chain: refusals are events, not reverts
 
 - **Decision**: policy refusals **never revert**. A reverted transaction leaves no log, but
