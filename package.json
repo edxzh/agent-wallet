@@ -11,12 +11,13 @@
     "apps/*"
   ],
   "scripts": {
-    "build:contracts": "cd contracts && forge build",
-    "test:contracts": "cd contracts && forge test -vvv",
-    "test": "npm run test -ws --if-present",
+    "build:contracts": "cd contracts && forge build && cd .. && tsx scripts/export-abi.ts",
+    "test:contracts": "cd contracts && forge test -vv",
+    "test": "npm run test -ws --if-present && npm run test:scripts",
     "typecheck": "npm run typecheck -ws --if-present",
     "snapshot": "tsx scripts/snapshot.ts",
-    "scenario": "npm run cli -w packages/agent -- run-scenario"
+    "scenario": "npm run cli -w packages/agent -- run-scenario",
+    "test:scripts": "vitest run scripts"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "5.6.1",

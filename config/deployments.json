@@ -1,0 +1,24 @@
+{
+  "network": "eip155:84532",
+  "implementation": "0xe5c698f13afa1a2a554651a75f2aead30546e8ef",
+  "wallets": [
+    {
+      "name": "research-bot-01",
+      "address": "0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0",
+      "agent": "0x1F1906b97EBB69dc826bAA03282e0d6F9074C3DB",
+      "createdBlock": 47828734
+    }
+  ],
+  "factory": "0xdc2f3fdcaa54399c315360ba7c831634e0f0f204",
+  "factoryBlock": 47828733,
+  "tasks": [
+    {
+      "id": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
+      "label": "market-research"
+    },
+    {
+      "id": "0xead08f4e28c200ed114a28c17b2374ebe77cddb2c1c4fb36166df1590ed7d468",
+      "label": "archive-research"
+    }
+  ]
+}

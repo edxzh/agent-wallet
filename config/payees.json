@@ -1,3 +1,7 @@
 [
-  { "address": "", "label": "Yunshu demo quote API", "labelZh": "云书演示报价 API" }
+  {
+    "address": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+    "label": "Yunshu demo quote API",
+    "labelZh": "云书演示报价 API"
+  }
 ]

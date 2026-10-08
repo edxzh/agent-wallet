@@ -1,8 +1,9 @@
 name = "agent-wallet-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-07"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 NETWORK = "eip155:84532"
-PAYEE_ADDRESS = ""
+PAYEE_ADDRESS = "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6"
 FACILITATOR_URL = "https://www.x402.org/facilitator"
