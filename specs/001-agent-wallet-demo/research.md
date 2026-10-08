@@ -219,3 +219,38 @@ are dropped.
   where it carries over (see the plan's Constitution Check).
 - **Follow-up**: ratify a **product constitution** in the new repo, covering contract security,
   testnet-only use, the $0 cost ceiling and key handling, before `/speckit-implement`.
+
+## R11. Security review of `contracts/src/` (T054, 2026-10-08)
+
+Manual review of `PolicyWallet.sol` and `PolicyWalletFactory.sol` against the constitution's
+gates, with the test suite as evidence (33 contract tests: unit, 1,000-run fuzz per reason,
+invariants over 12,800 random calls, and a fork test against the real Base Sepolia USDC).
+
+| Area | Finding | Evidence |
+| --- | --- | --- |
+| Signature gate | `isValidSignature` returns the magic value only for a **reserved** digest that recovers to the current agent. Every other use of a 1271 signature from this wallet (USDC `permit`, `cancelAuthorization`, `receiveWithAuthorization`, any other contract) has an unreserved digest and fails. OpenZeppelin `ECDSA.tryRecover` rejects malleable (high-s) signatures | `test_isValidSignature_*`, fork test `unauthorizedPaymentIsRejectedByUsdc` |
+| Digest binding | The digest includes `from = address(this)`, USDC's domain separator, payee, amount, validity window and nonce, so a reservation can't be used by another wallet, token or amount | `test_settlement_*` |
+| Refusals | Every rule failure emits `PaymentRefused` with one reason and returns `false`; no state besides `nonceUsed` changes and no funds move | `Refusals.fuzz.t.sol` (one fuzz per reason + precedence) |
+| Replay | A nonce is attempted once (reused → revert, even after a refusal); USDC marks it used on settlement | `test_authorize_revertsOnReusedNonce_evenAfterRefusal`, `Handler.replay` invariant |
+| Limits | Spend never exceeds the daily or task budget at authorization time across random sequences of authorize, settle, release, rule changes and time | `invariant_noLimitBreachedAtAuthorization` |
+| Funds | USDC leaves the wallet only through settled authorizations (and operator `withdraw`) | `invariant_balanceChangesOnlyBySettlement` |
+| Access | Every operator function reverts for the agent and strangers; the agent can only call `authorize`; `release` is open but only returns budget for expired, unsettled reservations | `test_operatorOnly_revertsForAgentAndStranger`, live `cast call --from agent` (quickstart scenario 3) |
+| Release | `release` requires `now ≥ validBefore` and `authorizationState == false`; USDC rejects settlement at `now ≥ validBefore`, so a released reservation can never settle afterwards; its digest is deleted | `test_release_*` |
+| Reentrancy | External calls are only views on the immutable USDC address (`DOMAIN_SEPARATOR`, `balanceOf`, `authorizationState`) and `safeTransfer` in operator-only `withdraw` | code review |
+| Initialization | The implementation disables initializers; clones are created and initialized in one factory call, so they can't be front-run | `test_clone_cannotBeReinitialized` |
+| Testnet guard | Constructor accepts only chain 84532 (and 31337 for local tests); the deploy script and every CLI command check 84532 | `chainGuard.test.ts`, `Deploy.s.sol` |
+
+**Accepted limitations (documented, not fixed)**:
+- `INSUFFICIENT_FUNDS` compares against the current balance, not balance minus outstanding
+  reservations. Overlapping authorizations beyond the balance fail at settlement and are
+  released later (data-model.md).
+- The agent can hold its own budget hostage with a far-future `validBefore` on an unsettled
+  authorization. Only the agent's own spending is affected; the operator can rotate the agent.
+- The operator can `withdraw` funds behind an outstanding reservation; that payment then fails at
+  settlement. Intended: the operator owns the funds.
+- Not audited by a third party. Test network only.
+
+**Off-chain checks**: the SDK signer refuses any typed data other than a
+`TransferWithAuthorization` from its own wallet, before any transaction; no command prints a
+private key (output is built only from addresses, amounts and hashes); the scheduled workflow
+holds only the agent key; the paid API validates input before charging.

@@ -9,63 +9,159 @@
   "heading": "能自主付费、却不会超支的 agent",
   "intro": "AI agent 拥有自己的钱包，支出上限写在智能合约里。它自己为 API 调用付费。违反规则的付款在资金动用前就被拒绝，每一笔付款和拒绝都记录在任何人都能核对的公开账本上。",
   "statusLabel": "状态",
-  "status": "开发中。合约尚未部署；部署后，实时付款会显示在这个页面上。",
   "repoCta": "在 GitHub 上查看",
   "specCta": "阅读需求说明",
   "how": {
     "heading": "一笔付款如何完成",
     "steps": [
-      { "title": "agent 调用付费 API", "body": "API 按开放的 x402 标准返回 402 Payment Required 和价格，例如 0.01 测试 USDC。" },
-      { "title": "钱包检查规则", "body": "签名之前，agent 先请钱包合约授权这笔付款。合约在链上检查每一项限额，agent 无法绕过。" },
-      { "title": "允许：付款结算", "body": "agent 以钱包为付款方签署标准 x402 付款，由 x402 facilitator 用测试 USDC 结算，API 随即返回数据。" },
-      { "title": "拒绝：资金不动", "body": "合约把拒绝连同原因记录为公开事件。资金不动，API 也收不到钱。" }
+      {
+        "title": "agent 调用付费 API",
+        "body": "API 按开放的 x402 标准返回 402 Payment Required 和价格，例如 0.01 测试 USDC。"
+      },
+      {
+        "title": "钱包检查规则",
+        "body": "签名之前，agent 先请钱包合约授权这笔付款。合约在链上检查每一项限额，agent 无法绕过。"
+      },
+      {
+        "title": "允许：付款结算",
+        "body": "agent 以钱包为付款方签署标准 x402 付款，由 x402 facilitator 用测试 USDC 结算，API 随即返回数据。"
+      },
+      {
+        "title": "拒绝：资金不动",
+        "body": "合约把拒绝连同原因记录为公开事件。资金不动，API 也收不到钱。"
+      }
     ]
   },
   "rules": {
     "heading": "每个 agent 钱包执行的规则",
     "intro": "由运营方设定。改动从 agent 的下一笔付款起生效。",
     "items": [
-      { "name": "单笔上限", "body": "任何一笔付款都不能超过这个金额。", "example": "演示：1 USDC" },
-      { "name": "每日预算", "body": "每天（UTC）的总支出不能超过这个金额。", "example": "演示：5 USDC" },
-      { "name": "任务预算", "body": "agent 的每个任务都有自己的预算。", "example": "演示：market-research，2 USDC" },
-      { "name": "收款白名单", "body": "agent 只能向名单上的地址付款。", "example": "演示：仅限演示 API" },
-      { "name": "暂停开关", "body": "运营方可以一键停止所有付款。", "example": "演示：关闭" }
+      {
+        "name": "单笔上限",
+        "body": "任何一笔付款都不能超过这个金额。",
+        "example": "演示：1.00 USDC"
+      },
+      {
+        "name": "每日预算",
+        "body": "每天（UTC）的总支出不能超过这个金额。",
+        "example": "演示：1.00 USDC"
+      },
+      {
+        "name": "任务预算",
+        "body": "agent 的每个任务都有自己的预算。",
+        "example": "演示：market-research，10.00 USDC"
+      },
+      {
+        "name": "收款白名单",
+        "body": "agent 只能向名单上的地址付款。",
+        "example": "演示：仅限演示 API"
+      },
+      {
+        "name": "暂停开关",
+        "body": "运营方可以一键停止所有付款。",
+        "example": "演示：关闭"
+      }
     ]
   },
   "reasons": {
     "heading": "付款为什么会被拒绝",
     "intro": "每次拒绝都带有且只带有下面一个原因，按此顺序检查。",
     "items": [
-      { "code": "PAUSED", "body": "运营方已暂停这个 agent。" },
-      { "code": "INVALID_AMOUNT", "body": "金额为零，或付款已过期。" },
-      { "code": "PAYEE_NOT_ALLOWED", "body": "收款方不在 agent 的白名单上。" },
-      { "code": "OVER_PER_PAYMENT_CAP", "body": "这笔付款超过了单笔上限。" },
-      { "code": "OVER_TASK_BUDGET", "body": "付款后任务支出会超过任务预算。" },
-      { "code": "OVER_DAILY_BUDGET", "body": "付款后当天支出会超过每日预算。" },
-      { "code": "INSUFFICIENT_FUNDS", "body": "钱包里的 USDC 不够。" }
-    ]
-  },
-  "preview": {
-    "heading": "这个页面将会显示什么",
-    "note": "示例数据，仅作演示。下面的内容都还没有上链。",
-    "agent": "research-bot-01",
-    "dailyLabel": "今天",
-    "taskLabel": "任务：market-research",
-    "colTime": "时间",
-    "colWhat": "付款对象",
-    "colAmount": "金额",
-    "colResult": "结果",
-    "rows": [
-      { "time": "09:00:12", "what": "api.demo.yunshu.ai/quote", "amount": "0.01", "result": "已付款" },
-      { "time": "09:00:15", "what": "api.demo.yunshu.ai/quote", "amount": "1.50", "result": "已拒绝 · OVER_PER_PAYMENT_CAP" },
-      { "time": "09:00:19", "what": "unlisted-service.example", "amount": "0.01", "result": "已拒绝 · PAYEE_NOT_ALLOWED" }
+      {
+        "code": "PAUSED",
+        "body": "运营方已暂停这个 agent。"
+      },
+      {
+        "code": "INVALID_AMOUNT",
+        "body": "金额为零，或付款已过期。"
+      },
+      {
+        "code": "PAYEE_NOT_ALLOWED",
+        "body": "收款方不在 agent 的白名单上。"
+      },
+      {
+        "code": "OVER_PER_PAYMENT_CAP",
+        "body": "这笔付款超过了单笔上限。"
+      },
+      {
+        "code": "OVER_TASK_BUDGET",
+        "body": "付款后任务支出会超过任务预算。"
+      },
+      {
+        "code": "OVER_DAILY_BUDGET",
+        "body": "付款后当天支出会超过每日预算。"
+      },
+      {
+        "code": "INSUFFICIENT_FUNDS",
+        "body": "钱包里的 USDC 不够。"
+      }
     ]
   },
   "stack": {
     "heading": "技术栈",
-    "items": ["Solidity + Foundry", "OpenZeppelin", "x402", "USDC on Base Sepolia", "viem", "Cloudflare Workers", "Astro"]
+    "items": [
+      "Solidity + Foundry",
+      "OpenZeppelin",
+      "x402",
+      "USDC on Base Sepolia",
+      "viem",
+      "Cloudflare Workers",
+      "Astro"
+    ]
   },
   "footer": "以 MIT 许可证开源。运行在免费测试网络上，每月成本为 0 美元。",
   "langSwitchLabel": "语言",
-  "backToSite": "云书 AI"
+  "backToSite": "云书 AI",
+  "statusLive": "运行在 Base Sepolia 测试网络上。更新于 {time}；新的活动几秒内就会出现在这里。",
+  "statusEmpty": "钱包已部署，第一笔活动会显示在这里。",
+  "live": {
+    "heading": "Agent 钱包实时状态",
+    "intro": "直接读取公开区块链记录，这里没有任何模拟数据。",
+    "rulesHeading": "规则",
+    "cap": "单笔上限",
+    "daily": "每日预算",
+    "resets": "每天 00:00 UTC 重置",
+    "payees": "收款白名单",
+    "tasks": "任务预算",
+    "paused": "已暂停",
+    "active": "运行中",
+    "spendHeading": "支出",
+    "today": "今日已支出",
+    "balance": "余额",
+    "timelineHeading": "活动记录",
+    "timelineIntro": "每一笔付款和拒绝，按时间倒序排列，每条都链接到 BaseScan 上的公开记录。",
+    "empty": "暂无活动。",
+    "verify": "核对 ↗",
+    "networkDown": "网络不可用，显示的是 {time} 的数据。",
+    "wallet": "钱包",
+    "contract": "合约 ↗"
+  },
+  "row": {
+    "paid": "已付款 {amount} USDC",
+    "pending": "已授权 {amount} USDC，等待结算",
+    "refused": "已拒绝 {amount} USDC",
+    "expired": "释放了未使用授权占用的 {amount} USDC",
+    "paused": "运营方暂停了 agent",
+    "unpaused": "运营方恢复了 agent",
+    "to": "收款方",
+    "task": "任务",
+    "unknownPayee": "不在白名单的地址",
+    "rule": {
+      "perPaymentCap": "单笔上限：{old} → {new} USDC",
+      "dailyBudget": "每日预算：{old} → {new} USDC",
+      "payeeAllowed": "加入白名单：{payee}",
+      "payeeRemoved": "移出白名单：{payee}",
+      "taskBudget": "任务预算 {task}：{old} → {new} USDC",
+      "agent": "更换了 agent 密钥"
+    }
+  },
+  "reason": {
+    "PAUSED": "运营方已暂停这个 agent",
+    "INVALID_AMOUNT": "金额为零或已过期",
+    "PAYEE_NOT_ALLOWED": "收款方不在白名单上",
+    "OVER_PER_PAYMENT_CAP": "超过单笔上限",
+    "OVER_TASK_BUDGET": "会超出任务预算",
+    "OVER_DAILY_BUDGET": "会超出今日预算",
+    "INSUFFICIENT_FUNDS": "钱包里的 USDC 不够"
+  }
 }

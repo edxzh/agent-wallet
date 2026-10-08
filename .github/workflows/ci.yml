@@ -18,11 +18,13 @@ jobs:
       - name: Install forge-std
         working-directory: contracts
         run: forge install foundry-rs/forge-std --no-git
-      - name: Build and test contracts (unit, fuzz, invariant)
+      - name: Build and test contracts (unit, fuzz, invariant, Base Sepolia fork)
         working-directory: contracts
+        env:
+          RPC_URL: https://sepolia.base.org   # public endpoint, not a secret
         run: |
           forge build
-          if ls test/*.sol >/dev/null 2>&1; then forge test -vvv; else echo "No contract tests yet"; fi
+          forge test -vv
 
   typescript:
     runs-on: ubuntu-latest
@@ -39,3 +41,7 @@ jobs:
         run: npm test
       - name: Build dashboard
         run: npm run build -w apps/dashboard
+      - name: Dashboard smoke tests (Playwright, desktop + phone)
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e -w apps/dashboard

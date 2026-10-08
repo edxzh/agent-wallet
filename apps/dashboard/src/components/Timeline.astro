@@ -1,0 +1,61 @@
+---
+import { t, type Lang } from '../i18n';
+import { toRow, formatTime } from '../lib/rows';
+import { labelsFor, rowTextFor, type WalletHistory } from '../lib/history';
+
+interface Props { lang: Lang; wallet: WalletHistory }
+const { lang, wallet: w } = Astro.props;
+const d = t(lang).live;
+const labels = labelsFor(w, lang);
+const rows = w.events.map((e) => toRow(e, labels, rowTextFor(lang)));
+---
+
+<section class="card timeline" aria-labelledby="tl-h">
+  <h3 id="tl-h">{d.timelineHeading}</h3>
+  <p class="intro muted">{d.timelineIntro}</p>
+  <p class="notice" data-live="notice" hidden></p>
+  {rows.length === 0 && <p class="muted">{d.empty}</p>}
+  <ol role="list" data-live="rows">
+    {rows.map((r) => (
+      <li class:list={['row', r.tone]} data-key={r.key}>
+        <span class="icon" aria-hidden="true">{r.icon}</span>
+        <div class="text">
+          <p class="title">{r.title}</p>
+          {r.detail && <p class="detail">{r.detail}</p>}
+        </div>
+        <div class="meta">
+          <time datetime={r.time}>{formatTime(r.time, lang)}</time>
+          <a href={r.href} rel="noopener" target="_blank">{d.verify}</a>
+        </div>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style is:global>
+  .timeline ol { padding: 0; margin: 0; }
+  .timeline .row { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .timeline .row:last-child { border-bottom: 0; }
+  .timeline .icon { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; background: var(--border); }
+  .timeline .ok .icon { color: #34d399; background: rgb(52 211 153 / 0.14); }
+  .timeline .bad .icon { color: #fca5a5; background: rgb(252 165 165 / 0.14); }
+  .timeline .info .icon { color: var(--accent); background: rgb(34 211 238 / 0.12); }
+  .timeline .title { font-size: 15px; }
+  .timeline .detail { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .timeline .meta { display: grid; justify-items: end; gap: 2px; font: 12px var(--font-mono); color: var(--text-muted); white-space: nowrap; }
+  .timeline .new { animation: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .timeline .new { animation: aw-in 600ms var(--ease-out); }
+    @keyframes aw-in { from { opacity: 0; transform: translateY(-6px); background: rgb(34 211 238 / 0.08); } to { opacity: 1; transform: none; } }
+  }
+  @media (max-width: 640px) {
+    .timeline .row { grid-template-columns: 28px 1fr; }
+    .timeline .meta { grid-column: 2; justify-items: start; grid-auto-flow: column; gap: 12px; }
+  }
+</style>
+<style>
+  h3 { font-size: 18px; }
+  .intro { font-size: 14px; margin: 4px 0 12px; }
+  .notice { font-size: 13px; color: #fbbf24; margin-bottom: 8px; }
+  .muted { color: var(--text-muted); }
+</style>

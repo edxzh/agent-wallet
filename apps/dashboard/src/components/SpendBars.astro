@@ -1,0 +1,42 @@
+---
+import { t, type Lang } from '../i18n';
+import { usdc } from '../lib/rows';
+import type { WalletHistory } from '../lib/history';
+
+interface Props { lang: Lang; wallet: WalletHistory }
+const { lang, wallet: w } = Astro.props;
+const d = t(lang).live;
+const pct = (a: string, b: string) => {
+  const bb = Number(b);
+  return bb > 0 ? Math.min(100, (Number(a) / bb) * 100) : 0;
+};
+const bars = [
+  { label: d.today, spent: w.today.spent, budget: w.policy.dailyBudget, live: 'today' },
+  ...w.tasks.map((x) => ({ label: x.label, spent: x.spent, budget: x.budget, live: '' })),
+];
+---
+
+<section class="card spend" aria-labelledby="spend-h">
+  <h3 id="spend-h">{d.spendHeading}</h3>
+  <ul role="list">
+    {bars.map((b) => (
+      <li data-live={b.live || undefined}>
+        <p class="label"><span>{b.label}</span><span class="mono" data-live-text>{usdc(b.spent)} / {usdc(b.budget)} USDC</span></p>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(pct(b.spent, b.budget))} aria-label={b.label}>
+          <span style={`width:${Math.max(1, pct(b.spent, b.budget))}%`}></span>
+        </div>
+      </li>
+    ))}
+  </ul>
+  <p class="balance"><span>{d.balance}</span><strong class="mono" data-live="balance">{usdc(w.balance)} USDC</strong></p>
+</section>
+
+<style>
+  h3 { font-size: 18px; margin-bottom: 16px; }
+  ul { padding: 0; margin: 0; display: grid; gap: 16px; }
+  .label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+  .meter { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--gradient); }
+  .balance { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .balance span { color: var(--text-muted); }
+</style>

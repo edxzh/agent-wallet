@@ -27,3 +27,7 @@ coverage/
 
 # Foundry libraries (installed in CI with forge install)
 contracts/lib/
+
+# Playwright
+apps/dashboard/test-results/
+apps/dashboard/playwright-report/

@@ -54,3 +54,34 @@ npm run dev -w packages/service              # local paid service, or use api.de
 - [ ] Scenarios 0–12 pass, and scenario 13 is checked monthly.
 - [ ] Website follow-up: the Work section uses a dashboard screenshot, `status: "shipped"` and
       the repo link (feature 001 change).
+
+## Results on Base Sepolia (2026-10-08)
+
+Deployment (`config/deployments.json`): implementation `0xe5c6…46e8ef`, factory `0xdc2f…f0f204`,
+wallet **research-bot-01** `0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0` (agent `0x1F19…C3DB`).
+Demo policy: **1.00 USDC per payment, 1.00 USDC per day** (chosen so every scheduled run can
+show an honest over-daily refusal; see tasks.md T047 note), tasks `market-research` (10.00) and
+`archive-research` (0.005, used by the over-task probe). Funded with 9 USDC.
+
+| # | Scenario | Result |
+| --- | --- | --- |
+| 1 | `pay …/quote` (local `wrangler dev`) | ✅ 200. [authorize](https://sepolia.basescan.org/tx/0xd76f6e6ebe14a341f2a8ea2ef9cacabff400e109a1a5091c5f3ab822198cf66b) → [settlement](https://sepolia.basescan.org/tx/0xc9901a700da9712b92d275133044c60c6b27d24ac48973a60b8793c7d2e93379) |
+| 2 | `run-scenario --seed 1` | ✅ exit 0. 3 payments settled; refused: [over cap 1.50](https://sepolia.basescan.org/tx/0x8b73fcc2dd335b9bf2cd7040ba99df5b39628949a233e57bcd8cea75ca7ac6a2), [unlisted payee](https://sepolia.basescan.org/tx/0xe7ad6ea5948e429d81d7d3913cda8827e2f198023cd7a5ac04bf959040ce0443), [over task](https://sepolia.basescan.org/tx/0xc8474c767f142d06709167afea4b87a1cf64c2f6fbb7f39cd678ae8c27b405bc), [over daily 0.95](https://sepolia.basescan.org/tx/0xc1ad6668ab4af32b49ec6e954276c5ffbfee7997de7655b981a0b7ede07c454a). Balance unchanged by each refusal |
+| 3 | Agent calls `setPolicy` / `setPayee` | ✅ Reverts `NotOperator` (simulated with `cast call --from agent`) |
+| 5 | Replay a used nonce | ✅ Wallet reverts `NonceAlreadyUsed`; USDC `authorizationState` is `true` for the settled nonce |
+| 6 | Expiry + `release-expired` | ✅ The two authorizations from the first attempts (see below) never settled; after they expired (`validBefore` = signing + 300 s, the API's `maxTimeoutSeconds`) `release-expired` returned their 0.02: [release 1](https://sepolia.basescan.org/tx/0x09850950e43a089cba56bdff2ad19d2b8295c4c8dee4cfa51631e1ad5c7680a5), [release 2](https://sepolia.basescan.org/tx/0x1a139aaa9b266e0731de56369a9247274621cf22dbb30152f4875bc7fa059996) |
+| 4 | `set-cap 0.005` → pay; `pause` → pay; `unpause` → pay | ✅ Refused `OVER_PER_PAYMENT_CAP`, then refused `PAUSED`, then paid. Cap restored to 1.00 |
+
+**Found and fixed during the run**: the first two payments were rejected by the facilitator with
+`invalid_exact_evm_signature` although the signature and digest were correct. The facilitator
+checks `isValidSignature` on a node that can lag our receipt by a block, so it didn't yet see the
+reservation. The signer now waits for 3 confirmations (~4 s) after `authorize` before returning
+the signature (`AUTHORIZE_CONFIRMATIONS` in `packages/agent/src/signer.ts`).
+
+**Scenario 9 (live tail, local build)**: with the built dashboard open in Chrome, a `pay` at
+02:33:27 UTC settled at 02:33:39 and its row appeared at the top of the timeline within the next
+10 s poll, marked settled, and the balance counter updated (8.95 → 8.94). The browser's requests
+to `https://sepolia.base.org` returned 200 (no CORS issue) and the console had no errors. The
+blocked-RPC notice is covered by the Playwright test. On `demo.yunshu.ai` itself this still needs
+re-checking after the next deploy (T040).
+

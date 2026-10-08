@@ -55,10 +55,10 @@ by their "(B)" variant described in the same task.
   - write the outcome (**Design A confirmed** or **Design B**, with the facilitator's error) and the observed header names into `specs/001-agent-wallet-demo/research.md` §R2.
 
   Depends on T003–T005 and T008
-- [ ] T011 [P] Implement `packages/agent/src/chainGuard.ts`: `assertBaseSepolia(client)` throws `WrongNetworkError` unless `eth_chainId === 84532`; every CLI entry point calls it first (exit code 1). Unit test in `packages/agent/test/chainGuard.test.ts`
-- [ ] T012 [P] Create `contracts/src/Reason.sol` (the `Reason` enum with values exactly as in data-model.md) and `contracts/src/IPolicyWallet.sol` (events and function signatures exactly as in `contracts/policy-wallet.md`; Design B adds `pay` and `PaymentSettled`)
-- [ ] T013 [P] Create `packages/agent/src/config.ts` (USDC address `0x036CbD53842c5426634e7929541eC2318f3dCF7e`, chain id 84532, default RPC, BaseScan URL builder, loading `.env`) and `config/payees.json` (`[{ "address": "<SERVICE_PAYEE>", "label": "Yunshu demo quote API" }]`)
-- [ ] T014 Add `scripts/export-abi.ts`, which reads `contracts/out/PolicyWallet.sol/PolicyWallet.json` and `PolicyWalletFactory.json` after `forge build` and writes `packages/agent/src/abi.ts` (`as const` ABIs for viem). Wire it to the root `build` script after `forge build`. Depends on T012
+- [X] T011 [P] Implement `packages/agent/src/chainGuard.ts`: `assertBaseSepolia(client)` throws `WrongNetworkError` unless `eth_chainId === 84532`; every CLI entry point calls it first (exit code 1). Unit test in `packages/agent/test/chainGuard.test.ts`
+- [X] T012 [P] Create `contracts/src/Reason.sol` (the `Reason` enum with values exactly as in data-model.md) and `contracts/src/IPolicyWallet.sol` (events and function signatures exactly as in `contracts/policy-wallet.md`; Design B adds `pay` and `PaymentSettled`)
+- [X] T013 [P] Create `packages/agent/src/config.ts` (USDC address `0x036CbD53842c5426634e7929541eC2318f3dCF7e`, chain id 84532, default RPC, BaseScan URL builder, loading `.env`) and `config/payees.json` (`[{ "address": "<SERVICE_PAYEE>", "label": "Yunshu demo quote API" }]`)
+- [X] T014 Add `scripts/export-abi.ts`, which reads `contracts/out/PolicyWallet.sol/PolicyWallet.json` and `PolicyWalletFactory.json` after `forge build` and writes `packages/agent/src/abi.ts` (`as const` ABIs for viem). Wire it to the root `build` script after `forge build`. Depends on T012
 
 **Checkpoint**: T010's verdict is recorded; the ABIs export; the chain guard is tested.
 
@@ -74,40 +74,40 @@ settles and is recorded.
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Write `contracts/test/PolicyWallet.t.sol`:
+- [X] T015 [P] [US1] Write `contracts/test/PolicyWallet.t.sol`:
   - `authorize` with all rules satisfied returns `true`, emits `PaymentAuthorized` with the EIP-712 digest, increases `spentOn(today)` and the task's `spent`;
   - `isValidSignature` returns the magic value only for a reserved digest signed by `agent`, and `0xffffffff` for an unreserved digest or a non-agent signer;
   - `createWallet` sets operator, agent and policy.
-- [ ] T016 [P] [US1] Write `contracts/test/Erc1271.fork.t.sol` (fork Base Sepolia via `vm.createSelectFork("base_sepolia")`): fund a `PolicyWallet` with USDC via `deal`, `authorize` a nonce, sign the `TransferWithAuthorization` digest with the agent key, call USDC's `transferWithAuthorization(…, bytes signature)` and assert the payee received the amount. Design B: test `pay()` moving USDC instead.
+- [X] T016 [P] [US1] Write `contracts/test/Erc1271.fork.t.sol` (fork Base Sepolia via `vm.createSelectFork("base_sepolia")`): fund a `PolicyWallet` with USDC via `deal`, `authorize` a nonce, sign the `TransferWithAuthorization` digest with the agent key, call USDC's `transferWithAuthorization(…, bytes signature)` and assert the payee received the amount. Design B: test `pay()` moving USDC instead.
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement `contracts/src/PolicyWallet.sol` (initializer-based for clones):
+- [X] T017 [US1] Implement `contracts/src/PolicyWallet.sol` (initializer-based for clones):
   - storage (operator, agent, token, name, paused, perPaymentCap, dailyBudget, `spent[day]`, tasks, payees, `reservations[nonce]`, `reservedDigest[digest]`);
   - `authorize` success path computing the digest with `token.DOMAIN_SEPARATOR()` and the EIP-3009 `TRANSFER_WITH_AUTHORIZATION_TYPEHASH`;
   - `isValidSignature` via OpenZeppelin `ECDSA.recover`;
   - views from `contracts/policy-wallet.md`.
 
   (B) Implement `pay()`, transferring USDC with `SafeERC20` and emitting `PaymentSettled`.
-- [ ] T018 [US1] Implement `contracts/src/PolicyWalletFactory.sol` with OpenZeppelin `Clones.clone` of a PolicyWallet implementation, `createWallet(agent, name, cap, daily)` initialising with `msg.sender` as operator and emitting `WalletCreated`. Depends on T017
-- [ ] T019 [P] [US1] Write `contracts/script/Deploy.s.sol`: `require(block.chainid == 84532)`, deploy the implementation and factory, and print addresses. The CLI's `deploy-factory` uses the same guard
-- [ ] T020 [US1] Implement `packages/agent/src/signer.ts` `createPolicyWalletSigner({ wallet, agentKey, taskId, rpcUrl })`, returning a `ClientEvmSigner`:
+- [X] T018 [US1] Implement `contracts/src/PolicyWalletFactory.sol` with OpenZeppelin `Clones.clone` of a PolicyWallet implementation, `createWallet(agent, name, cap, daily)` initialising with `msg.sender` as operator and emitting `WalletCreated`. Depends on T017
+- [X] T019 [P] [US1] Write `contracts/script/Deploy.s.sol`: `require(block.chainid == 84532)`, deploy the implementation and factory, and print addresses. The CLI's `deploy-factory` uses the same guard
+- [X] T020 [US1] Implement `packages/agent/src/signer.ts` `createPolicyWalletSigner({ wallet, agentKey, taskId, rpcUrl })`, returning a `ClientEvmSigner`:
   - `address` = wallet;
   - `signTypedData` validates that `primaryType === 'TransferWithAuthorization'` and `message.from === wallet`;
   - it sends `authorize(nonce, to, value, validAfter, validBefore, taskId)` with the agent key and waits for the receipt;
   - if the receipt has `PaymentRefused`, it throws `PolicyRefusedError(reason, nonce, txHash)`; otherwise it returns the agent's signature over the typed data.
 
   (B) Export `payWithPolicyWallet(url)`, implementing the custom-scheme flow from `contracts/paid-service.md`. Depends on T014
-- [ ] T021 [P] [US1] Write `packages/agent/test/signer.test.ts` (Vitest with a mocked viem client): refused receipt → `PolicyRefusedError` with the right reason and no signature produced; wrong `from` or `primaryType` → throws before any transaction; authorized → returns a signature that recovers to the agent key
-- [ ] T022 [US1] Implement `packages/service/src/index.ts` (Hono):
+- [X] T021 [P] [US1] Write `packages/agent/test/signer.test.ts` (Vitest with a mocked viem client): refused receipt → `PolicyRefusedError` with the right reason and no signature produced; wrong `from` or `primaryType` → throws before any transaction; authorized → returns a signature that recovers to the agent key
+- [X] T022 [US1] Implement `packages/service/src/index.ts` (Hono):
   - refuse to start unless `NETWORK === "eip155:84532"`;
   - `GET /health`;
   - `GET /quote?pair=` behind `@x402/hono` payment middleware (scheme `exact`, 10000 units USDC, `payTo = PAYEE_ADDRESS`, facilitator x402.org), returning the deterministic sample body from `contracts/paid-service.md`;
   - `400` for a bad pair.
 
   (B) Middleware that verifies `PaymentSettled` on-chain by tx hash and nonce. Add `packages/service/test/quote.test.ts` for 402 without payment and 400 for a bad pair
-- [ ] T023 [US1] Implement `packages/agent/src/cli.ts` commands `deploy-factory`, `create-wallet`, `set-payee`, `set-task`, `pay <url> [--task label]` and `status`, per `contracts/agent-cli.md`. Output JSON lines (`--pretty` for humans), use the exit codes listed there, and call `assertBaseSepolia` first. Depends on T011, T020
-- [ ] T024 [US1] **(owner-funded)** Deploy to Base Sepolia (`deploy-factory`, `create-wallet research-bot-01 --cap 1 --daily 5`, `set-payee`, `set-task market-research --budget 2`, fund the wallet with 20 USDC). Record the addresses in `config/deployments.json` and run quickstart scenario 1 against a local `wrangler dev` service
+- [X] T023 [US1] Implement `packages/agent/src/cli.ts` commands `deploy-factory`, `create-wallet`, `set-payee`, `set-task`, `pay <url> [--task label]` and `status`, per `contracts/agent-cli.md`. Output JSON lines (`--pretty` for humans), use the exit codes listed there, and call `assertBaseSepolia` first. Depends on T011, T020
+- [X] T024 [US1] **(owner-funded)** Deploy to Base Sepolia (`deploy-factory`, `create-wallet research-bot-01 --cap 1 --daily 5`, `set-payee`, `set-task market-research --budget 2`, fund the wallet with 20 USDC). Record the addresses in `config/deployments.json` and run quickstart scenario 1 against a local `wrangler dev` service
 
 **Checkpoint**: one real x402 payment settled from a policy wallet on Base Sepolia.
 
@@ -123,20 +123,20 @@ suites green.
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Write `contracts/test/Refusals.fuzz.t.sol`: one fuzz test per `Reason` (PAUSED, INVALID_AMOUNT, PAYEE_NOT_ALLOWED, OVER_PER_PAYMENT_CAP, OVER_TASK_BUDGET, OVER_DAILY_BUDGET, INSUFFICIENT_FUNDS) with fuzzed amounts and timestamps. Each asserts `authorize` returns `false`, emits `PaymentRefused` with exactly that reason, doesn't revert, and leaves the USDC balance, `spentOn` and task `spent` unchanged. Add a precedence test where several rules fail and the first in data-model order wins
-- [ ] T026 [P] [US2] Write `contracts/test/Invariants.t.sol` with a `Handler` that randomly calls `authorize` (random amounts, payees, tasks, nonces), `release` after `vm.warp`, `setPolicy`, `setTask` and `vm.warp` across days. Invariants:
+- [X] T025 [P] [US2] Write `contracts/test/Refusals.fuzz.t.sol`: one fuzz test per `Reason` (PAUSED, INVALID_AMOUNT, PAYEE_NOT_ALLOWED, OVER_PER_PAYMENT_CAP, OVER_TASK_BUDGET, OVER_DAILY_BUDGET, INSUFFICIENT_FUNDS) with fuzzed amounts and timestamps. Each asserts `authorize` returns `false`, emits `PaymentRefused` with exactly that reason, doesn't revert, and leaves the USDC balance, `spentOn` and task `spent` unchanged. Add a precedence test where several rules fail and the first in data-model order wins
+- [X] T026 [P] [US2] Write `contracts/test/Invariants.t.sol` with a `Handler` that randomly calls `authorize` (random amounts, payees, tasks, nonces), `release` after `vm.warp`, `setPolicy`, `setTask` and `vm.warp` across days. Invariants:
   - every successful authorization kept `spentOn(day) ≤ dailyBudget` and `task.spent ≤ task.budget` at the time it was made;
   - no nonce is authorized twice;
   - the wallet's USDC balance only changes through settled authorizations.
-- [ ] T027 [P] [US2] Add to `contracts/test/PolicyWallet.t.sol`: each operator-only function (`setPolicy`, `setPayee`, `setTask`, `setAgent`, `pause`, `unpause`, `withdraw`) reverts when called by the agent or a stranger; `authorize` reverts for non-agent callers and for a reused nonce
+- [X] T027 [P] [US2] Add to `contracts/test/PolicyWallet.t.sol`: each operator-only function (`setPolicy`, `setPayee`, `setTask`, `setAgent`, `pause`, `unpause`, `withdraw`) reverts when called by the agent or a stranger; `authorize` reverts for non-agent callers and for a reused nonce
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] In `contracts/src/PolicyWallet.sol`, implement the ordered rule checks in `authorize`, returning `false` and emitting `PaymentRefused` (never reverting) for: PAUSED, INVALID_AMOUNT (amount 0 or `validBefore <= block.timestamp`), PAYEE_NOT_ALLOWED, OVER_PER_PAYMENT_CAP, OVER_TASK_BUDGET (unknown task has budget 0), OVER_DAILY_BUDGET (`day = block.timestamp / 1 days`), INSUFFICIENT_FUNDS (`token.balanceOf(this) < amount`). Revert on a reused nonce and a non-agent caller. Depends on T017
-- [ ] T029 [US2] Implement the operator setters `setPolicy`, `setPayee`, `setTask` and `setAgent` with `onlyOperator`, each emitting `RuleChanged(field, key, old, new)`, plus `withdraw(to, amount)`, in `contracts/src/PolicyWallet.sol`
-- [ ] T030 [US2] Implement `release(nonce)` in `contracts/src/PolicyWallet.sol`: require `block.timestamp >= validBefore` and `!IUSDC(token).authorizationState(address(this), nonce)`, then return the amount to `spent[day-of-authorization]` and the task's spent, delete the reservation and digest, and emit `PaymentExpired`. (B) Not needed
-- [ ] T031 [US2] Add `release-expired` to `packages/agent/src/cli.ts`. It scans this wallet's `PaymentAuthorized` events without a matching USDC `AuthorizationUsed` whose `validBefore` has passed, and calls `release` for each
-- [ ] T032 [US2] **(owner-funded)** Run quickstart scenarios 2 (each refusal on Base Sepolia, wallet balance unchanged), 3 (agent `setPolicy` reverts), 5 (replay of a signed payload rejected) and 6 (expiry plus `release-expired`). Record the transaction hashes in `specs/001-agent-wallet-demo/quickstart.md`
+- [X] T028 [US2] In `contracts/src/PolicyWallet.sol`, implement the ordered rule checks in `authorize`, returning `false` and emitting `PaymentRefused` (never reverting) for: PAUSED, INVALID_AMOUNT (amount 0 or `validBefore <= block.timestamp`), PAYEE_NOT_ALLOWED, OVER_PER_PAYMENT_CAP, OVER_TASK_BUDGET (unknown task has budget 0), OVER_DAILY_BUDGET (`day = block.timestamp / 1 days`), INSUFFICIENT_FUNDS (`token.balanceOf(this) < amount`). Revert on a reused nonce and a non-agent caller. Depends on T017
+- [X] T029 [US2] Implement the operator setters `setPolicy`, `setPayee`, `setTask` and `setAgent` with `onlyOperator`, each emitting `RuleChanged(field, key, old, new)`, plus `withdraw(to, amount)`, in `contracts/src/PolicyWallet.sol`
+- [X] T030 [US2] Implement `release(nonce)` in `contracts/src/PolicyWallet.sol`: require `block.timestamp >= validBefore` and `!IUSDC(token).authorizationState(address(this), nonce)`, then return the amount to `spent[day-of-authorization]` and the task's spent, delete the reservation and digest, and emit `PaymentExpired`. (B) Not needed
+- [X] T031 [US2] Add `release-expired` to `packages/agent/src/cli.ts`. It scans this wallet's `PaymentAuthorized` events without a matching USDC `AuthorizationUsed` whose `validBefore` has passed, and calls `release` for each
+- [X] T032 *(2026-10-08: scenarios 2, 3, 5 and 6 done and recorded in quickstart.md)* [US2] **(owner-funded)** Run quickstart scenarios 2 (each refusal on Base Sepolia, wallet balance unchanged), 3 (agent `setPolicy` reverts), 5 (replay of a signed payload rejected) and 6 (expiry plus `release-expired`). Record the transaction hashes in `specs/001-agent-wallet-demo/quickstart.md`
 
 **Checkpoint**: all seven refusals on the public record; fuzz and invariants green in CI.
 
@@ -153,8 +153,8 @@ readable.
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Write `scripts/snapshot.test.ts` (Vitest, recorded RPC fixtures in `scripts/fixtures/`): decodes every event kind into record entries per data-model.md, joins USDC `AuthorizationUsed` to `PaymentAuthorized` by nonce to mark `settled`, never requests more than 500 blocks per `eth_getLogs`, and resumes from `lastBlock + 1`
-- [ ] T034 [P] [US3] Write Playwright smoke tests in `apps/dashboard/tests/dashboard.spec.ts`:
+- [X] T033 [P] [US3] Write `scripts/snapshot.test.ts` (Vitest, recorded RPC fixtures in `scripts/fixtures/`): decodes every event kind into record entries per data-model.md, joins USDC `AuthorizationUsed` to `PaymentAuthorized` by nonce to mark `settled`, never requests more than 500 blocks per `eth_getLogs`, and resumes from `lastBlock + 1`
+- [X] T034 [P] [US3] Write Playwright smoke tests in `apps/dashboard/tests/dashboard.spec.ts`:
   - `/` and `/zh/` render the rules, spend bars and at least one timeline row from a fixture `history.json`;
   - every row has a `verify` link to `https://sepolia.basescan.org/tx/0x…`;
   - the testnet banner is present;
@@ -163,7 +163,7 @@ readable.
 
 ### Implementation for User Story 3
 
-- [ ] T035 [US3] Implement `scripts/snapshot.ts`:
+- [X] T035 [US3] Implement `scripts/snapshot.ts`:
   - read `history.json` (or start at each wallet's creation block from `config/deployments.json`);
   - fetch the wallet and USDC (`authorizer = wallet`) logs in ≤ 500-block chunks up to `latest`;
   - read the current views (policy, paused, tasks, payees, `spentOn(today)`, balance);
@@ -171,15 +171,15 @@ readable.
   - write `apps/dashboard/src/data/history.json` per `contracts/dashboard.md`.
 
   Root script: `npm run snapshot`. Depends on T014
-- [ ] T036 [P] [US3] Create `apps/dashboard/src/i18n/en.json` and `zh.json` with identical keys: page copy, the testnet banner ("Test network only. No real money." / "仅测试网络，不涉及真实资金。"), labels for each rule, timeline kinds, and `reason.*` plain-language text for all seven reasons. Wire `scripts/check-i18n.mjs` into `prebuild`
-- [ ] T037 [US3] Build the dashboard pages in `apps/dashboard/src/pages/index.astro` (English) and `src/pages/zh/index.astro`, with components:
+- [X] T036 [P] [US3] Create `apps/dashboard/src/i18n/en.json` and `zh.json` with identical keys: page copy, the testnet banner ("Test network only. No real money." / "仅测试网络，不涉及真实资金。"), labels for each rule, timeline kinds, and `reason.*` plain-language text for all seven reasons. Wire `scripts/check-i18n.mjs` into `prebuild`
+- [X] T037 [US3] Build the dashboard pages in `apps/dashboard/src/pages/index.astro` (English) and `src/pages/zh/index.astro`, with components:
   - `src/components/RulesCard.astro`: cap, daily budget with UTC reset countdown, payees with labels, tasks;
   - `SpendBars.astro`: today and per-task spent/budget, balance;
   - `Timeline.astro`: newest first; icons ✓ ✕ ↺ ⚙; amount, payee label, task label, relative time, plain-language reason, `verify ↗`;
   - `TestnetBanner.astro`.
 
   Rendered statically from `src/data/history.json`, one template set for both languages. Depends on T035, T036
-- [ ] T038 [US3] Implement `apps/dashboard/src/scripts/live-tail.ts`, dynamically imported after `load` and idle:
+- [X] T038 [US3] Implement `apps/dashboard/src/scripts/live-tail.ts`, dynamically imported after `load` and idle:
   - poll `eth_getLogs` every 10 s from `lastBlock + 1` in ≤ 500-block steps (cap 10 steps per tick);
   - decode with viem `decodeEventLog`, prepend rows, update the counters;
   - animate inserts only under `prefers-reduced-motion: no-preference`;
@@ -201,11 +201,11 @@ dashboard.
 **Independent Test**: Quickstart scenario 4. `set-cap 0.005` then `pay` is refused; `pause` then
 `pay` is refused with "agent paused"; both changes appear as ⚙ rows.
 
-- [ ] T041 [P] [US4] Add pause/unpause tests to `contracts/test/PolicyWallet.t.sol`: after `pause`, any `authorize` is refused with `PAUSED` and no revert; `unpause` restores it; `Paused`/`Unpaused` and `RuleChanged` events are emitted; a lowered cap applies to the next call
-- [ ] T042 [US4] Implement `pause()`/`unpause()` (`onlyOperator`, emitting `Paused`/`Unpaused`) in `contracts/src/PolicyWallet.sol`. Depends on T028
-- [ ] T043 [US4] Add CLI commands `set-cap`, `set-daily`, `pause` and `unpause` (operator key) to `packages/agent/src/cli.ts`
-- [ ] T044 [US4] Show a paused badge on `RulesCard.astro` and render `ruleChange`/`paused`/`unpaused` rows in `Timeline.astro` with old → new values, with en/zh labels in `apps/dashboard/src/i18n/*.json`
-- [ ] T045 [US4] **(owner-funded)** Run quickstart scenario 4 on Base Sepolia and confirm the dashboard shows the changes within 30 s
+- [X] T041 [P] [US4] Add pause/unpause tests to `contracts/test/PolicyWallet.t.sol`: after `pause`, any `authorize` is refused with `PAUSED` and no revert; `unpause` restores it; `Paused`/`Unpaused` and `RuleChanged` events are emitted; a lowered cap applies to the next call
+- [X] T042 [US4] Implement `pause()`/`unpause()` (`onlyOperator`, emitting `Paused`/`Unpaused`) in `contracts/src/PolicyWallet.sol`. Depends on T028
+- [X] T043 [US4] Add CLI commands `set-cap`, `set-daily`, `pause` and `unpause` (operator key) to `packages/agent/src/cli.ts`
+- [X] T044 [US4] Show a paused badge on `RulesCard.astro` and render `ruleChange`/`paused`/`unpaused` rows in `Timeline.astro` with old → new values, with en/zh labels in `apps/dashboard/src/i18n/*.json`
+- [X] T045 *(2026-10-08: set-cap 0.005 → next pay refused OVER_PER_PAYMENT_CAP; pause → refused PAUSED; unpause → paid; restored cap 1.00. Rows appear in the snapshot; live tail polls every 10 s)* [US4] **(owner-funded)** Run quickstart scenario 4 on Base Sepolia and confirm the dashboard shows the changes within 30 s
 
 ---
 
@@ -217,15 +217,15 @@ dashboard.
 from both days, each run has at least one settled and one refused payment, and low funds stop
 the run cleanly.
 
-- [ ] T046 [P] [US5] Write `packages/agent/test/scenario.test.ts` (mocked signer and fetch): `run-scenario` performs ~3 allowed payments and attempts over-cap, over-task, over-daily and unlisted-payee; exits `0` when every outcome matches, `2` on a mismatch, `3` on `INSUFFICIENT_FUNDS`
-- [ ] T047 [US5] Implement `packages/agent/src/scenario.ts` and the `run-scenario [--seed n]` CLI command:
+- [X] T046 [P] [US5] Write `packages/agent/test/scenario.test.ts` (mocked signer and fetch): `run-scenario` performs ~3 allowed payments and attempts over-cap, over-task, over-daily and unlisted-payee; exits `0` when every outcome matches, `2` on a mismatch, `3` on `INSUFFICIENT_FUNDS`
+- [X] T047 *(demo policy set to 1.00 per payment / 1.00 per day so the over-daily probe is honest every run; probes are direct `authorize` attempts; expectations are computed from on-chain state before each step)* [US5] Implement `packages/agent/src/scenario.ts` and the `run-scenario [--seed n]` CLI command:
   - a deterministic plan per seed;
   - each step's expected outcome is compared with the actual;
   - JSON lines per step;
   - stop on insufficient funds with exit 3.
 
   Depends on T023, T031
-- [ ] T048 [US5] Create `.github/workflows/agent-run.yml`:
+- [X] T048 [US5] Create `.github/workflows/agent-run.yml`:
   - `schedule: cron '17 */6 * * *'` plus `workflow_dispatch`;
   - `permissions: contents: write`; `concurrency: agent-run`;
   - steps: `npm ci`, `npx agent-wallet run-scenario`, `npx agent-wallet release-expired`, `npm run snapshot`;
@@ -243,7 +243,7 @@ the run cleanly.
 
 **Independent Test**: Quickstart scenario 12 on a clean machine.
 
-- [ ] T051 [US6] Write `README.md`, in English with a short Chinese summary: what it is, architecture diagram (wallet → authorize → x402 → facilitator → USDC; dashboard snapshot plus live tail), the testnet-only warning, prerequisites, owner funding steps, deploy and `pay`/`run-scenario` commands, refusal reasons table, links to the dashboard and the spec
+- [X] T051 [US6] Write `README.md`, in English with a short Chinese summary: what it is, architecture diagram (wallet → authorize → x402 → facilitator → USDC; dashboard snapshot plus live tail), the testnet-only warning, prerequisites, owner funding steps, deploy and `pay`/`run-scenario` commands, refusal reasons table, links to the dashboard and the spec
 - [ ] T052 [US6] Run quickstart scenario 12 with someone else's machine or a fresh clone in a clean container (`docker run node:22`); time it and fix any README gaps
 
 ---
@@ -251,7 +251,7 @@ the run cleanly.
 ## Phase 9: Polish & Cross-Cutting Concerns
 
 - [ ] T053 **(owner, Cloudflare dashboard)** Deploy `packages/service` with Cloudflare Workers Builds from `edxzh/agent-wallet` (root `packages/service`) on custom domain `api.demo.yunshu.ai`; set `PAYEE_ADDRESS`. Re-run scenario 1 against the deployed URL
-- [ ] T054 Run a security review of `contracts/src/` (the `/security-review` command plus a manual checklist: reentrancy impossible since no external calls before state writes in `authorize`; signature malleability via OpenZeppelin `ECDSA`; digest bound to `from = this`, token domain and nonce; operator-only coverage; no `selfdestruct` or `delegatecall` in clones beyond EIP-1167). Fix findings and record them in `specs/001-agent-wallet-demo/research.md`
+- [X] T054 Run a security review of `contracts/src/` (the `/security-review` command plus a manual checklist: reentrancy impossible since no external calls before state writes in `authorize`; signature malleability via OpenZeppelin `ECDSA`; digest bound to `from = this`, token domain and nonce; operator-only coverage; no `selfdestruct` or `delegatecall` in clones beyond EIP-1167). Fix findings and record them in `specs/001-agent-wallet-demo/research.md`
 - [ ] T055 In the **yunshu.ai repo**, update the website's Work section:
   - in `src/data/site.json`, set `work.status: "shipped"`, `repoUrl: "https://github.com/edxzh/agent-wallet"` and `image` to a dashboard screenshot saved as `public/work/agent-wallet.{webp,avif}` at 1x/2x;
   - update `work.heading`/`description` copy in `src/i18n/en.json` and `zh.json`;

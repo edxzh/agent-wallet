@@ -1,15 +1,33 @@
 ---
 import { t, type Lang } from '../i18n';
+import RulesCard from './RulesCard.astro';
+import SpendBars from './SpendBars.astro';
+import Timeline from './Timeline.astro';
+import { history, labelsFor, rowTextFor } from '../lib/history';
+import { formatTime } from '../lib/rows';
 
 interface Props {
   lang: Lang;
 }
-const d = t(Astro.props.lang);
+const { lang } = Astro.props;
+const d = t(lang);
 const repo = 'https://github.com/edxzh/agent-wallet';
 const spec = `${repo}/blob/main/specs/001-agent-wallet-demo/spec.md`;
-// Sample budgets for the preview only (matches the preview rows: one 0.01 payment settled).
-const sample = { dailySpent: 0.01, daily: 5, taskSpent: 0.01, task: 2 };
-const pct = (a: number, b: number) => `${Math.max(2, (a / b) * 100)}%`;
+const wallet = history?.wallets[0];
+const updated = history ? formatTime(history.generatedAt, lang) : '';
+// Data for the live tail (src/scripts/live-tail.ts): small, no event history beyond pending rows.
+const liveData = wallet && history && {
+  lang,
+  lastBlock: history.lastBlock,
+  generatedAt: history.generatedAt,
+  updated,
+  wallet: wallet.address,
+  dailyBudget: wallet.policy.dailyBudget,
+  pending: wallet.events.filter((e) => e.kind === 'authorized' && !e.settled),
+  labels: labelsFor(wallet, lang),
+  text: rowTextFor(lang),
+  networkDown: d.live.networkDown,
+};
 ---
 
 <section class="hero">
@@ -17,14 +35,33 @@ const pct = (a: number, b: number) => `${Math.max(2, (a / b) * 100)}%`;
   <h1>{d.heading}</h1>
   <p class="intro">{d.intro}</p>
   <p class="status card">
-    <span class="dot" aria-hidden="true"></span>
-    <strong>{d.statusLabel}:</strong>{' '}{d.status}
+    <span class:list={['dot', wallet && 'live']} aria-hidden="true"></span>
+    <strong>{d.statusLabel}:</strong>{' '}{wallet ? d.statusLive.replace('{time}', updated) : d.statusEmpty}
   </p>
   <div class="ctas">
     <a class="btn btn-primary" href={repo}>{d.repoCta}</a>
     <a class="btn btn-secondary" href={spec}>{d.specCta}</a>
   </div>
 </section>
+
+{wallet && (
+  <section class="section live" aria-labelledby="live">
+    <h2 id="live">{d.live.heading}</h2>
+    <p class="lead muted">
+      {d.live.intro}{' '}
+      <span class="mono">{d.live.wallet} {wallet.name}</span>{' '}
+      <a href={`https://sepolia.basescan.org/address/${wallet.address}`} rel="noopener" target="_blank">{d.live.contract}</a>
+    </p>
+    <div class="live-grid">
+      <div class="col">
+        <RulesCard lang={lang} wallet={wallet} />
+        <SpendBars lang={lang} wallet={wallet} />
+      </div>
+      <Timeline lang={lang} wallet={wallet} />
+    </div>
+    <script type="application/json" id="aw-live" set:html={JSON.stringify(liveData)} />
+  </section>
+)}
 
 <section class="section" aria-labelledby="how">
   <h2 id="how">{d.how.heading}</h2>
@@ -72,58 +109,20 @@ const pct = (a: number, b: number) => `${Math.max(2, (a / b) * 100)}%`;
   </ol>
 </section>
 
-<section class="section" aria-labelledby="preview">
-  <h2 id="preview">{d.preview.heading}</h2>
-  <p class="sample mono" role="note">{d.preview.note}</p>
-  <div class="card preview">
-    <p class="agent mono">{d.preview.agent}</p>
-    <div class="meters">
-      <div>
-        <p class="meter-label">
-          <span>{d.preview.dailyLabel}</span>
-          <span class="mono">{sample.dailySpent.toFixed(2)} / {sample.daily.toFixed(2)} USDC</span>
-        </p>
-        <div class="meter"><span style={`width:${pct(sample.dailySpent, sample.daily)}`}></span></div>
-      </div>
-      <div>
-        <p class="meter-label">
-          <span>{d.preview.taskLabel}</span>
-          <span class="mono">{sample.taskSpent.toFixed(2)} / {sample.task.toFixed(2)} USDC</span>
-        </p>
-        <div class="meter"><span style={`width:${pct(sample.taskSpent, sample.task)}`}></span></div>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">{d.preview.colTime}</th>
-            <th scope="col">{d.preview.colWhat}</th>
-            <th scope="col">{d.preview.colAmount}</th>
-            <th scope="col">{d.preview.colResult}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            d.preview.rows.map((r, i) => (
-              <tr>
-                <td class="mono">{r.time}</td>
-                <td class="mono">{r.what}</td>
-                <td class="mono">{r.amount}</td>
-                <td class:list={['mono', i === 0 ? 'ok' : 'bad']}>{r.result}</td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
 <section class="section" aria-labelledby="stack">
   <h2 id="stack">{d.stack.heading}</h2>
   <ul class="chips" role="list">{d.stack.items.map((s) => <li class="mono">{s}</li>)}</ul>
 </section>
+
+<script>
+  // Load the live tail after first paint and idle time, so it never costs first-screen JS.
+  const load = () => import('../scripts/live-tail').then((m) => m.start());
+  const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb) : setTimeout(cb, 1));
+  if (document.getElementById('aw-live')) {
+    if (document.readyState === 'complete') idle(load);
+    else addEventListener('load', () => idle(load));
+  }
+</script>
 
 <footer class="foot muted">
   <p>{d.footer}</p>
@@ -238,69 +237,24 @@ const pct = (a: number, b: number) => `${Math.max(2, (a / b) * 100)}%`;
     color: #fca5a5;
     overflow-wrap: anywhere;
   }
-  .sample {
-    display: inline-block;
-    margin-bottom: 20px;
-    padding: 4px 12px;
-    border: 1px dashed var(--text-muted);
-    border-radius: 999px;
-    font-size: 13px;
-    color: var(--text-muted);
+  .dot.live {
+    background: #34d399;
+    box-shadow: 0 0 10px #34d399;
   }
-  .agent {
-    font-size: 15px;
-    color: var(--text);
-    margin-bottom: 18px;
-  }
-  .meters {
+  .live-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 16px;
+    align-items: start;
   }
-  .meter-label {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 6px;
-    font-size: 14px;
-    color: var(--text-muted);
+  .live-grid .col {
+    display: grid;
+    gap: 16px;
   }
-  .meter {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--border);
-    overflow: hidden;
-  }
-  .meter span {
-    display: block;
-    height: 100%;
-    background: var(--gradient);
-  }
-  .table-wrap {
-    overflow-x: auto;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  th,
-  td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  th {
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-  .ok {
-    color: #34d399;
-  }
-  .bad {
-    color: #fca5a5;
+  @media (max-width: 900px) {
+    .live-grid {
+      grid-template-columns: 1fr;
+    }
   }
   .chips {
     display: flex;

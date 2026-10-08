@@ -1,0 +1,54 @@
+---
+import { t, type Lang } from '../i18n';
+import { usdc, shortAddress } from '../lib/rows';
+import type { WalletHistory } from '../lib/history';
+
+interface Props { lang: Lang; wallet: WalletHistory }
+const { lang, wallet: w } = Astro.props;
+const d = t(lang).live;
+---
+
+<section class="card rules" aria-labelledby="rules-h">
+  <div class="head">
+    <h3 id="rules-h">{d.rulesHeading}</h3>
+    <span class:list={['badge', w.paused ? 'off' : 'on']} data-live="paused">{w.paused ? d.paused : d.active}</span>
+  </div>
+  <dl>
+    <div><dt>{d.cap}</dt><dd class="mono">{usdc(w.policy.perPaymentCap)} USDC</dd></div>
+    <div><dt>{d.daily}</dt><dd class="mono">{usdc(w.policy.dailyBudget)} USDC <small>{d.resets}</small></dd></div>
+    <div>
+      <dt>{d.payees}</dt>
+      <dd>
+        <ul role="list">
+          {w.payees.filter((p) => p.allowed).map((p) => (
+            <li>{lang === 'zh' ? (p.labelZh ?? p.label) : p.label} <span class="mono muted">{shortAddress(p.address)}</span></li>
+          ))}
+        </ul>
+      </dd>
+    </div>
+    <div>
+      <dt>{d.tasks}</dt>
+      <dd>
+        <ul role="list">
+          {w.tasks.map((x) => <li><span class="mono">{x.label}</span> <span class="mono muted">{usdc(x.budget)} USDC</span></li>)}
+        </ul>
+      </dd>
+    </div>
+  </dl>
+</section>
+
+<style>
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  h3 { font-size: 18px; }
+  .badge { font: 12px var(--font-mono); padding: 3px 10px; border-radius: 999px; }
+  .badge.on { color: #34d399; background: rgb(52 211 153 / 0.12); }
+  .badge.off { color: #fbbf24; background: rgb(251 191 36 / 0.14); }
+  dl { display: grid; gap: 14px; margin: 0; }
+  dl > div { display: grid; grid-template-columns: 130px 1fr; gap: 12px; }
+  dt { color: var(--text-muted); font-size: 14px; }
+  dd { margin: 0; font-size: 15px; }
+  small { color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+  ul { padding: 0; margin: 0; display: grid; gap: 4px; }
+  .muted { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
+  @media (max-width: 640px) { dl > div { grid-template-columns: 1fr; gap: 2px; } }
+</style>

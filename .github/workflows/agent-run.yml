@@ -1,0 +1,67 @@
+name: Agent run
+
+# The scripted agent (US5): every 6 hours it pays the demo API, attempts deliberate violations,
+# releases expired authorizations, and commits a fresh dashboard snapshot. Base Sepolia only.
+# Uses only the agent key (constitution IV: the operator key never goes to CI).
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: agent-run
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AGENT_PRIVATE_KEY: ${{ secrets.AGENT_PRIVATE_KEY }}
+      WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
+      API_URL: ${{ vars.API_URL || 'https://api.demo.yunshu.ai' }}
+      RPC_URL: https://sepolia.base.org
+    steps:
+      - name: Check setup
+        id: setup
+        run: |
+          if [ -z "$AGENT_PRIVATE_KEY" ]; then
+            echo "::notice::AGENT_PRIVATE_KEY secret not set yet (tasks.md T049); skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.setup.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: steps.setup.outputs.ready == 'true'
+      - name: Run scenario (exit 3 = wallet needs funds; still snapshot)
+        if: steps.setup.outputs.ready == 'true'
+        id: scenario
+        run: npm run cli -w packages/agent -- run-scenario
+        continue-on-error: true
+      - name: Release expired authorizations
+        if: steps.setup.outputs.ready == 'true'
+        run: npm run cli -w packages/agent -- release-expired
+      - name: Snapshot for the dashboard
+        if: steps.setup.outputs.ready == 'true'
+        run: npm run snapshot
+      - name: Commit snapshot
+        if: steps.setup.outputs.ready == 'true'
+        run: |
+          git config user.name "agent-wallet-bot"
+          git config user.email "agent-wallet-bot@users.noreply.github.com"
+          git add apps/dashboard/src/data/history.json
+          git diff --cached --quiet || git commit -m "chore(snapshot): $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+          git pull --rebase --autostash
+          git push
+      - name: Fail if the scenario failed
+        if: steps.setup.outputs.ready == 'true' && steps.scenario.outcome == 'failure'
+        run: exit 1

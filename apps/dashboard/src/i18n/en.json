@@ -9,63 +9,159 @@
   "heading": "An agent that pays on its own, and can't overspend",
   "intro": "An AI agent gets its own wallet with spending limits written into a smart contract. It pays for API calls by itself. Any payment that breaks a rule is refused before money moves, and every payment and refusal is on a public record anyone can check.",
   "statusLabel": "Status",
-  "status": "In development. The contracts aren't deployed yet; live payments will appear on this page once they are.",
   "repoCta": "View on GitHub",
   "specCta": "Read the spec",
   "how": {
     "heading": "How a payment works",
     "steps": [
-      { "title": "The agent calls a paid API", "body": "The API answers 402 Payment Required with a price, for example 0.01 test USDC, using the open x402 standard." },
-      { "title": "The wallet checks the rules", "body": "Before signing, the agent asks its wallet contract to authorise the payment. The contract checks every limit on-chain, where the agent can't get around it." },
-      { "title": "Allowed: the payment settles", "body": "The agent signs a standard x402 payment with the wallet as payer. The x402 facilitator settles it in test USDC and the API returns its data." },
-      { "title": "Refused: nothing moves", "body": "The contract records the refusal as a public event with its reason. No money moves and the API is never paid." }
+      {
+        "title": "The agent calls a paid API",
+        "body": "The API answers 402 Payment Required with a price, for example 0.01 test USDC, using the open x402 standard."
+      },
+      {
+        "title": "The wallet checks the rules",
+        "body": "Before signing, the agent asks its wallet contract to authorise the payment. The contract checks every limit on-chain, where the agent can't get around it."
+      },
+      {
+        "title": "Allowed: the payment settles",
+        "body": "The agent signs a standard x402 payment with the wallet as payer. The x402 facilitator settles it in test USDC and the API returns its data."
+      },
+      {
+        "title": "Refused: nothing moves",
+        "body": "The contract records the refusal as a public event with its reason. No money moves and the API is never paid."
+      }
     ]
   },
   "rules": {
     "heading": "The rules each agent wallet enforces",
     "intro": "The operator sets these. A change applies from the agent's very next payment.",
     "items": [
-      { "name": "Per-payment cap", "body": "No single payment may be larger than this.", "example": "Demo: 1 USDC" },
-      { "name": "Daily budget", "body": "Total spend per day (UTC) can't go over this.", "example": "Demo: 5 USDC" },
-      { "name": "Task budget", "body": "Each task the agent works on has its own budget.", "example": "Demo: market-research, 2 USDC" },
-      { "name": "Allowed payees", "body": "The agent can only pay addresses on its list.", "example": "Demo: the demo API only" },
-      { "name": "Pause switch", "body": "The operator can stop all payments at once.", "example": "Demo: off" }
+      {
+        "name": "Per-payment cap",
+        "body": "No single payment may be larger than this.",
+        "example": "Demo: 1.00 USDC"
+      },
+      {
+        "name": "Daily budget",
+        "body": "Total spend per day (UTC) can't go over this.",
+        "example": "Demo: 1.00 USDC"
+      },
+      {
+        "name": "Task budget",
+        "body": "Each task the agent works on has its own budget.",
+        "example": "Demo: market-research, 10.00 USDC"
+      },
+      {
+        "name": "Allowed payees",
+        "body": "The agent can only pay addresses on its list.",
+        "example": "Demo: the demo API only"
+      },
+      {
+        "name": "Pause switch",
+        "body": "The operator can stop all payments at once.",
+        "example": "Demo: off"
+      }
     ]
   },
   "reasons": {
     "heading": "Why a payment can be refused",
     "intro": "Every refusal carries exactly one of these reasons, checked in this order.",
     "items": [
-      { "code": "PAUSED", "body": "The operator has paused this agent." },
-      { "code": "INVALID_AMOUNT", "body": "The amount is zero, or the payment has already expired." },
-      { "code": "PAYEE_NOT_ALLOWED", "body": "The recipient isn't on the agent's allowed list." },
-      { "code": "OVER_PER_PAYMENT_CAP", "body": "This single payment is above the per-payment cap." },
-      { "code": "OVER_TASK_BUDGET", "body": "It would push the task over its budget." },
-      { "code": "OVER_DAILY_BUDGET", "body": "It would push today's spending over the daily budget." },
-      { "code": "INSUFFICIENT_FUNDS", "body": "The wallet doesn't hold enough USDC." }
-    ]
-  },
-  "preview": {
-    "heading": "What this page will show",
-    "note": "Sample data for illustration. Nothing below is on-chain yet.",
-    "agent": "research-bot-01",
-    "dailyLabel": "Today",
-    "taskLabel": "Task: market-research",
-    "colTime": "Time",
-    "colWhat": "Payment",
-    "colAmount": "Amount",
-    "colResult": "Result",
-    "rows": [
-      { "time": "09:00:12", "what": "api.demo.yunshu.ai/quote", "amount": "0.01", "result": "Paid" },
-      { "time": "09:00:15", "what": "api.demo.yunshu.ai/quote", "amount": "1.50", "result": "Refused · OVER_PER_PAYMENT_CAP" },
-      { "time": "09:00:19", "what": "unlisted-service.example", "amount": "0.01", "result": "Refused · PAYEE_NOT_ALLOWED" }
+      {
+        "code": "PAUSED",
+        "body": "The operator has paused this agent."
+      },
+      {
+        "code": "INVALID_AMOUNT",
+        "body": "The amount is zero, or the payment has already expired."
+      },
+      {
+        "code": "PAYEE_NOT_ALLOWED",
+        "body": "The recipient isn't on the agent's allowed list."
+      },
+      {
+        "code": "OVER_PER_PAYMENT_CAP",
+        "body": "This single payment is above the per-payment cap."
+      },
+      {
+        "code": "OVER_TASK_BUDGET",
+        "body": "It would push the task over its budget."
+      },
+      {
+        "code": "OVER_DAILY_BUDGET",
+        "body": "It would push today's spending over the daily budget."
+      },
+      {
+        "code": "INSUFFICIENT_FUNDS",
+        "body": "The wallet doesn't hold enough USDC."
+      }
     ]
   },
   "stack": {
     "heading": "Built with",
-    "items": ["Solidity + Foundry", "OpenZeppelin", "x402", "USDC on Base Sepolia", "viem", "Cloudflare Workers", "Astro"]
+    "items": [
+      "Solidity + Foundry",
+      "OpenZeppelin",
+      "x402",
+      "USDC on Base Sepolia",
+      "viem",
+      "Cloudflare Workers",
+      "Astro"
+    ]
   },
   "footer": "Open source under the MIT licence. Runs on a free test network at $0 a month.",
   "langSwitchLabel": "Language",
-  "backToSite": "Yunshu AI"
+  "backToSite": "Yunshu AI",
+  "statusLive": "Live on the Base Sepolia test network. Updated {time}; new activity appears here within seconds.",
+  "statusEmpty": "The wallet is deployed; its first activity will appear here.",
+  "live": {
+    "heading": "The agent's wallet, live",
+    "intro": "Read straight from the public blockchain record. Nothing here is mock data.",
+    "rulesHeading": "Rules",
+    "cap": "Per payment",
+    "daily": "Per day",
+    "resets": "resets 00:00 UTC",
+    "payees": "Allowed payees",
+    "tasks": "Task budgets",
+    "paused": "Paused",
+    "active": "Active",
+    "spendHeading": "Spending",
+    "today": "Spent today",
+    "balance": "Balance",
+    "timelineHeading": "Activity",
+    "timelineIntro": "Every payment and refusal, newest first. Each links to its public record on BaseScan.",
+    "empty": "No activity yet.",
+    "verify": "verify ↗",
+    "networkDown": "Network unavailable, showing data as of {time}.",
+    "wallet": "Wallet",
+    "contract": "contract ↗"
+  },
+  "row": {
+    "paid": "Paid {amount} USDC",
+    "pending": "Authorized {amount} USDC, awaiting settlement",
+    "refused": "Refused {amount} USDC",
+    "expired": "Released {amount} USDC held by an unused authorization",
+    "paused": "Agent paused by the operator",
+    "unpaused": "Agent resumed by the operator",
+    "to": "to",
+    "task": "task",
+    "unknownPayee": "unlisted address",
+    "rule": {
+      "perPaymentCap": "Per-payment cap: {old} → {new} USDC",
+      "dailyBudget": "Daily budget: {old} → {new} USDC",
+      "payeeAllowed": "Payee allowed: {payee}",
+      "payeeRemoved": "Payee removed: {payee}",
+      "taskBudget": "Task budget {task}: {old} → {new} USDC",
+      "agent": "Agent key rotated"
+    }
+  },
+  "reason": {
+    "PAUSED": "The operator has paused this agent",
+    "INVALID_AMOUNT": "Zero amount or already expired",
+    "PAYEE_NOT_ALLOWED": "Payee isn't on the allowed list",
+    "OVER_PER_PAYMENT_CAP": "Over the per-payment cap",
+    "OVER_TASK_BUDGET": "Would exceed the task's budget",
+    "OVER_DAILY_BUDGET": "Would exceed today's budget",
+    "INSUFFICIENT_FUNDS": "Not enough USDC in the wallet"
+  }
 }
