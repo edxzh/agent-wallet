@@ -21,7 +21,7 @@ type LiveData = {
 const RPC = 'https://sepolia.base.org';
 const USDC = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const POLL_MS = 10_000;
-const MAX_RANGE = 500; // public RPC limit per eth_getLogs
+const MAX_RANGE = 200; // public RPC limit per eth_getLogs
 const MAX_STEPS = 10;
 
 const walletAbi = parseAbi([

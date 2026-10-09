@@ -39,8 +39,8 @@ export async function guardedPublicClient(rpcUrl: string): Promise<PublicClient>
   return client;
 }
 
-/** Splits [from, to] into inclusive ranges of at most `size` blocks (public RPC limit: 500). */
-export function blockRanges(from: bigint, to: bigint, size = 500n): [bigint, bigint][] {
+/** Splits [from, to] into inclusive ranges of at most `size` blocks (public RPC limit: 200, was 500 until Oct 2026). */
+export function blockRanges(from: bigint, to: bigint, size = 200n): [bigint, bigint][] {
   const out: [bigint, bigint][] = [];
   for (let start = from; start <= to; start += size) {
     const end = start + size - 1n < to ? start + size - 1n : to;

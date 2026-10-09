@@ -1,6 +1,6 @@
 /**
  * Builds apps/dashboard/src/data/history.json from Base Sepolia (contracts/dashboard.md).
- * Incremental: resumes from `lastBlock + 1`, fetches logs in ≤ 500-block chunks (public RPC limit),
+ * Incremental: resumes from `lastBlock + 1`, fetches logs in ≤ 200-block chunks (public RPC limit),
  * reads current views, merges, caps at 500 events per wallet. Read-only: no keys needed.
  *
  * Usage: npm run snapshot

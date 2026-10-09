@@ -2,6 +2,7 @@ name = "agent-wallet-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-07"
 compatibility_flags = ["nodejs_compat"]
+routes = [{ pattern = "api.demo.yunshu.ai", custom_domain = true }]
 
 [vars]
 NETWORK = "eip155:84532"

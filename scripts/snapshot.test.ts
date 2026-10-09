@@ -76,11 +76,11 @@ describe('snapshot decoding', () => {
 });
 
 describe('log fetching ranges', () => {
-  it('never asks for more than 500 blocks per eth_getLogs and covers the range exactly', () => {
+  it('never asks for more than 200 blocks per eth_getLogs and covers the range exactly', () => {
     const ranges = blockRanges(1000n, 2234n);
-    expect(ranges[0]).toEqual([1000n, 1499n]);
-    expect(ranges.at(-1)).toEqual([2000n, 2234n]);
-    for (const [from, to] of ranges) expect(to - from + 1n).toBeLessThanOrEqual(500n);
+    expect(ranges[0]).toEqual([1000n, 1199n]);
+    expect(ranges.at(-1)).toEqual([2200n, 2234n]);
+    for (const [from, to] of ranges) expect(to - from + 1n).toBeLessThanOrEqual(200n);
     expect(blockRanges(5n, 5n)).toEqual([[5n, 5n]]);
   });
 

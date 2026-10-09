@@ -232,7 +232,8 @@ the run cleanly.
   - commit `apps/dashboard/src/data/history.json` with message `chore(snapshot): <ISO time> [skip ci]` and push (Cloudflare Pages rebuilds from the commit).
 
   Uses only the secrets `AGENT_PRIVATE_KEY` and `WALLET_ADDRESS`, never the operator key
-- [ ] T049 [US5] **(owner)** Add the GitHub Actions secrets `AGENT_PRIVATE_KEY` and `WALLET_ADDRESS` in `edxzh/agent-wallet` → Settings → Secrets and variables → Actions
+- [X] T049 [US5] **(owner)** Add the GitHub Actions secrets `AGENT_PRIVATE_KEY` and `WALLET_ADDRESS` in `edxzh/agent-wallet` → Settings → Secrets and variables → Actions
+  - Done 2026-10-09 with `gh secret set`. `WALLET_ADDRESS` is empty; the CLI falls back to `config/deployments.json`. First manual run (37923253371): 2 of 3 payments settled, all 4 probes refused as expected, one payment got a 402 with no reason from x402.org; `release-expired` then failed on the RPC's new 200-block `getLogs` limit (fixed; chunks are now 200)
 - [ ] T050 [US5] Leave the schedule running for 48 h, then check quickstart scenarios 10 and 11 (low funds via `withdraw`) and record the results
 
 ---
@@ -250,7 +251,8 @@ the run cleanly.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T053 **(owner, Cloudflare dashboard)** Deploy `packages/service` with Cloudflare Workers Builds from `edxzh/agent-wallet` (root `packages/service`) on custom domain `api.demo.yunshu.ai`; set `PAYEE_ADDRESS`. Re-run scenario 1 against the deployed URL
+- [X] T053 **(owner, Cloudflare dashboard)** Deploy `packages/service` with Cloudflare Workers Builds from `edxzh/agent-wallet` (root `packages/service`) on custom domain `api.demo.yunshu.ai`; set `PAYEE_ADDRESS`. Re-run scenario 1 against the deployed URL
+  - Done 2026-10-09 with `wrangler deploy` (custom domain in `packages/service/wrangler.toml`, not Workers Builds). Scenario 1 against `https://api.demo.yunshu.ai`: 402 with the right requirements, 400 for a bad pair, one paid request settled (tx `0x94f9ee9c…14b9`)
 - [X] T054 Run a security review of `contracts/src/` (the `/security-review` command plus a manual checklist: reentrancy impossible since no external calls before state writes in `authorize`; signature malleability via OpenZeppelin `ECDSA`; digest bound to `from = this`, token domain and nonce; operator-only coverage; no `selfdestruct` or `delegatecall` in clones beyond EIP-1167). Fix findings and record them in `specs/001-agent-wallet-demo/research.md`
 - [ ] T055 In the **yunshu.ai repo**, update the website's Work section:
   - in `src/data/site.json`, set `work.status: "shipped"`, `repoUrl: "https://github.com/edxzh/agent-wallet"` and `image` to a dashboard screenshot saved as `public/work/agent-wallet.{webp,avif}` at 1x/2x;

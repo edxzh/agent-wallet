@@ -173,6 +173,8 @@ are dropped.
     request's `Origin` in `access-control-allow-origin`).
   - It **limits `eth_getLogs` to a 500-block range**, which is about 16 minutes at Base's
     2-second blocks.
+  - **Update, 2026-10-09**: the limit dropped to **200 blocks** (error `-32614`, "eth_getLogs is
+    limited to a 200 range"). `blockRanges` and the live tail now use 200-block chunks.
 - **Decision**:
   - **Snapshot**: `scripts/snapshot.ts` reads only new blocks since the last snapshot, in
     500-block chunks, decodes events and writes `apps/dashboard/src/data/history.json`. The
