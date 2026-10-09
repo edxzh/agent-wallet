@@ -4,9 +4,9 @@
  * first and exits 1 otherwise. Prints one JSON line per event (--pretty for humans). Never prints keys.
  *
  * Exit codes: 0 ok · 1 wrong network or config · 2 an outcome differed from what was expected ·
- * 3 insufficient funds.
+ * 3 insufficient funds · 4 an ERC-8004 registry implementation changed (002, research R8).
  */
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import {
   getAddress,
@@ -22,9 +22,11 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { policyWalletAbi, policyWalletBytecode, policyWalletFactoryAbi, policyWalletFactoryBytecode } from './abi.js';
 import { blockRanges, formatUsdc, guardedPublicClient, parseUsdc, usdcAbi, walletClientFor, type PublicClient } from './chain.js';
 import { WrongNetworkError } from './chainGuard.js';
-import { DEPLOYMENTS_PATH, loadConfig, readDeployments, readPayees, txUrl, USDC, type Deployments } from './config.js';
+import { DEPLOYMENTS_PATH, loadConfig, readDeployments, readPayees, ROOT, txUrl, USDC, type Deployments } from './config.js';
 import { payUrl } from './pay.js';
+import { rateOutcome } from './rate.js';
 import { reasonName } from './reasons.js';
+import { identityAbi, IDENTITY_REGISTRY, RegistryChangedError, REPUTATION_REGISTRY, reputationAbi } from './registries.js';
 import { EXIT, runScenario } from './scenario.js';
 import { readWalletState, taskIdOf } from './state.js';
 
@@ -47,6 +49,12 @@ const { values: flags, positionals } = parseArgs({
     seed: { type: 'string' },
     blocks: { type: 'string' },
     api: { type: 'string' },
+    'min-avg': { type: 'string' },
+    'min-count': { type: 'string' },
+    off: { type: 'boolean' },
+    remove: { type: 'boolean' },
+    rate: { type: 'boolean' },
+    service: { type: 'string' },
   },
 });
 const [command, ...args] = positionals;
@@ -81,6 +89,20 @@ function resolveWallet(): Address {
   return getAddress(found.address);
 }
 
+/** A reviewer: an address, or the name of a wallet in config/deployments.json. */
+function resolveReviewer(v: string): Address {
+  if (isAddress(v)) return getAddress(v);
+  const w = readDeployments().wallets.find((x) => x.name === v);
+  if (!w) throw new ConfigError(`${v} is neither an address nor a wallet in config/deployments.json`);
+  return getAddress(w.address);
+}
+
+type Service = { key: string; route: string; agentId: string | number | null; payTo: string | null };
+function readServices(): Service[] {
+  const path = `${ROOT}config/services.json`;
+  return existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as { services: Service[] }).services : [];
+}
+
 function taskId(label: string): Hex {
   return label ? taskIdOf(label) : zeroHash;
 }
@@ -112,10 +134,14 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
   async 'deploy-factory'(pub) {
     const op = operatorClient();
     let impl = readDeployments().implementation;
-    if (impl && (await pub.getCode({ address: impl }))) {
+    // Reuse only an implementation with this code's ERC-8004 registries (001's has none).
+    const current = impl
+      ? await pub.readContract({ address: impl, abi: policyWalletAbi, functionName: 'identityRegistry' }).catch(() => undefined)
+      : undefined;
+    if (impl && current === IDENTITY_REGISTRY) {
       out('implementation-reused', { implementation: impl });
     } else {
-      const implHash = await op.deployContract({ abi: policyWalletAbi, bytecode: policyWalletBytecode, args: [USDC] });
+      const implHash = await op.deployContract({ abi: policyWalletAbi, bytecode: policyWalletBytecode, args: [USDC, IDENTITY_REGISTRY, REPUTATION_REGISTRY] });
       impl = (await pub.waitForTransactionReceipt({ hash: implHash })).contractAddress!;
       saveDeployments({ ...readDeployments(), implementation: impl });
       out('implementation-deployed', { implementation: impl, tx: txUrl(implHash) });
@@ -217,14 +243,20 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     return EXIT.OK;
   },
 
-  /** pay <url> [--task <label>] (agent) */
-  async pay() {
+  /** pay <url> [--task <label>] [--rate] (agent). --rate scores a settled, identity-checked payment and rates it. */
+  async pay(pub) {
     const url = need(args[0], 'url');
     const wallet = resolveWallet();
     const r = await payUrl(url, { wallet, agentKey: need(cfg.agentKey, 'AGENT_PRIVATE_KEY'), taskId: taskId(flags.task ?? ''), rpcUrl: cfg.rpcUrl });
     if (r.kind === 'settled') {
-      out('authorized', { wallet, nonce: r.nonce, amount: formatUsdc(r.amount), payee: r.payee, tx: txUrl(r.authorizeTx) });
+      out('authorized', { wallet, nonce: r.nonce, amount: formatUsdc(r.amount), payee: r.payee, agentId: r.agentId, tx: txUrl(r.authorizeTx) });
       out('settled', { status: r.status, settlementTx: r.settlementTx ? txUrl(r.settlementTx) : undefined, body: r.body });
+      if (flags.rate) {
+        const d = await rateOutcome(r, { url, now: new Date(), wallet, clients: { publicClient: pub, walletClient: agentClient() } });
+        if (d.kind === 'rated') {
+          out('rated', { wallet, nonce: r.nonce, agentId: d.agentId, score: d.score, tag: d.tag, feedbackIndex: d.feedbackIndex, tx: txUrl(d.txHash) });
+        } else out('not-rated', { reason: d.reason });
+      }
       return EXIT.OK;
     }
     if (r.kind === 'refused') {
@@ -233,6 +265,61 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     }
     out('failed', { ...r, authorizeTx: r.authorizeTx ? txUrl(r.authorizeTx) : undefined });
     return EXIT.MISMATCH;
+  },
+
+  /** set-reputation --wallet <w> --min-avg <0-100> --min-count <n> [--off] (operator, 002) */
+  async 'set-reputation'(pub) {
+    const enabled = !flags.off;
+    const minAvg = Number(need(flags['min-avg'], '--min-avg'));
+    const minCount = BigInt(need(flags['min-count'], '--min-count'));
+    if (!Number.isInteger(minAvg) || minAvg < 0 || minAvg > 100) throw new ConfigError('--min-avg must be 0–100');
+    await operatorWrite(pub, 'setReputationRule', [enabled, minAvg, minCount], 'reputation-rule-set', { enabled, minAverage: minAvg, minCount });
+    return EXIT.OK;
+  },
+
+  /** trust-reviewer --wallet <w> <addr> [--remove] (operator, 002) */
+  async 'trust-reviewer'(pub) {
+    const reviewer = resolveReviewer(need(args[0], 'reviewer address or wallet name'));
+    await operatorWrite(pub, 'setTrustedReviewer', [reviewer, !flags.remove], 'trusted-reviewer-set', { reviewer, trusted: !flags.remove });
+    return EXIT.OK;
+  },
+
+  /** reputation [--service <key>] [--wallet <w>] — per demo service: identity, registry wallet, trusted summary, checkPayee (read-only, 002). */
+  async reputation(pub) {
+    const wallet = resolveWallet();
+    const trusted = (await pub.readContract({ address: wallet, abi: policyWalletAbi, functionName: 'trustedReviewers' })) as readonly Address[];
+    const [enabled, minAverage, minCount] = (await pub.readContract({ address: wallet, abi: policyWalletAbi, functionName: 'reputationRule' })) as readonly [boolean, number, bigint];
+    out('reputation-rule', { wallet, enabled, minAverage, minCount, trustedReviewers: trusted });
+    for (const s of readServices().filter((x) => !flags.service || x.key === flags.service)) {
+      if (s.agentId === null || s.agentId === undefined) {
+        out('service', { key: s.key, registered: false });
+        continue;
+      }
+      const id = BigInt(s.agentId);
+      const [owner, registeredWallet] = await Promise.all([
+        pub.readContract({ address: IDENTITY_REGISTRY, abi: identityAbi, functionName: 'ownerOf', args: [id] }).catch(() => null),
+        pub.readContract({ address: IDENTITY_REGISTRY, abi: identityAbi, functionName: 'getAgentWallet', args: [id] }),
+      ]);
+      const summary = trusted.length
+        ? await pub.readContract({ address: REPUTATION_REGISTRY, abi: reputationAbi, functionName: 'getSummary', args: [id, trusted, '', ''] })
+        : null;
+      const payTo = s.payTo ? getAddress(s.payTo) : registeredWallet;
+      const check = (await pub.readContract({ address: wallet, abi: policyWalletAbi, functionName: 'checkPayee', args: [payTo, true, id] })) as number;
+      out('service', {
+        key: s.key,
+        agentId: id,
+        owner,
+        registeredWallet,
+        payTo,
+        walletMatches: getAddress(registeredWallet) === getAddress(payTo),
+        trustedCount: summary?.[0],
+        trustedAverage: summary?.[1],
+        decimals: summary?.[2],
+        payable: check === 0,
+        reason: reasonName(check),
+      });
+    }
+    return EXIT.OK;
   },
 
   /** status — rules, spend, balances (read-only). */
@@ -346,6 +433,7 @@ main()
   .catch((err: unknown) => {
     const e = err as Error & { shortMessage?: string; details?: string };
     out('error', { name: e.name, message: e.shortMessage ?? e.message, details: e.details });
+    if (err instanceof RegistryChangedError) process.exit(EXIT.REGISTRY_CHANGED);
     process.exit(err instanceof WrongNetworkError || err instanceof ConfigError ? EXIT.CONFIG : EXIT.MISMATCH);
   });
 

@@ -17,6 +17,12 @@ import { DEFAULT_RPC_URL } from './config.js';
 import { reasonName, type Reason } from './reasons.js';
 
 export const AUTHORIZE_CONFIRMATIONS = 3;
+/**
+ * Gas limit for authorizeWithIdentity. The contract reverts below (IDENTITY_GAS + REGISTRY_GAS)
+ * × 64/63 + 200k ≈ 5.38 M of gas left, so an estimate (which only measures what the happy path
+ * uses) would be too low. Only the gas actually used is paid.
+ */
+export const AUTHORIZE_WITH_IDENTITY_GAS = 6_000_000n;
 
 /** Thrown when the wallet refused the payment on-chain. Nothing was signed. */
 export class PolicyRefusedError extends Error {
@@ -42,7 +48,15 @@ export type TypedDataRequest = {
   message: Record<string, unknown>;
 };
 
-export type AuthorizedPayment = { nonce: Hex; payee: Address; amount: bigint; validBefore: bigint; txHash: Hex };
+export type AuthorizedPayment = {
+  nonce: Hex;
+  payee: Address;
+  amount: bigint;
+  validBefore: bigint;
+  txHash: Hex;
+  /** The claimed ERC-8004 identity, when the wallet verified it (PayeeIdentityVerified). */
+  agentId?: bigint;
+};
 
 type Clients = {
   publicClient: {
@@ -61,6 +75,8 @@ export type PolicyWalletSignerOptions = {
   onAuthorized?: (p: AuthorizedPayment) => void;
   /** Called when the wallet refused on-chain (x402 wraps thrown errors without a cause). */
   onRefused?: (e: PolicyRefusedError) => void;
+  /** The payee's claimed ERC-8004 agentId for the current request (from the x402 hook), if any. */
+  claim?: () => bigint | undefined;
   /** For tests: injected viem clients. */
   clients?: Clients;
 };
@@ -96,14 +112,20 @@ export function createPolicyWalletSigner(opts: PolicyWalletSignerOptions) {
       const validAfter = BigInt(m.validAfter as string | bigint);
       const validBefore = BigInt(m.validBefore as string | bigint);
 
-      const txHash = await clients.walletClient.writeContract({
-        address: wallet,
-        abi: policyWalletAbi,
-        functionName: 'authorize',
-        args: [nonce, payee, amount, validAfter, validBefore, taskId],
-        account,
-        chain: baseSepolia,
-      });
+      const agentId = opts.claim?.();
+      const txHash = await clients.walletClient.writeContract(
+        agentId === undefined
+          ? { address: wallet, abi: policyWalletAbi, functionName: 'authorize', args: [nonce, payee, amount, validAfter, validBefore, taskId], account, chain: baseSepolia }
+          : {
+              address: wallet,
+              abi: policyWalletAbi,
+              functionName: 'authorizeWithIdentity',
+              args: [nonce, payee, amount, validAfter, validBefore, taskId, agentId],
+              gas: AUTHORIZE_WITH_IDENTITY_GAS,
+              account,
+              chain: baseSepolia,
+            },
+      );
       // Wait for 3 confirmations (~4 s on Base): the facilitator checks isValidSignature on its own
       // node, which may lag a block or two behind ours. Without this it sees no reservation yet and
       // rejects the payment as invalid_exact_evm_signature (observed in T024).
@@ -120,7 +142,8 @@ export function createPolicyWalletSigner(opts: PolicyWalletSignerOptions) {
       if (!events.some((e) => e.eventName === 'PaymentAuthorized' && e.args.nonce === nonce)) {
         throw new Error(`No PaymentAuthorized event for nonce ${nonce} in ${txHash}`);
       }
-      opts.onAuthorized?.({ nonce, payee, amount, validBefore, txHash });
+      const verified = events.some((e) => e.eventName === 'PayeeIdentityVerified' && e.args.nonce === nonce);
+      opts.onAuthorized?.({ nonce, payee, amount, validBefore, txHash, agentId: verified ? agentId : undefined });
       return account.signTypedData(request as Parameters<typeof account.signTypedData>[0]);
     },
   };

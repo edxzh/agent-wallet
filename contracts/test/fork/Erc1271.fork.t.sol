@@ -29,6 +29,8 @@ contract Erc1271ForkTest is Test {
     bytes32 constant TYPEHASH = keccak256(
         "TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)"
     );
+    address constant IDENTITY = 0x8004A818BFB912233c491871b3d84c89A494BD9e; // ERC-8004 v2.0.0 (unused here)
+    address constant REPUTATION = 0x8004B663056A597Dffe9eCcC1965A193B7388713;
     address constant FUNDER = 0xc6E78B511c87688BC33C9db7539E5E0334B2Ad59; // demo operator, holds test USDC
 
     PolicyWallet wallet;
@@ -50,7 +52,7 @@ contract Erc1271ForkTest is Test {
             return;
         }
         (agent, agentKey) = makeAddrAndKey("agent");
-        PolicyWalletFactory factory = new PolicyWalletFactory(address(new PolicyWallet(address(USDC))));
+        PolicyWalletFactory factory = new PolicyWalletFactory(address(new PolicyWallet(address(USDC), IDENTITY, REPUTATION)));
         wallet = PolicyWallet(factory.createWallet(agent, "fork", 1e6, 5e6));
         wallet.setPayee(payee, true); // this test contract is the operator
         vm.prank(FUNDER);

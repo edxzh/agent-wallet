@@ -43,17 +43,17 @@ Claude prepares everything around them. No new key ever goes to CI (constitution
 
 **Purpose**: confirm the prerequisites, and add the configuration and keys this feature needs.
 
-- [ ] T001 Confirm feature 001's MVP is done. Record the result at the top of `specs/002-trusted-payees-erc8004/tasks.md` (Notes section). Check:
+- [X] T001 Confirm feature 001's MVP is done. Record the result at the top of `specs/002-trusted-payees-erc8004/tasks.md` (Notes section). Check:
   - 001 tasks T010–T040 are checked;
   - Design A or B is recorded in `specs/001-agent-wallet-demo/research.md` R2;
   - `forge test` passes in `contracts/`.
 
   If not, stop: this feature can't start.
-- [ ] T002 [P] Add empty entries to `.env.example`, each commented "local only, never in CI (constitution IV)":
+- [X] T002 [P] Add empty entries to `.env.example`, each commented "local only, never in CI (constitution IV)":
   - `SERVICES_OWNER_PRIVATE_KEY=`, `PAYEE_RELIABLE_PRIVATE_KEY=`, `PAYEE_FLAKY_PRIVATE_KEY=`, `PAYEE_NEWCOMER_PRIVATE_KEY=`;
   - `SERVICE_PAYEE_PRIVATE_KEY=`, with the comment "used once by register-services to give 001's /quote an identity";
   - `PAYEE_IMPOSTOR=`, with the comment "address only".
-- [ ] T003 [P] Create `config/erc8004.json` with:
+- [X] T003 [P] Create `config/erc8004.json` with:
   - `chainId: 84532`;
   - `identity: { proxy: "0x8004A818BFB912233c491871b3d84c89A494BD9e", implementation: "0x7274e874CA62410a93Bd8bf61c69d8045E399c02" }`;
   - `reputation: { proxy: "0x8004B663056A597Dffe9eCcC1965A193B7388713", implementation: "0x16e0FA7f7C56B9a767E34B192B51f921BE31dA34" }`;
@@ -62,7 +62,7 @@ Claude prepares everything around them. No new key ever goes to CI (constitution
   - `forkBlock`: the current Base Sepolia block number at the time of the task (`cast block-number --rpc-url https://sepolia.base.org`).
 
   Values are from research R1 and R8.
-- [ ] T004 [P] Create `config/services.json` with one entry per service: `quote`, `reliable`, `flaky`, `newcomer`, `impostor` and `anonymous`. Each entry has:
+- [X] T004 [P] Create `config/services.json` with one entry per service: `quote`, `reliable`, `flaky`, `newcomer`, `impostor` and `anonymous`. Each entry has:
   - `key`, `route` (`/quote`, `/s/reliable/quote`, `/s/flaky/quote`, `/s/newcomer/quote`, `/s/impostor/quote`, `/s/anonymous/quote`);
   - `agentId: null`, `payTo: null`;
   - `label: { en, zh }`, for example `{ "en": "Reliable quotes", "zh": "可靠报价" }`;
@@ -84,11 +84,12 @@ Claude prepares everything around them. No new key ever goes to CI (constitution
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 [P] Create `contracts/src/interfaces/IERC8004.sol`. It holds `IERC8004Identity` (`getAgentWallet`) and `IERC8004Reputation` (`getSummary`, `giveFeedback`, `getLastIndex`), with signatures exactly as in contracts/policy-wallet-reputation.md, plus a comment with the pinned proxy addresses and "v2.0.0, verified 2026-10-08".
-- [ ] T007 [P] Extend `contracts/src/Reason.sol` **by appending only**: `PAYEE_IDENTITY_UNVERIFIED` (8), `PAYEE_IDENTITY_MISMATCH` (9), `REPUTATION_UNAVAILABLE` (10), `NOT_ENOUGH_TRUSTED_REVIEWS` (11), `PAYEE_REPUTATION_TOO_LOW` (12).
+- [X] T006 [P] Create `contracts/src/interfaces/IERC8004.sol`. It holds `IERC8004Identity` (`getAgentWallet`) and `IERC8004Reputation` (`getSummary`, `giveFeedback`, `getLastIndex`), with signatures exactly as in contracts/policy-wallet-reputation.md, plus a comment with the pinned proxy addresses and "v2.0.0, verified 2026-10-08".
+- [X] T007 [P] Extend `contracts/src/Reason.sol` **by appending only**: `PAYEE_IDENTITY_UNVERIFIED` (8), `PAYEE_IDENTITY_MISMATCH` (9), `REPUTATION_UNAVAILABLE` (10), `NOT_ENOUGH_TRUSTED_REVIEWS` (11), `PAYEE_REPUTATION_TOO_LOW` (12).
   - Add a test to `contracts/test/PolicyWallet.t.sol` asserting `uint8(Reason.INSUFFICIENT_FUNDS) == 7` and `uint8(Reason.PAYEE_REPUTATION_TOO_LOW) == 12`, so 001's values can't shift.
   - Create `contracts/src/IPolicyWalletReputation.sol` with the events and functions from contracts/policy-wallet-reputation.md.
-- [ ] T008 [P] Create `contracts/test/mocks/MockErc8004.sol`, implementing both interfaces with the **same algorithm as the deployed v2.0.0 source** (research R1):
+  - Done: the value-stability test is `test_reasonValuesAreStable` in `contracts/test/Reputation.t.sol` (with the other 002 tests) rather than `PolicyWallet.t.sol`.
+- [X] T008 [P] Create `contracts/test/mocks/MockErc8004.sol`, implementing both interfaces with the **same algorithm as the deployed v2.0.0 source** (research R1):
   - ids starting at 0;
   - `agentWallet` defaults to the registrant;
   - a self-feedback ban for the owner and approved operators;
@@ -99,18 +100,21 @@ Claude prepares everything around them. No new key ever goes to CI (constitution
   Add test-only modes `setFailure(Mode)` with `NONE | REVERT | BURN_GAS | GARBAGE | HUGE_RETURN`:
   - `GARBAGE` returns 32 bytes of `0xff`;
   - `HUGE_RETURN` returns 1 MB.
-- [ ] T009 [P] Create `packages/agent/src/registries.ts`:
+  - Done: separate `setIdentityFailure` / `setSummaryFailure`. `HUGE_RETURN` leads with a plausible *passing* answer, so only an exact `returndatasize()` check refuses it; the identity read returns 4 KB instead of 1 MB because its 100k gas budget can't build 1 MB (the call would just fail). Mutation-checked: a `>=` size check now fails the tests.
+- [X] T009 [P] Create `packages/agent/src/registries.ts`:
   - viem ABIs for the five registry functions and the `NewFeedback` and `FeedbackRevoked` events;
   - the addresses loaded from `config/erc8004.json`;
   - `assertRegistriesPinned(client)`, which reads both proxies' implementation slot with `getStorageAt` and calls `getVersion()`, then throws `RegistryChangedError { registry, expected, actual }` on any mismatch.
 
   Test it in `packages/agent/test/registries.test.ts` with a mocked client: a match passes; a changed slot or version throws.
-- [ ] T010 Create `contracts/test/fork/Erc8004.fork.t.sol` using `vm.createSelectFork("base_sepolia", forkBlock)`, with `forkBlock` read from `config/erc8004.json` via `vm.readFile` and `vm.parseJson`. Assert:
+- [X] T010 Create `contracts/test/fork/Erc8004.fork.t.sol` using `vm.createSelectFork("base_sepolia", forkBlock)`, with `forkBlock` read from `config/erc8004.json` via `vm.readFile` and `vm.parseJson`. Assert:
   - both proxies' implementation slots equal the pins, and `getVersion() == "2.0.0"`;
   - **mock parity**: register a fresh agent on the fork from a test owner, `giveFeedback` from 3 EOAs (values 90, 40, 75 with decimals 0, and one with decimals 2), revoke one, then run the same sequence on `MockErc8004`. `getSummary` must return identical `(count, value, decimals)`.
 
   Add `--match-path test/fork/*` as a separate step in `.github/workflows/ci.yml`, using `RPC_URL=https://sepolia.base.org` (public, no secret).
-- [ ] T011 Extend `scripts/export-abi.ts` to also export the `IPolicyWalletReputation` events and functions into `packages/agent/src/abi/PolicyWallet.ts`. Extend the `Reason` mapping in `packages/agent/src/reasons.ts` with codes 8–12 and their en/zh text from contracts/dashboard.md, so the CLI and dashboard share one source.
+  - Done: the public RPC serves archive state (checked 30 days back), so the pinned `forkBlock` works. No separate CI step was added: `ci.yml` already runs the whole suite, fork tests included, with `RPC_URL` set.
+- [X] T011 Extend `scripts/export-abi.ts` to also export the `IPolicyWalletReputation` events and functions into `packages/agent/src/abi/PolicyWallet.ts`. Extend the `Reason` mapping in `packages/agent/src/reasons.ts` with codes 8–12 and their en/zh text from contracts/dashboard.md, so the CLI and dashboard share one source.
+  - Done: the generated file is `packages/agent/src/abi.ts` (one file, as in 001), not `abi/PolicyWallet.ts`. Reason text for 8–12 is `REPUTATION_REASON_TEXT` in `reasons.ts`.
 
 **Checkpoint**: interfaces, the mock (proven equal to the real registry) and the pin check are ready. User stories can begin.
 
@@ -131,7 +135,7 @@ In every refusal the wallet balance is unchanged (quickstart scenarios 1 and 6).
 
 ### Tests for User Story 1 ⚠️ (write first, must fail)
 
-- [ ] T012 [P] [US1] Write `contracts/test/Reputation.t.sol` against `MockErc8004`. Cover:
+- [X] T012 [P] [US1] Write `contracts/test/Reputation.t.sol` against `MockErc8004`. Cover:
   - **Setters**:
     - `setReputationRule` and `setTrustedReviewer` revert for the agent and for a stranger;
     - enabling with 0 reviewers, `minAverage` 101, or enabling with `minCount` 0 reverts;
@@ -153,7 +157,7 @@ In every refusal the wallet balance is unchanged (quickstart scenarios 1 and 6).
   - **Low gas**: `authorizeWithIdentity` called with gas below the guard **reverts**.
   - **001 compatibility**: 001's `authorize` behaves exactly as before when the rule is disabled.
   - **`checkPayee` agrees**: it returns the same reason as `authorizeWithIdentity` in every case above.
-- [ ] T013 [P] [US1] Write `contracts/test/Reputation.fuzz.t.sol`:
+- [X] T013 [P] [US1] Write `contracts/test/Reputation.fuzz.t.sol`:
   - **One fuzz per reason 8–12**, with fuzzed amount, payee, agentId, number and values of ratings, minimums and timestamps, bounded so each case lands on that reason. Each asserts:
     - `authorizeWithIdentity` returns `false`;
     - exactly that `Reason` in `PaymentRefused`;
@@ -161,7 +165,7 @@ In every refusal the wallet balance is unchanged (quickstart scenarios 1 and 6).
     - the USDC balance, `spentOn(today)` and the task `spent` are unchanged.
   - **SC-002**: for a fixed trusted set, add 1–20 random **untrusted** reviewers with arbitrary scores 0–100. The `checkPayee` result and reason are identical to the run without them.
   - Set `[fuzz] runs = 1000` (already in `foundry.toml`).
-- [ ] T014 [P] [US1] Write `packages/agent/test/identity.test.ts` (Vitest, mocked viem and x402 client):
+- [X] T014 [P] [US1] Write `packages/agent/test/identity.test.ts` (Vitest, mocked viem and x402 client):
   - the `onBeforePaymentCreation` hook reads `selectedRequirements.extra.erc8004`;
   - a decimal-string `agentId` is parsed to bigint, including `"0"`;
   - a wrong `agentRegistry`, a missing key or a malformed id is treated as unclaimed;
@@ -171,14 +175,14 @@ In every refusal the wallet balance is unchanged (quickstart scenarios 1 and 6).
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Add the reputation state to `contracts/src/PolicyWallet.sol`:
+- [X] T015 [US1] Add the reputation state to `contracts/src/PolicyWallet.sol`:
   - immutables `identityRegistry` and `reputationRegistry`, set in the **implementation constructor**, so clones share them;
   - storage for the rule (`enabled`, `minAverage`, `minCount`) and `address[] trustedReviewers`, with a membership mapping and `MAX_TRUSTED_REVIEWERS = 5`;
   - `setReputationRule` and `setTrustedReviewer` (`onlyOperator`, validations as in T012, emitting `RuleChanged`);
   - views `reputationRule()` and `trustedReviewers()`.
 
   Depends on T006 and T007.
-- [ ] T016 [US1] Implement the scope check in `contracts/src/PolicyWallet.sol`:
+- [X] T016 [US1] Implement the scope check in `contracts/src/PolicyWallet.sol`:
   - **Shared check**: refactor 001's step 3 into `function _checkScope(address payee, bool hasClaim, uint256 agentId) internal view returns (Reason, bool hasIdentity)`, implementing data-model.md's steps 3a–3e exactly. 001's `authorize` calls it with `hasClaim = false`.
   - **Registry reads**: add `_readAgentWallet(agentId)` and `_readSummary(agentId)`. Each is an **assembly `staticcall`** with a fixed gas budget (`IDENTITY_GAS = 100_000`, `REGISTRY_GAS = 5_000_000`) and a fixed output buffer (32 and 96 bytes). Each:
     - checks `success` and `returndatasize()`;
@@ -189,21 +193,24 @@ In every refusal the wallet balance is unchanged (quickstart scenarios 1 and 6).
   - **Views**: `checkPayee(payee, hasClaim, agentId)`, using the same `_checkScope`, and `attempt(nonce)`.
 
   Depends on T015. T012 and T013 pass.
-- [ ] T017 [US1] Update `contracts/src/PolicyWalletFactory.sol` and `contracts/script/Deploy.s.sol`:
+  - Done: registry reads require `returndatasize()` to be **exactly** 32 / 96 bytes. Internally `authorize` and `authorizeWithIdentity` share `_authorize(Request)` (a memory struct, to stay within the stack limit). PolicyWallet is 12.3 KB (limit 24 KB). The gas guard's margin is `GAS_GUARD_MARGIN = 200_000` (the task's "+ 50_000" was measured as barely enough): `test_lowGas_minimumPassingGasStillFundsTheRegistry` binary-searches the least gas that passes the guard and shows a registry needing its full 5 M still answers (a 20k margin fails it).
+- [X] T017 [US1] Update `contracts/src/PolicyWalletFactory.sol` and `contracts/script/Deploy.s.sol`:
   - the implementation is constructed with the two registry proxy addresses, read from `config/erc8004.json`;
   - the deploy script keeps `require(block.chainid == 84532)`, and also `require(identity.code.length > 0 && reputation.code.length > 0)`;
   - print the new factory address;
   - document in `contracts/README.md` that **existing 001 wallets are clones of the old implementation** and must be recreated (see T042).
-- [ ] T018 [US1] Implement `packages/agent/src/identity.ts`:
+- [X] T018 [US1] Implement `packages/agent/src/identity.ts`:
   - `erc8004Hook(config)` returns an `onBeforePaymentCreation` hook that stores the claimed `agentId` per request;
   - `createPolicyWalletClient(opts)` in `packages/agent/src/signer.ts` registers the hook and makes the signer call `authorizeWithIdentity` or `authorize`, as specified in contracts/agent-cli.md.
 
   T014 passes.
-- [ ] T019 [US1] Add these CLI commands to `packages/agent/src/cli.ts` (all with the chain guard first, JSON lines, no keys printed):
+  - Done: the signer sends `authorizeWithIdentity` with an explicit gas limit (`AUTHORIZE_WITH_IDENTITY_GAS = 6_000_000`), because a gas estimate would land under the contract's ~5.38 M guard. `onAuthorized` reports `agentId` only when `PayeeIdentityVerified` was emitted.
+- [X] T019 [US1] Add these CLI commands to `packages/agent/src/cli.ts` (all with the chain guard first, JSON lines, no keys printed):
   - `set-reputation --wallet <w> --min-avg <0-100> --min-count <n> [--off]` (operator);
   - `trust-reviewer --wallet <w> <addr> [--remove]` (operator);
   - `reputation [--service <key>]` (read-only). Per service in `config/services.json` it prints `ownerOf`, `getAgentWallet`, `getSummary(agentId, trustedReviewers, "", "")` and `checkPayee` for the gated wallet.
-- [ ] T020 [US1] Extend `contracts/test/fork/Erc8004.fork.t.sol` against the **real** registries at `forkBlock`:
+  - Done, built and unit-tested only; not run against any live wallet (the live `research-bot-01` is a clone of 001's implementation and has none of these functions until T043).
+- [X] T020 [US1] Extend `contracts/test/fork/Erc8004.fork.t.sol` against the **real** registries at `forkBlock`:
   - deploy a `PolicyWallet` implementation and clone;
   - register a service identity from a test owner;
   - `setAgentWallet` to a payee using an EIP-712 `AgentWalletSet` signature made with `vm.sign` by the payee key (`deadline = block.timestamp + 60`);
@@ -233,18 +240,18 @@ These are quickstart scenarios 4, 10 and 11.
 
 ### Tests for User Story 2 ⚠️ (write first, must fail)
 
-- [ ] T021 [P] [US2] Write `contracts/test/Rate.t.sol` against `MockErc8004`:
+- [X] T021 [P] [US2] Write `contracts/test/Rate.t.sol` against `MockErc8004`:
   - `rate` reverts for a non-agent, an attempt without identity, an unsettled payment (A: `authorizationState` false; B: no settled `pay` record), an already-rated nonce, score 101, an empty tag, a 33-byte tag or a 201-byte endpoint;
   - a settled rate calls `giveFeedback(agentId, score, 0, tag, "agent-wallet/v1", endpoint, "", nonce)` with the `agentId` **from the attempt record**, and emits `PaymentRated` with the registry's `feedbackIndex`;
   - when the registry rejects the call (the wallet is the identity's owner), `rate` reverts and `attempt.rated` stays false.
-- [ ] T022 [P] [US2] Write `contracts/test/Reputation.invariant.t.sol`. Its handler performs random `authorize`, `authorizeWithIdentity`, simulated settlement, `rate`, `setReputationRule`, `setTrustedReviewer`, `setPayee` and `release`. Invariants:
+- [X] T022 [P] [US2] Write `contracts/test/Reputation.invariant.t.sol`. Its handler performs random `authorize`, `authorizeWithIdentity`, simulated settlement, `rate`, `setReputationRule`, `setTrustedReviewer`, `setPayee` and `release`. Invariants:
   - `attempt.rated ⇒ attempt.hasIdentity ∧ settled`;
   - at most one mock `giveFeedback` per (wallet, nonce);
   - the rule is never enabled with zero reviewers;
   - all of 001's invariants (spend ≤ limits, nonce used once) still hold.
 
   Uses `[invariant] runs = 256, depth = 50`.
-- [ ] T023 [P] [US2] Write `packages/agent/test/scoring.test.ts` with fixtures in `packages/agent/test/fixtures/quotes/`. Cases:
+- [X] T023 [P] [US2] Write `packages/agent/test/scoring.test.ts` with fixtures in `packages/agent/test/fixtures/quotes/`. Cases:
   - not JSON → 10 `malformed`;
   - a missing `asOf` → 10 `malformed`;
   - a wrong pair → 20 `wrong-data`;
@@ -252,24 +259,25 @@ These are quickstart scenarios 4, 10 and 11.
   - `asOf` 301 s old → 40 `stale`;
   - fresh → 90 `accurate`;
   - the same input twice gives the same output (FR-011).
-- [ ] T024 [P] [US2] Write `packages/agent/test/rate.test.ts` with a mocked viem client:
+- [X] T024 [P] [US2] Write `packages/agent/test/rate.test.ts` with a mocked viem client:
   - `ratePayment` waits for the **settlement tx receipt** before sending `rate`;
   - it parses `PaymentRated` and returns `feedbackIndex` and `txHash`;
   - `pay --rate` never calls `rate` for a refused payment or one without identity.
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Implement `rate(nonce, score, tag, endpoint)` in `contracts/src/PolicyWallet.sol` per contracts/policy-wallet-reputation.md:
+- [X] T025 [US2] Implement `rate(nonce, score, tag, endpoint)` in `contracts/src/PolicyWallet.sol` per contracts/policy-wallet-reputation.md:
   - check the agent, `hasIdentity`, the settlement (A: `IERC3009(token).authorizationState(address(this), nonce)`; B: the `pay` record), not rated, and the bounds;
   - set `attempt.rated = true` **before** calling `giveFeedback` (checks-effects-interactions);
   - read `getLastIndex(agentId, address(this))` for `feedbackIndex`;
   - emit `PaymentRated`.
 
   T021 and T022 pass.
-- [ ] T026 [P] [US2] Implement `packages/agent/src/scoring.ts` `scoreQuote(res, req)` exactly as the table in research R6, as a pure function with no I/O. T023 passes.
-- [ ] T027 [US2] Implement `packages/agent/src/rate.ts` `ratePayment({ wallet, agentKey, nonce, settlementTx, score, tag, endpoint })`. In `signer.ts`/`identity.ts`, capture the settlement tx hash from the x402 payment response header and the nonce of the request. T024 passes.
-- [ ] T028 [US2] Add `--rate` to `pay <url>` in `packages/agent/src/cli.ts`. After a 200 with a settled payment that had an identity, it scores the response, calls `ratePayment` and prints a `rated` JSON line with `score`, `tag`, `feedbackIndex` and `txHash`.
-- [ ] T029 [US2] Extend `contracts/test/fork/Erc8004.fork.t.sol`:
+- [X] T026 [P] [US2] Implement `packages/agent/src/scoring.ts` `scoreQuote(res, req)` exactly as the table in research R6, as a pure function with no I/O. T023 passes.
+- [X] T027 [US2] Implement `packages/agent/src/rate.ts` `ratePayment({ wallet, agentKey, nonce, settlementTx, score, tag, endpoint })`. In `signer.ts`/`identity.ts`, capture the settlement tx hash from the x402 payment response header and the nonce of the request. T024 passes.
+- [X] T028 [US2] Add `--rate` to `pay <url>` in `packages/agent/src/cli.ts`. After a 200 with a settled payment that had an identity, it scores the response, calls `ratePayment` and prints a `rated` JSON line with `score`, `tag`, `feedbackIndex` and `txHash`.
+  - Done: the eligibility decision is `rateOutcome` in `rate.ts`, so `pay --rate` never rating a refused or identity-less payment is unit-tested.
+- [X] T029 [US2] Extend `contracts/test/fork/Erc8004.fork.t.sol`:
   - fund the clone with USDC via `deal`;
   - authorise with identity;
   - settle by calling USDC `transferWithAuthorization(…, signature)` with the agent's signature (A; B: `payWithIdentity`);
@@ -382,7 +390,7 @@ These are quickstart scenarios 13 and 14.
   - it never prints keys.
 
   T039 passes.
-- [ ] T042 [US4] Security review gate (constitution workflow) **before** any deploy. Run `/security-review` on `contracts/src/`, plus a manual checklist:
+- [X] T042 [US4] Security review gate (constitution workflow) **before** any deploy. Run `/security-review` on `contracts/src/`, plus a manual checklist:
   - assembly bounds in `_readAgentWallet` and `_readSummary`;
   - the gas guard;
   - checks-effects-interactions in `rate`;
@@ -406,6 +414,7 @@ These are quickstart scenarios 13 and 14.
   - set the Worker vars from `config/services.json`, with `FLAKY_DEGRADE_AT` = launch + 12 h and `NEWCOMER_OPENS_AT` = launch + 36 h, where launch is the planned first scheduled run (record it in `config/services.json`);
   - redeploy the Worker through its Git integration;
   - commit `config/services.json` and `config/deployments.json` (public addresses only).
+  - **Order matters**: don't give the live `/quote` an `extra.erc8004` before T043 has moved `research-bot-01` to the new implementation. The agent would then call `authorizeWithIdentity` on a wallet that doesn't have it, and every scheduled payment would revert.
 - [ ] T045 [US4] Run quickstart scenarios 2, 3, 4, 5 and 9 on Base Sepolia with the CLI, and record the outputs and tx links in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
 
 **Checkpoint**: real identities are live, the upgraded wallets are deployed, and US1 and US2 are proven on the live network.
@@ -458,7 +467,7 @@ These are quickstart scenario 12 and SC-003/004.
 
 **Independent Test**: `pay …/s/impostor/quote` is refused with `PAYEE_IDENTITY_MISMATCH` and `pay …/s/anonymous/quote` with `PAYEE_IDENTITY_UNVERIFIED`. No funds move (quickstart scenarios 7 and 8).
 
-- [ ] T050 [P] [US6] Extend `contracts/test/fork/Erc8004.fork.t.sol`:
+- [X] T050 [P] [US6] Extend `contracts/test/fork/Erc8004.fork.t.sol`:
   - an impostor payee claiming a real, well-rated identity → 9;
   - after the owner transfers the identity NFT (`agentWallet` cleared) → 9;
   - after `setAgentWallet` to a new payee, paying the old address → 9;
@@ -570,4 +579,5 @@ unchanged, and 001's scenario runs throughout, with its payee probe on a scout.
 - Commit after each task or logical group.
 - If a registry implementation changes (exit 4), stop and get an owner decision before
   updating `config/erc8004.json` (research R8).
-- T001 result: _(fill in)_
+- T001 result (2026-10-09): **pass**. 001's T010–T040 are all checked; Design A is recorded in 001's research.md R2; `forge test` passed (31 passed, 2 fork tests skipped without `RPC_URL`; with it, all pass).
+- MVP checkpoint (2026-10-09): Phase 1 (except owner task T005), Phase 2, US1 and US2 are done. `RPC_URL=https://sepolia.base.org forge test`: 83 passed (unit, fuzz 1,000 runs per case, invariants 256 × 50, fork against the real registries at `forkBlock`). Agent SDK: 44 Vitest tests. Nothing deployed. One live regression payment with the new client path (`pay …/quote --rate` on 001's `research-bot-01`): it called 001's `authorize` (selector `0x05da5c1d`), settled ([tx](https://sepolia.basescan.org/tx/0xf0ee22a7e624eccdd7c9535cb9473bf8d8d9d6a460d31d17d29deff08eb0c825)) and printed `not-rated` (no identity claimed yet). Next: the security review (T042) before T043.

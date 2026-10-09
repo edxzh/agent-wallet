@@ -1,0 +1,14 @@
+{
+  "chainId": 84532,
+  "version": "2.0.0",
+  "identity": {
+    "proxy": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "implementation": "0x7274e874CA62410a93Bd8bf61c69d8045E399c02"
+  },
+  "reputation": {
+    "proxy": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+    "implementation": "0x16e0FA7f7C56B9a767E34B192B51f921BE31dA34"
+  },
+  "implementationSlot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+  "forkBlock": 47892055
+}

@@ -373,3 +373,29 @@ No new runtime dependencies. This feature reuses feature 001's stack:
 
 The ERC-8004 interfaces are vendored as two small Solidity interfaces plus viem ABIs, so no
 package is needed.
+
+## R12. Security review (T042, 2026-10-09)
+
+Scope: `contracts/src/` (PolicyWallet reputation changes, `IPolicyWalletReputation`,
+`interfaces/IERC8004`, `Reason`, `Deploy.s.sol`) and the agent SDK (`signer`, `identity`, `rate`,
+`registries`, `pay`, `cli`). Method: `/security-review` plus the T042 checklist.
+
+**Result: no high-confidence vulnerabilities.**
+
+| Check | Result |
+| --- | --- |
+| Assembly bounds (`_readAgentWallet`, `_readSummary`) | Fixed gas, fixed 32/96-byte buffers, `returndatasize()` exactly 32/96, every word range-checked; failures → `REPUTATION_UNAVAILABLE`. Mutation-tested |
+| Gas guard | Before any state change. `test_lowGas_minimumPassingGasStillFundsTheRegistry` proves the minimum passing gas still gives the summary read its full 5 M; margin raised to 200k (20k fails the test) |
+| Checks-effects-interactions in `rate` | `rated = true` before `giveFeedback`; a registry revert reverts `rate` and leaves it unrated (tested) |
+| `agentId` never caller-supplied in `rate` | Read from the attempt record, written only after the identity check passed |
+| Allowlist never skips the mismatch check | 3a runs before 3b; tested on mock and fork. Only a *failed* identity read lets an allowlisted payee pass, without identity (so not ratable) |
+| Append-only `Reason` | 0–7 unchanged; a test pins 7 and 12 |
+
+Attack paths ruled out: forged reputation with a stolen agent key (needs an identity-checked,
+settled payment to an operator-allowlisted or already-reputable payee); a false "settled" via
+FiatToken `cancelAuthorization` (its digest is never reserved, so ERC-1271 rejects it);
+impersonation (other wallet, unknown id, transferred NFT, old address after a wallet change);
+a hostile service's `extra.erc8004` (only chooses which id the contract verifies).
+
+Noted, not fixed (no security impact): `rateOutcome` truncates the endpoint to 200 characters while
+the contract limits 200 bytes, so a non-ASCII URL could make `rate` revert (no rating).

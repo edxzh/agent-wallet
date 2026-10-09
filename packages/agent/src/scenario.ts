@@ -22,7 +22,7 @@ export type ScenarioDeps = {
   log(line: Record<string, unknown>): void;
 };
 
-export const EXIT = { OK: 0, CONFIG: 1, MISMATCH: 2, INSUFFICIENT_FUNDS: 3 } as const;
+export const EXIT = { OK: 0, CONFIG: 1, MISMATCH: 2, INSUFFICIENT_FUNDS: 3, REGISTRY_CHANGED: 4 } as const;
 const PAIRS = ['ETH-USDC', 'BTC-USDC', 'SOL-USDC', 'ARB-USDC', 'OP-USDC', 'LINK-USDC'];
 
 /** Deterministic plan for a seed: which three pairs to buy, in which order. */

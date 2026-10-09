@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {PolicyWallet} from "../src/PolicyWallet.sol";
 import {PolicyWalletFactory} from "../src/PolicyWalletFactory.sol";
 import {MockUSDC} from "./mocks/MockUSDC.sol";
+import {MockErc8004} from "./mocks/MockErc8004.sol";
 
 /// Shared setup: mock USDC, implementation + factory, one funded wallet with an allowed payee
 /// and a task. Amounts in USDC base units (6 decimals).
@@ -16,6 +17,7 @@ abstract contract BaseTest is Test {
     uint256 internal constant TASK_BUDGET = 2 * USDC1;
 
     MockUSDC internal usdc;
+    MockErc8004 internal registry;
     PolicyWalletFactory internal factory;
     PolicyWallet internal wallet;
 
@@ -31,7 +33,8 @@ abstract contract BaseTest is Test {
         vm.warp(1_760_000_000); // a realistic timestamp
         (agent, agentKey) = makeAddrAndKey("agent");
         usdc = new MockUSDC();
-        factory = new PolicyWalletFactory(address(new PolicyWallet(address(usdc))));
+        registry = new MockErc8004();
+        factory = new PolicyWalletFactory(address(new PolicyWallet(address(usdc), address(registry), address(registry))));
         vm.prank(operator);
         wallet = PolicyWallet(factory.createWallet(agent, "research-bot-01", CAP, DAILY));
         vm.startPrank(operator);

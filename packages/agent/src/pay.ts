@@ -1,11 +1,21 @@
-import { wrapFetchWithPayment, x402Client, decodePaymentResponseHeader } from '@x402/fetch';
-import { ExactEvmScheme } from '@x402/evm/exact/client';
+import { wrapFetchWithPayment, decodePaymentResponseHeader } from '@x402/fetch';
 import type { Address, Hex } from 'viem';
-import { NETWORK } from './config.js';
-import { createPolicyWalletSigner, PolicyRefusedError, type AuthorizedPayment } from './signer.js';
+import { createPolicyWalletClient } from './identity.js';
+import { PolicyRefusedError, type AuthorizedPayment } from './signer.js';
 
 export type PayOutcome =
-  | { kind: 'settled'; status: number; nonce: Hex; authorizeTx: Hex; settlementTx?: Hex; amount: bigint; payee: Address; body: unknown }
+  | {
+      kind: 'settled';
+      status: number;
+      nonce: Hex;
+      authorizeTx: Hex;
+      settlementTx?: Hex;
+      amount: bigint;
+      payee: Address;
+      body: unknown;
+      /** Set when the wallet verified the payee's ERC-8004 identity: the payment can be rated. */
+      agentId?: bigint;
+    }
   | { kind: 'refused'; reason: string; nonce: Hex; authorizeTx: Hex }
   | { kind: 'failed'; status?: number; error: string; nonce?: Hex; authorizeTx?: Hex };
 
@@ -16,8 +26,7 @@ export async function payUrl(
 ): Promise<PayOutcome> {
   let authorized: AuthorizedPayment | undefined;
   let refusal: PolicyRefusedError | undefined;
-  const signer = createPolicyWalletSigner({ ...opts, onAuthorized: (p) => (authorized = p), onRefused: (e) => (refusal = e) });
-  const client = new x402Client().register(NETWORK, new ExactEvmScheme(signer as never));
+  const { client } = createPolicyWalletClient({ ...opts, onAuthorized: (p) => (authorized = p), onRefused: (e) => (refusal = e) });
   const paying = wrapFetchWithPayment(opts.fetchImpl ?? fetch, client);
   try {
     const res = await paying(url);
@@ -38,6 +47,7 @@ export async function payUrl(
         amount: authorized.amount,
         payee: authorized.payee,
         body,
+        agentId: authorized.agentId,
       };
     }
     // x402 v2 puts the facilitator's reason in the PAYMENT-REQUIRED header's `error`.

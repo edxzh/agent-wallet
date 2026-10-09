@@ -1,0 +1,72 @@
+{
+  "services": [
+    {
+      "key": "quote",
+      "route": "/quote",
+      "agentId": null,
+      "payTo": null,
+      "label": {
+        "en": "Demo quote API",
+        "zh": "演示报价 API"
+      },
+      "claims": "self"
+    },
+    {
+      "key": "reliable",
+      "route": "/s/reliable/quote",
+      "agentId": null,
+      "payTo": null,
+      "label": {
+        "en": "Reliable quotes",
+        "zh": "可靠报价"
+      },
+      "claims": "self"
+    },
+    {
+      "key": "flaky",
+      "route": "/s/flaky/quote",
+      "agentId": null,
+      "payTo": null,
+      "label": {
+        "en": "Flaky quotes",
+        "zh": "不稳定报价"
+      },
+      "claims": "self",
+      "degradeAt": null
+    },
+    {
+      "key": "newcomer",
+      "route": "/s/newcomer/quote",
+      "agentId": null,
+      "payTo": null,
+      "label": {
+        "en": "Newcomer quotes",
+        "zh": "新来的报价服务"
+      },
+      "claims": "self",
+      "opensAt": null
+    },
+    {
+      "key": "impostor",
+      "route": "/s/impostor/quote",
+      "agentId": null,
+      "payTo": null,
+      "label": {
+        "en": "Impostor",
+        "zh": "冒充者"
+      },
+      "claims": "reliable"
+    },
+    {
+      "key": "anonymous",
+      "route": "/s/anonymous/quote",
+      "agentId": null,
+      "payTo": null,
+      "label": {
+        "en": "Anonymous quotes",
+        "zh": "匿名报价"
+      },
+      "claims": null
+    }
+  ]
+}
