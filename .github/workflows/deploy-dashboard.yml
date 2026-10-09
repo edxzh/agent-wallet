@@ -1,0 +1,60 @@
+name: Deploy dashboard
+
+# Builds apps/dashboard and uploads it to the Cloudflare Pages project `agent-wallet-demo`
+# (demo.yunshu.ai). Runs after CI passes on main, and after each scheduled agent run (its snapshot
+# commits use [skip ci] and GITHUB_TOKEN, so they never trigger a push workflow themselves).
+# Needs the CLOUDFLARE_API_TOKEN secret (Account › Cloudflare Pages › Edit only).
+
+on:
+  workflow_run:
+    workflows: [CI, Agent run]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dashboard
+  cancel-in-progress: true # only the newest build matters
+
+jobs:
+  deploy:
+    # CI: only green pushes to main. Agent run: always (it commits the snapshot before it can fail).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.name == 'Agent run') ||
+      (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: 72500949490076c0151410af539f2247 # not a secret
+    steps:
+      - name: Check setup
+        id: setup
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN secret not set yet; skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          # CI: the commit that passed. Agent run: latest main, which has the new snapshot.
+          ref: ${{ github.event.workflow_run.name == 'CI' && github.event.workflow_run.head_sha || 'main' }}
+      - uses: actions/setup-node@v4
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: steps.setup.outputs.ready == 'true'
+      - run: npm run build -w apps/dashboard
+        if: steps.setup.outputs.ready == 'true'
+      - name: Upload to Cloudflare Pages
+        if: steps.setup.outputs.ready == 'true'
+        run: npx wrangler pages deploy apps/dashboard/dist --project-name agent-wallet-demo --branch main --commit-hash "$(git rev-parse HEAD)" --commit-dirty=true
