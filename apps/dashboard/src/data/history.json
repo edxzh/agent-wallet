@@ -1,7 +1,7 @@
 {
   "network": "eip155:84532",
-  "generatedAt": "2026-10-08T02:30:57.972Z",
-  "lastBlock": 47829183,
+  "generatedAt": "2026-10-08T02:36:42.896Z",
+  "lastBlock": 47829356,
   "wallets": [
     {
       "address": "0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0",
@@ -24,7 +24,7 @@
           "id": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
           "label": "market-research",
           "budget": "10000000",
-          "spent": "50000"
+          "spent": "60000"
         },
         {
           "id": "0xead08f4e28c200ed114a28c17b2374ebe77cddb2c1c4fb36166df1590ed7d468",
@@ -35,10 +35,23 @@
       ],
       "today": {
         "day": 20734,
-        "spent": "50000"
+        "spent": "60000"
       },
-      "balance": "8950000",
+      "balance": "8940000",
       "events": [
+        {
+          "block": 47829262,
+          "logIndex": 6,
+          "txHash": "0x3f560ec1fe84bb00762d5c74d6ebb93e725892dc5d2941e3c47de24117015d8b",
+          "time": "2026-10-08T02:33:32.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x2fa2d6497e25b2673e0c979d34d7ec4435cfd33f69e927e0f73ce7ef8b6324a4",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
+          "amount": "10000",
+          "settledTx": "0x3104bfc5fa0be9bfc1853b68a1fd775bfecbe87cd70f7668a7f19e25725a26c0"
+        },
         {
           "block": 47829177,
           "logIndex": 203,

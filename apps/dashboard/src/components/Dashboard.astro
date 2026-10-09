@@ -117,7 +117,8 @@ const liveData = wallet && history && {
 <script>
   // Load the live tail after first paint and idle time, so it never costs first-screen JS.
   const load = () => import('../scripts/live-tail').then((m) => m.start());
-  const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb) : setTimeout(cb, 1));
+  // With a timeout: background tabs may never report idle time.
+  const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 2000 }) : setTimeout(cb, 1));
   if (document.getElementById('aw-live')) {
     if (document.readyState === 'complete') idle(load);
     else addEventListener('load', () => idle(load));
