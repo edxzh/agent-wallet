@@ -85,3 +85,17 @@ to `https://sepolia.base.org` returned 200 (no CORS issue) and the console had n
 blocked-RPC notice is covered by the Playwright test. On `demo.yunshu.ai` itself this still needs
 re-checking after the next deploy (T040).
 
+### Scenarios 8 and 9 on demo.yunshu.ai (2026-10-09, T040)
+
+Checked with Playwright (Chromium) against the live site after the first automatic deploy
+(`deploy-dashboard.yml` run 37930648579).
+
+| # | Check | Result |
+| --- | --- | --- |
+| 8 | `/` and `/zh/` on desktop (1280×900) and phone (Pixel 7) | ✅ Testnet banner in the right language, 6 run groups (newest open), "Older activity (7)". No horizontal scroll on the phone, no console errors, RPC requests 200 |
+| 8 | "verify ↗" links | ✅ All 39 rows link to `sepolia.basescan.org/tx/0x…`; all 34 distinct transactions succeeded on-chain and emit logs from the wallet (or USDC `AuthorizationUsed` for it) |
+| 8 | `pay` with the page open | ✅ Settled 10.3 s after start ([tx](https://sepolia.basescan.org/tx/0xea6194591af8a76ab6b2ddae0a3d4a54bcfbbf413d8801e7c0fcd573bf254fdf)); its row appeared **5.9 s after settlement** (SC-003 ≤ 30 s), linking to the settlement tx, in a new "Agent activity" group; balance 8.90 → 8.89 |
+| 8 | Live tail catch-up | ✅ Picked up a release made after the snapshot (row 39) using 200-block `getLogs` chunks |
+| 9 | JavaScript disabled | ✅ All 38 snapshot rows render; folded groups open with `<details>` |
+| 9 | `sepolia.base.org` blocked | ✅ "Network unavailable, showing data as of 9 Oct 2026, 11:27 UTC." and all rows stay on screen |
+

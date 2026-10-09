@@ -188,7 +188,8 @@ readable.
   Keep first-screen JS ≤ 50 KB gzip (viem only in this chunk). Depends on T037
 - [X] T039 [US3] **(owner, Cloudflare dashboard)** Create the Pages project `agent-wallet-demo` from `edxzh/agent-wallet` (root `apps/dashboard`, build `npm ci && npm run build -w apps/dashboard`, output `apps/dashboard/dist`, `NODE_VERSION=22`) and attach the custom domain `demo.yunshu.ai`. Claude can drive the dashboard steps once the GitHub app access includes the new repo
   - Done differently, 2026-10-09: the project is a direct-upload Pages project (Cloudflare can't attach Git to one), so `.github/workflows/deploy-dashboard.yml` builds and uploads it with wrangler after CI passes on main and after each agent run (snapshot commits trigger nothing themselves). Secret `CLOUDFLARE_API_TOKEN` (Pages:Edit, one account). First run 37930648579 deployed the grouped timeline to demo.yunshu.ai
-- [ ] T040 [US3] Run quickstart scenarios 8 and 9 on `demo.yunshu.ai` (phone and desktop, both languages, BaseScan links, no-JS, RPC blocked) and record the results
+- [X] T040 [US3] Run quickstart scenarios 8 and 9 on `demo.yunshu.ai` (phone and desktop, both languages, BaseScan links, no-JS, RPC blocked) and record the results
+  - Done 2026-10-09 on the live site: all checks pass, new row 5.9 s after settlement. Results in quickstart.md ("Scenarios 8 and 9 on demo.yunshu.ai")
 
 **Checkpoint**: P1 complete. The demo pays, refuses and is publicly verifiable (MVP).
 
