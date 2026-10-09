@@ -155,6 +155,20 @@
       "agent": "Agent key rotated"
     }
   },
+  "group": {
+    "agent": "Agent activity",
+    "operator": "Operator changes",
+    "paid": "{n} paid",
+    "pending": "{n} awaiting settlement",
+    "refused": "{n} refused",
+    "released": "{n} released",
+    "rule": "{n} rule change",
+    "rules": "{n} rule changes",
+    "paused": "paused",
+    "unpaused": "resumed",
+    "spent": "{amount} USDC spent",
+    "older": "Older activity ({n})"
+  },
   "reason": {
     "PAUSED": "The operator has paused this agent",
     "INVALID_AMOUNT": "Zero amount or already expired",

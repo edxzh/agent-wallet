@@ -1,0 +1,37 @@
+---
+import { t, type Lang } from '../i18n';
+import { formatTime, rowKind, summarize, toRow, type Group, type Labels } from '../lib/rows';
+import { rowTextFor } from '../lib/history';
+
+interface Props { lang: Lang; group: Group; labels: Labels; open: boolean }
+const { lang, group: g, labels, open } = Astro.props;
+const d = t(lang);
+const text = rowTextFor(lang);
+const items = g.entries.map((e) => ({ e, kind: rowKind(e), row: toRow(e, labels, text) }));
+const { title, counts } = summarize(items.map((i) => ({ kind: i.kind, amount: i.e.amount })), g.operator, d.group);
+const newest = g.entries[0]!.time;
+---
+
+<details class="group" open={open} data-group={g.operator ? 'operator' : 'agent'} data-newest={newest}>
+  <summary>
+    <span class="chev" aria-hidden="true"></span>
+    <span class="gtitle">{title}</span>
+    <span class="counts">{counts}</span>
+    <time datetime={newest}>{formatTime(newest, lang)}</time>
+  </summary>
+  <ol role="list">
+    {items.map(({ e, kind, row: r }) => (
+      <li class:list={['row', r.tone]} data-key={r.key} data-kind={kind} data-amount={e.amount}>
+        <span class="icon" aria-hidden="true">{r.icon}</span>
+        <div class="text">
+          <p class="title">{r.title}</p>
+          {r.detail && <p class="detail">{r.detail}</p>}
+        </div>
+        <div class="meta">
+          <time datetime={r.time}>{formatTime(r.time, lang)}</time>
+          <a href={r.href} rel="noopener" target="_blank">{d.live.verify}</a>
+        </div>
+      </li>
+    ))}
+  </ol>
+</details>

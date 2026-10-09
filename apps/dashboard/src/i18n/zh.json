@@ -155,6 +155,20 @@
       "agent": "更换了 agent 密钥"
     }
   },
+  "group": {
+    "agent": "Agent 活动",
+    "operator": "运营方操作",
+    "paid": "{n} 笔已付款",
+    "pending": "{n} 笔等待结算",
+    "refused": "{n} 笔被拒绝",
+    "released": "{n} 笔已释放",
+    "rule": "{n} 项规则变更",
+    "rules": "{n} 项规则变更",
+    "paused": "已暂停",
+    "unpaused": "已恢复",
+    "spent": "支出 {amount} USDC",
+    "older": "更早的活动（{n}）"
+  },
   "reason": {
     "PAUSED": "运营方已暂停这个 agent",
     "INVALID_AMOUNT": "金额为零或已过期",

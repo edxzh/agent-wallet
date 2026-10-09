@@ -26,6 +26,7 @@ const liveData = wallet && history && {
   pending: wallet.events.filter((e) => e.kind === 'authorized' && !e.settled),
   labels: labelsFor(wallet, lang),
   text: rowTextFor(lang),
+  groupText: d.group,
   networkDown: d.live.networkDown,
 };
 ---

@@ -93,6 +93,75 @@ export function toRow(e: Entry, labels: Labels, t: RowText): Row {
   }
 }
 
+// ── Groups ──────────────────────────────────────────────────────────────────────────────
+// The agent acts in bursts (a scheduled run is a few payments and probes within a minute), so
+// the timeline groups entries that are close in time. Operator actions get groups of their own.
+
+export type RowKind = 'paid' | 'pending' | 'refused' | 'released' | 'rule' | 'paused' | 'unpaused';
+
+export type GroupText = {
+  agent: string;
+  operator: string;
+  paid: string;
+  pending: string;
+  refused: string;
+  released: string;
+  rule: string;
+  rules: string;
+  paused: string;
+  unpaused: string;
+  spent: string;
+  older: string;
+};
+
+export type Group = { key: string; operator: boolean; entries: Entry[] };
+
+/** Entries further apart than this start a new group. Runs take about a minute. */
+export const GROUP_GAP_MS = 10 * 60_000;
+
+export function rowKind(e: Entry): RowKind {
+  switch (e.kind) {
+    case 'authorized':
+      return e.settled ? 'paid' : 'pending';
+    case 'refused':
+      return 'refused';
+    case 'expired':
+      return 'released';
+    case 'ruleChange':
+      return 'rule';
+    default:
+      return e.kind;
+  }
+}
+
+export const isOperatorKind = (k: RowKind) => k === 'rule' || k === 'paused' || k === 'unpaused';
+
+/** Groups newest-first entries into newest-first groups. */
+export function groupEntries(entries: Entry[]): Group[] {
+  const groups: Group[] = [];
+  for (const e of entries) {
+    const operator = isOperatorKind(rowKind(e));
+    const g = groups.at(-1);
+    const oldest = g?.entries.at(-1);
+    if (g && oldest && g.operator === operator && Date.parse(oldest.time) - Date.parse(e.time) <= GROUP_GAP_MS) g.entries.push(e);
+    else groups.push({ key: `${e.txHash}:${e.logIndex}`, operator, entries: [e] });
+  }
+  return groups;
+}
+
+/** A group's heading: its title and counts, e.g. "3 paid · 4 refused · 0.03 USDC spent". */
+export function summarize(items: { kind: RowKind; amount?: string }[], operator: boolean, t: GroupText): { title: string; counts: string } {
+  const n = (k: RowKind) => items.filter((i) => i.kind === k).length;
+  const parts: string[] = [];
+  for (const k of ['paid', 'pending', 'refused', 'released'] as const) if (n(k)) parts.push(fill(t[k], { n: String(n(k)) }));
+  if (n('rule')) parts.push(fill(n('rule') === 1 ? t.rule : t.rules, { n: String(n('rule')) }));
+  if (n('paused')) parts.push(t.paused);
+  if (n('unpaused')) parts.push(t.unpaused);
+  const spent = items.filter((i) => i.kind === 'paid').reduce((sum, i) => sum + BigInt(i.amount ?? 0), 0n);
+  if (spent > 0n) parts.push(fill(t.spent, { amount: usdc(spent) }));
+  return { title: operator ? t.operator : t.agent, counts: parts.join(' · ') };
+}
+
 /** "8 Oct 2026, 02:17 UTC" / "2026年10月8日 02:17 UTC" */
 export function formatTime(iso: string, lang: 'en' | 'zh'): string {
   if (!iso) return '';

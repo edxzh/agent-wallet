@@ -1,41 +1,54 @@
 ---
 import { t, type Lang } from '../i18n';
-import { toRow, formatTime } from '../lib/rows';
-import { labelsFor, rowTextFor, type WalletHistory } from '../lib/history';
+import { groupEntries } from '../lib/rows';
+import { labelsFor, type WalletHistory } from '../lib/history';
+import TimelineGroup from './TimelineGroup.astro';
 
 interface Props { lang: Lang; wallet: WalletHistory }
 const { lang, wallet: w } = Astro.props;
-const d = t(lang).live;
+const d = t(lang);
 const labels = labelsFor(w, lang);
-const rows = w.events.map((e) => toRow(e, labels, rowTextFor(lang)));
+// Newest groups first; the latest is open. Older ones fold away (works without JS: <details>).
+const SHOWN = 6;
+const groups = groupEntries(w.events);
+const recent = groups.slice(0, SHOWN);
+const older = groups.slice(SHOWN);
 ---
 
 <section class="card timeline" aria-labelledby="tl-h">
-  <h3 id="tl-h">{d.timelineHeading}</h3>
-  <p class="intro muted">{d.timelineIntro}</p>
+  <h3 id="tl-h">{d.live.timelineHeading}</h3>
+  <p class="intro muted">{d.live.timelineIntro}</p>
   <p class="notice" data-live="notice" hidden></p>
-  {rows.length === 0 && <p class="muted">{d.empty}</p>}
-  <ol role="list" data-live="rows">
-    {rows.map((r) => (
-      <li class:list={['row', r.tone]} data-key={r.key}>
-        <span class="icon" aria-hidden="true">{r.icon}</span>
-        <div class="text">
-          <p class="title">{r.title}</p>
-          {r.detail && <p class="detail">{r.detail}</p>}
-        </div>
-        <div class="meta">
-          <time datetime={r.time}>{formatTime(r.time, lang)}</time>
-          <a href={r.href} rel="noopener" target="_blank">{d.verify}</a>
-        </div>
-      </li>
-    ))}
-  </ol>
+  {groups.length === 0 && <p class="muted" data-live="empty">{d.live.empty}</p>}
+  <div data-live="groups">
+    {recent.map((g, i) => <TimelineGroup lang={lang} group={g} labels={labels} open={i === 0} />)}
+  </div>
+  {older.length > 0 && (
+    <details class="older">
+      <summary>{d.group.older.replace('{n}', String(older.length))}</summary>
+      {older.map((g) => <TimelineGroup lang={lang} group={g} labels={labels} open={false} />)}
+    </details>
+  )}
 </section>
 
 <style is:global>
-  .timeline ol { padding: 0; margin: 0; }
+  .timeline ol { padding: 0 0 0 36px; margin: 0; }
+  .timeline .group { border-bottom: 1px solid var(--border); }
+  .timeline summary { list-style: none; cursor: pointer; }
+  .timeline summary::-webkit-details-marker { display: none; }
+  .timeline .group > summary { display: grid; grid-template-columns: 24px auto 1fr auto; gap: 12px; align-items: baseline; padding: 14px 0; }
+  .timeline .chev::before { content: '▸'; display: inline-block; color: var(--text-muted); transition: transform 150ms var(--ease-out); }
+  .timeline details[open] > summary .chev::before { transform: rotate(90deg); }
+  .timeline .gtitle { font-size: 15px; font-weight: 600; }
+  .timeline .counts { font-size: 13px; color: var(--text-muted); }
+  .timeline .group > summary time { font: 12px var(--font-mono); color: var(--text-muted); white-space: nowrap; }
+  .timeline .group[data-group='operator'] .gtitle { color: var(--accent); }
+  .timeline .older > summary { padding: 14px 0 4px; font-size: 14px; color: var(--accent); }
+  .timeline .older[open] > summary { padding-bottom: 0; }
+  .timeline summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   .timeline .row { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .timeline .row:last-child { border-bottom: 0; }
+  .timeline .group[open] > ol { padding-bottom: 8px; }
   .timeline .icon { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; background: var(--border); }
   .timeline .ok .icon { color: #34d399; background: rgb(52 211 153 / 0.14); }
   .timeline .bad .icon { color: #fca5a5; background: rgb(252 165 165 / 0.14); }
@@ -51,6 +64,9 @@ const rows = w.events.map((e) => toRow(e, labels, rowTextFor(lang)));
   @media (max-width: 640px) {
     .timeline .row { grid-template-columns: 28px 1fr; }
     .timeline .meta { grid-column: 2; justify-items: start; grid-auto-flow: column; gap: 12px; }
+    .timeline ol { padding-left: 0; }
+    .timeline .group > summary { grid-template-columns: 24px 1fr; row-gap: 2px; }
+    .timeline .group > summary .counts, .timeline .group > summary time { grid-column: 2; }
   }
 </style>
 <style>

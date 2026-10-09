@@ -1,10 +1,11 @@
 /**
  * Live tail (contracts/dashboard.md): after first paint, polls Base Sepolia every 10 s for the
- * wallet's new events and USDC settlements since the snapshot, and prepends rows. The page is
+ * wallet's new events and USDC settlements since the snapshot, and adds them to the newest group
+ * (or starts a new one). The page is
  * complete without it (constitution VII); this only adds what happened since the last snapshot.
  */
 import { decodeEventLog, encodeFunctionData, parseAbi, type Hex, type Log } from 'viem';
-import { formatTime, toRow, usdc, type Entry, type Labels, type RowText } from '../lib/rows';
+import { formatTime, GROUP_GAP_MS, isOperatorKind, rowKind, summarize, toRow, usdc, type Entry, type GroupText, type Labels, type RowKind, type RowText } from '../lib/rows';
 
 type LiveData = {
   lang: 'en' | 'zh';
@@ -15,6 +16,7 @@ type LiveData = {
   pending: Entry[];
   labels: Labels;
   text: RowText;
+  groupText: GroupText;
   networkDown: string;
 };
 
@@ -87,35 +89,81 @@ function toEntry(log: Log, time: string): Entry | undefined {
 
 export function start() {
   const el = document.getElementById('aw-live');
-  const list = document.querySelector<HTMLOListElement>('[data-live="rows"]');
-  if (!el || !list) return;
+  const groups = document.querySelector<HTMLElement>('[data-live="groups"]');
+  const timeline = groups?.closest('section');
+  if (!el || !groups || !timeline) return;
   const data = JSON.parse(el.textContent || '{}') as LiveData;
   const notice = document.querySelector<HTMLElement>('[data-live="notice"]');
   const verify = data.text.verify;
   const byNonce = new Map<string, Entry>(data.pending.filter((e) => e.nonce).map((e) => [e.nonce!, e]));
   let cursor = data.lastBlock + 1;
 
+  const el$ = <K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text = '') =>
+    Object.assign(document.createElement(tag), { className, textContent: text });
+
+  /** Re-derives a group's heading from its rows (rows change kind when a payment settles). */
+  const refreshGroup = (g: HTMLElement) => {
+    const items = [...g.querySelectorAll<HTMLElement>('li.row')].map((li) => ({ kind: li.dataset.kind as RowKind, amount: li.dataset.amount }));
+    const { title, counts } = summarize(items, g.dataset.group === 'operator', data.groupText);
+    g.querySelector('.gtitle')!.textContent = title;
+    g.querySelector('.counts')!.textContent = counts;
+    const newest = g.querySelector<HTMLTimeElement>('li.row time')?.dateTime ?? '';
+    g.dataset.newest = newest;
+    const time = g.querySelector<HTMLTimeElement>(':scope > summary time')!;
+    time.dateTime = newest;
+    time.textContent = formatTime(newest, data.lang);
+  };
+
+  const newGroup = (operator: boolean) => {
+    const g = document.createElement('details');
+    g.className = 'group';
+    g.open = true;
+    g.dataset.group = operator ? 'operator' : 'agent';
+    const summary = document.createElement('summary');
+    const chev = el$('span', 'chev');
+    chev.setAttribute('aria-hidden', 'true');
+    summary.append(chev, el$('span', 'gtitle'), el$('span', 'counts'), document.createElement('time'));
+    const ol = document.createElement('ol');
+    ol.setAttribute('role', 'list');
+    g.append(summary, ol);
+    groups.prepend(g);
+    timeline.querySelector<HTMLElement>('[data-live="empty"]')?.setAttribute('hidden', '');
+    return g;
+  };
+
   const render = (e: Entry, isNew: boolean) => {
     const r = toRow(e, data.labels, data.text);
+    const kind = rowKind(e);
     const li = document.createElement('li');
     li.className = `row ${r.tone}${isNew ? ' new' : ''}`;
     li.dataset.key = r.key;
-    const icon = Object.assign(document.createElement('span'), { className: 'icon', textContent: r.icon });
+    li.dataset.kind = kind;
+    if (e.amount) li.dataset.amount = e.amount;
+    const icon = el$('span', 'icon', r.icon);
     icon.setAttribute('aria-hidden', 'true');
-    const text = document.createElement('div');
-    text.className = 'text';
-    text.append(Object.assign(document.createElement('p'), { className: 'title', textContent: r.title }));
-    if (r.detail) text.append(Object.assign(document.createElement('p'), { className: 'detail', textContent: r.detail }));
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    const time = Object.assign(document.createElement('time'), { textContent: formatTime(r.time, data.lang) });
+    const text = el$('div', 'text');
+    text.append(el$('p', 'title', r.title));
+    if (r.detail) text.append(el$('p', 'detail', r.detail));
+    const meta = el$('div', 'meta');
+    const time = el$('time', '', formatTime(r.time, data.lang));
     time.dateTime = r.time;
     const a = Object.assign(document.createElement('a'), { href: r.href, textContent: verify, target: '_blank', rel: 'noopener' });
     meta.append(time, a);
     li.append(icon, text, meta);
-    const existing = list.querySelector(`[data-key="${r.key}"]`);
-    if (existing) existing.replaceWith(li);
-    else list.prepend(li);
+
+    const existing = timeline.querySelector<HTMLElement>(`li[data-key="${r.key}"]`);
+    let group: HTMLElement;
+    if (existing) {
+      group = existing.closest<HTMLElement>('details.group')!;
+      existing.replaceWith(li);
+    } else {
+      const operator = isOperatorKind(kind);
+      const top = groups.querySelector<HTMLElement>(':scope > details.group');
+      const close = top && top.dataset.group === (operator ? 'operator' : 'agent') && Date.parse(r.time) - Date.parse(top.dataset.newest ?? '') <= GROUP_GAP_MS;
+      group = close ? top : newGroup(operator);
+      group.querySelector('ol')!.prepend(li);
+    }
+    refreshGroup(group);
   };
 
   const refreshCounters = async () => {

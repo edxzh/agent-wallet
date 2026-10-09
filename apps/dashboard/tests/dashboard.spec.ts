@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 const pages = [
-  { path: '/', banner: 'Test network only. No real money.', rules: 'Per payment', spend: 'Spent today', verify: 'verify ↗' },
-  { path: '/zh/', banner: '仅测试网络，不涉及真实资金。', rules: '单笔上限', spend: '今日已支出', verify: '核对 ↗' },
+  { path: '/', banner: 'Test network only. No real money.', rules: 'Per payment', spend: 'Spent today', verify: 'verify ↗', counts: 'refused' },
+  { path: '/zh/', banner: '仅测试网络，不涉及真实资金。', rules: '单笔上限', spend: '今日已支出', verify: '核对 ↗', counts: '被拒绝' },
 ];
 
 for (const p of pages) {
@@ -12,12 +12,24 @@ for (const p of pages) {
       await expect(page.getByRole('note').filter({ hasText: p.banner })).toBeVisible();
       await expect(page.locator('.rules').getByText(p.rules, { exact: true })).toBeVisible();
       await expect(page.locator('.spend').getByText(p.spend, { exact: true })).toBeVisible();
-      await expect(page.locator('[data-live="rows"] > li').first()).toBeVisible();
+      await expect(page.locator('.timeline li.row').first()).toBeVisible();
+    });
+
+    test('groups activity into runs: the newest is open, the rest fold away', async ({ page }) => {
+      await page.goto(p.path);
+      const groups = page.locator('[data-live="groups"] > details.group');
+      expect(await groups.count()).toBeGreaterThan(1);
+      await expect(groups.first()).toHaveAttribute('open', '');
+      await expect(groups.first().locator('.counts')).toContainText(p.counts);
+      await expect(groups.nth(1)).not.toHaveAttribute('open', '');
+      await expect(groups.nth(1).locator('li.row').first()).toBeHidden();
+      await groups.nth(1).locator('summary').click();
+      await expect(groups.nth(1).locator('li.row').first()).toBeVisible();
     });
 
     test('every timeline row links to its BaseScan transaction', async ({ page }) => {
       await page.goto(p.path);
-      const links = page.locator('[data-live="rows"] > li a');
+      const links = page.locator('.timeline li.row a');
       const n = await links.count();
       expect(n).toBeGreaterThan(0);
       for (const href of await links.evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
@@ -32,8 +44,14 @@ test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('the timeline is still readable', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-live="rows"] > li').first()).toBeVisible();
-    await expect(page.locator('[data-live="rows"] > li .title').first()).not.toBeEmpty();
+    await expect(page.locator('.timeline li.row').first()).toBeVisible();
+    await expect(page.locator('.timeline li.row .title').first()).not.toBeEmpty();
+  });
+  test('folded runs still open', async ({ page }) => {
+    await page.goto('/');
+    const second = page.locator('[data-live="groups"] > details.group').nth(1);
+    await second.locator('summary').click();
+    await expect(second.locator('li.row').first()).toBeVisible();
   });
 });
 
@@ -43,5 +61,45 @@ test('shows a notice when the network is unavailable', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('[data-live="notice"]')).toBeVisible({ timeout: 15_000 });
   await expect(page.locator('[data-live="notice"]')).toContainText('Network unavailable');
-  await expect(page.locator('[data-live="rows"] > li').first()).toBeVisible(); // data stays on screen
+  await expect(page.locator('.timeline li.row').first()).toBeVisible(); // data stays on screen
+});
+
+test('live events join the newest run, or start a new one when far apart', async ({ page }) => {
+  const { encodeAbiParameters, encodeEventTopics, parseAbi, pad } = await import('viem');
+  const history = (await import('../src/data/history.json', { with: { type: 'json' } })).default;
+  const w = history.wallets[0]!;
+  const abi = parseAbi(['event PaymentRefused(bytes32 indexed nonce, address indexed payee, bytes32 indexed taskId, uint256 amount, uint8 reason)']);
+  const newest = Date.parse(w.events[0]!.time) / 1000;
+  const blocks: Record<string, number> = { '0x1': newest + 60, '0x2': newest + 86_400 }; // +1 min, +1 day
+  const log = (n: number) => ({
+    address: w.address,
+    topics: encodeEventTopics({ abi, eventName: 'PaymentRefused', args: { nonce: pad(`0x${n}`), payee: w.payees[0]!.address as `0x${string}`, taskId: pad('0x0') } }),
+    data: encodeAbiParameters([{ type: 'uint256' }, { type: 'uint8' }], [10_000n, 3]),
+    blockNumber: `0x${n}`,
+    logIndex: '0x0',
+    transactionHash: pad(`0x${n}`),
+  });
+  let served = false;
+  await page.route('https://sepolia.base.org', async (route) => {
+    const req = route.request().postDataJSON() as { id: number; method: string; params: any[] };
+    const reply = (result: unknown) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ jsonrpc: '2.0', id: req.id, result }) });
+    if (req.method === 'eth_blockNumber') return reply(`0x${(history.lastBlock + 1).toString(16)}`);
+    if (req.method === 'eth_getBlockByNumber') return reply({ timestamp: `0x${blocks[req.params[0]]!.toString(16)}` });
+    if (req.method === 'eth_call') return reply(pad('0x0'));
+    if (req.method === 'eth_getLogs') {
+      const isWallet = req.params[0].address.toLowerCase() === w.address.toLowerCase();
+      if (!isWallet || served) return reply([]);
+      served = true;
+      return reply([log(1), log(2)]);
+    }
+    return reply(null);
+  });
+  const groups = page.locator('[data-live="groups"] > details.group');
+  await page.goto('/');
+  const before = await groups.first().locator('li.row').count();
+  await expect(groups.first().locator('.counts')).toContainText('refused', { timeout: 15_000 });
+  await expect(groups.first().locator('li.row')).toHaveCount(1, { timeout: 15_000 }); // +1 day: new run
+  await expect(groups.first()).toHaveAttribute('open', '');
+  await expect(groups.first().locator('.counts')).toHaveText('1 refused');
+  await expect(groups.nth(1).locator('li.row')).toHaveCount(before + 1); // +1 min: joined
 });
