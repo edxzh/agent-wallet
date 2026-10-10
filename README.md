@@ -8,7 +8,8 @@ refusal is on a public record anyone can verify.
 
 - Live dashboard: https://demo.yunshu.ai (中文: https://demo.yunshu.ai/zh/)
 - Demo wallet `research-bot-01`: [`0xC788…b0Fc`](https://sepolia.basescan.org/address/0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc) (since 2026-10-10, with the trusted-payees rule; 001's wallet was [`0x7b14…EeBf0`](https://sepolia.basescan.org/address/0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0))
-- Spec, plan, tasks and test results: [`specs/001-agent-wallet-demo/`](specs/001-agent-wallet-demo/)
+- Spec, plan, tasks and test results: [`specs/001-agent-wallet-demo/`](specs/001-agent-wallet-demo/),
+  and for trusted payees [`specs/002-trusted-payees-erc8004/`](specs/002-trusted-payees-erc8004/)
 - Built by [Yunshu AI](https://yunshu.ai)
 
 **中文简介**：AI agent 通过 x402 自主为 API 付费；它的钱包是一个链上合约，单笔上限、每日预算、任务预算和收款白名单都写在合约里。违反规则的付款在资金动用前就被拒绝，并作为公开事件记录在链上，任何人都能核对。仅运行在 Base Sepolia 测试网络，不涉及真实资金，每月成本 0 美元。
@@ -44,6 +45,74 @@ refusal is on a public record anyone can verify.
 - **The dashboard** (`apps/dashboard`, Astro) renders from a snapshot of the chain
   (`npm run snapshot`) and tails new events live. It works without JavaScript.
 
+## Trusted payees (ERC-8004)
+
+The wallet can also pay services it has **never been told about**, if they have earned a good
+enough reputation from reviewers the operator trusts. Services prove who they are with an
+[ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) identity, and the wallet reads reputation
+from the ERC-8004 registries **on-chain, inside `authorize`**, before any money moves.
+
+**The rule** (`setReputationRule`, operator only). On `research-bot-01` it is: pay a service
+outside the allowlist only if its trusted reviewers' average is **≥ 70 from ≥ 3 reviews**. The
+trusted reviewers are set with `setTrustedReviewer`, at most 5. For each payment the wallet
+checks:
+
+1. **Identity**: if the service claims an ERC-8004 identity (in its x402 `extra`), the
+   identity's registered wallet must be the payee. This applies even to an allowlisted payee.
+2. **Allowlist**: an allowlisted payee passes, as in 001.
+3. **Reputation**: otherwise, with the rule on, the service needs an identity, at least 3
+   trusted reviews, and an average of at least 70.
+
+There are five new refusal reasons, again events with exactly one reason:
+`PAYEE_IDENTITY_UNVERIFIED`, `PAYEE_IDENTITY_MISMATCH`, `REPUTATION_UNAVAILABLE` (a registry
+read failed: never a pass, never a revert), `NOT_ENOUGH_TRUSTED_REVIEWS` and
+`PAYEE_REPUTATION_TOO_LOW`. `checkPayee` gives the same answer as a free read.
+
+**Why ratings can't be faked** ([research R4](specs/002-trusted-payees-erc8004/research.md)):
+- The wallet itself is the reviewer: `rate(nonce, score, …)` can be called only by its agent.
+- It can rate only a payment that **settled** to an identity the wallet **checked**. The
+  `agentId` comes from that payment's record, never from the caller, and each payment is rated
+  once.
+- Each rating's `feedbackHash` is the payment nonce, so every review links to a real payment on
+  the public record.
+- So even a stolen agent key can't invent reviews for a service the operator's rules never let
+  it pay. An impostor (a different payee claiming someone else's identity) can't gain trusted
+  reviews at all.
+
+**The live demo** ([research R5](specs/002-trusted-payees-erc8004/research.md)). One Worker serves
+five demo services next to 001's `/quote`, each with its own payee and identity. The services
+are owned by a separate account, because the registry bans rating your own service.
+
+| Service | Behaviour | What the gated wallet sees |
+| --- | --- | --- |
+| `/quote` (001, #9613) | always fresh | allowlisted: always pays, and rates it |
+| `/s/reliable/quote` (#9614) | always fresh | refused until it has 3 reviews, then paid |
+| `/s/flaky/quote` (#9615) | fresh, then stale from 2026-10-10 18:17 UTC | paid, then `PAYEE_REPUTATION_TOO_LOW` for good |
+| `/s/newcomer/quote` (#9616) | closed (503) until 2026-10-11 18:17 UTC | `NOT_ENOUGH_TRUSTED_REVIEWS`, then paid |
+| `/s/impostor/quote` | claims reliable's identity with its own payee | always `PAYEE_IDENTITY_MISMATCH` |
+| `/s/anonymous/quote` | no identity | always `PAYEE_IDENTITY_UNVERIFIED` |
+
+Every 6 hours, two **scout** wallets (`scout-02` and `scout-03`, rule off, allowlisting only the
+demo services) pay and rate each open service. Then `research-bot-01` tries every service. Each
+quote is scored by a fixed rule (90 for a fresh quote, 40 for a stale one), so trust is earned and lost on the public
+record with no manual steps. The dashboard shows the rule, a card per service (average, count,
+payable since, trend) and the ratings.
+
+**Pinned registries.** The ERC-8004 registries are upgradeable contracts run by a third party.
+`config/erc8004.json` pins their proxy and implementation addresses. Every run checks the pins
+first: on any change it **exits 4 before paying anything**, and the dashboard says the registry changed and the demo is paused for review. Accepting a new implementation is a deliberate owner change
+to the pin.
+
+**Owner keys.** Registering the services (`register-services`) uses new keys:
+- the services owner;
+- the reliable, flaky and newcomer payees;
+- 001's payee key, used once.
+
+They live only in a local `.env` (see `.env.example`), like the operator key. They are never in
+CI, which still holds only the agent key.
+
+**中文简介**：钱包现在也可以付款给不在白名单上的服务，但前提是该服务拥有 ERC-8004 链上身份，且运营者信任的评价者给出的平均分 ≥ 70、评价数 ≥ 3。检查在 `authorize` 内部于链上完成，资金动用前就做出决定。评价只能由钱包本身针对**已结算**的付款给出，因此无法伪造。冒用他人身份或没有身份的服务会被拒绝。演示中，可靠的服务赢得信任，不稳定的服务失去信任，新服务逐步获得信任，一切都记录在公开的链上。
+
 ## Repository
 
 | Path | What |
@@ -52,8 +121,8 @@ refusal is on a public record anyone can verify.
 | `packages/agent/` | SDK (`createPolicyWalletSigner`, `payUrl`) and the `agent-wallet` CLI |
 | `packages/service/` | The x402-paid demo API (Hono on Cloudflare Workers) |
 | `apps/dashboard/` | The public dashboard at demo.yunshu.ai (English `/`, Chinese `/zh/`) |
-| `scripts/` | `snapshot.ts` (chain → `history.json`), `export-abi.ts`, the x402/ERC-1271 spike |
-| `config/` | `deployments.json` (public addresses), `payees.json` (labels) |
+| `scripts/` | `snapshot.ts` (chain → `history.json`), `check-reputation.ts` (dashboard numbers = registry), `export-abi.ts`, the x402/ERC-1271 spike |
+| `config/` | `deployments.json` (public addresses), `payees.json` (labels), `erc8004.json` (pinned registries), `services.json` (demo service identities) |
 | `.github/workflows/` | `ci.yml` (all tests), `agent-run.yml` (scripted agent every 6 h) |
 
 ## Run it yourself (about 15 minutes)
@@ -99,9 +168,11 @@ npm test                         # SDK, service, snapshot, dashboard content che
 6. **See it**: `npm run snapshot && npm run dev -w apps/dashboard`.
 
 CLI commands: `deploy-factory`, `create-wallet`, `fund`, `set-payee`, `set-task`, `set-cap`,
-`set-daily`, `pause`, `unpause`, `withdraw` (operator); `pay`, `run-scenario`, `release-expired`
-(agent); `status` (read-only). Every command refuses to run on any chain but Base Sepolia.
-Exit codes: `0` ok, `1` wrong network or config, `2` unexpected outcome, `3` insufficient funds.
+`set-daily`, `pause`, `unpause`, `withdraw`, `set-reputation`, `trust-reviewer` (operator);
+`register-services` (services owner, local only); `pay [--rate]`, `run-scenario`,
+`release-expired` (agent); `status`, `reputation` (read-only). Every command refuses to run on
+any chain but Base Sepolia. Exit codes: `0` ok, `1` wrong network or config, `2` unexpected
+outcome, `3` insufficient funds, `4` an ERC-8004 registry changed (nothing paid).
 
 ## Safety notes
 

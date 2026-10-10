@@ -496,7 +496,7 @@ These are quickstart scenario 12 and SC-003/004.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T052 [P] Add a "Trusted payees (ERC-8004)" section to `README.md`, in English with a short Chinese summary. Cover:
+- [X] T052 [P] Add a "Trusted payees (ERC-8004)" section to `README.md`, in English with a short Chinese summary. Cover:
   - the rule;
   - the trust argument (research R4);
   - the demo cast and timeline (research R5);
