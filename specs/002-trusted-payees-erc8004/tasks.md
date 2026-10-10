@@ -425,7 +425,8 @@ These are quickstart scenarios 13 and 14.
   - Done 2026-10-10: quote #9613, reliable #9614, flaky #9615, newcomer #9616, each registered to its payTo. The newcomer's setAgentWallet first reverted `ERC721NonexistentToken` (the public RPC hadn't seen the mint yet); the idempotent rerun finished it, and `register-services` now waits until a new identity is visible.
   - Launch = the 06:17 UTC run on 2026-10-10: `FLAKY_DEGRADE_AT` 2026-10-10T18:17Z, `NEWCOMER_OPENS_AT` 2026-10-11T18:17Z. The Worker was deployed with `wrangler deploy` (no Git integration); all six routes checked live.
   - First live trust run (01:2x UTC, before launch): every outcome matched `checkPayee` (0 mismatches). It exposed a bug: 001's LINK-USDC and OP-USDC payments were scored against the ETH-USDC URL, so the gated wallet published two **20 "wrong-data"** ratings for quote #9613 that should have been 90. Fixed (rate against the URL actually paid) with a regression test. The two ratings stay on the public record (the wallet has no revoke function); quote is allowlisted, so they never affect a decision.
-- [ ] T045 [US4] Run quickstart scenarios 2, 3, 4, 5 and 9 on Base Sepolia with the CLI, and record the outputs and tx links in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
+- [X] T045 [US4] Run quickstart scenarios 2, 3, 4, 5 and 9 on Base Sepolia with the CLI, and record the outputs and tx links in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
+  - Done 2026-10-10 09:26–09:29 UTC: all pass. Scenarios 2 and 3 were checked against the chain as it was before the first rating (block 47912910, and the scheduled run's `NOT_ENOUGH_TRUSTED_REVIEWS` refusal at 47912974), since the pre-review moment had passed.
 
 **Checkpoint**: real identities are live, the upgraded wallets are deployed, and US1 and US2 are proven on the live network.
 
