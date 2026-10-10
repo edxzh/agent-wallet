@@ -27,15 +27,19 @@ for (const p of pages) {
       await expect(groups.nth(1).locator('li.row').first()).toBeVisible();
     });
 
-    test('every timeline row links to its BaseScan transaction', async ({ page }) => {
+    test('every timeline row links to its BaseScan transaction (a status change, to the identity)', async ({ page }) => {
       await page.goto(p.path);
-      const links = page.locator('.timeline li.row a');
-      const n = await links.count();
-      expect(n).toBeGreaterThan(0);
+      const links = page.locator('.timeline li.row:not([data-kind="status"]) a');
+      expect(await links.count()).toBeGreaterThan(0);
       for (const href of await links.evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
         expect(href).toMatch(/^https:\/\/sepolia\.basescan\.org\/tx\/0x[0-9a-f]{64}$/);
       }
       await expect(links.first()).toHaveText(p.verify);
+      // A status change isn't a transaction: it links the service's ERC-8004 identity.
+      const status = page.locator('.timeline li.row[data-kind="status"] a');
+      for (const href of await status.evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
+        expect(href).toMatch(/^https:\/\/sepolia\.basescan\.org\/nft\/0x[0-9a-fA-F]{40}\/\d+$/);
+      }
     });
   });
 }
