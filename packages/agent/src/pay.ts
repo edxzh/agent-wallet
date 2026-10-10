@@ -17,7 +17,7 @@ export type PayOutcome =
       agentId?: bigint;
     }
   | { kind: 'refused'; reason: string; nonce: Hex; authorizeTx: Hex }
-  | { kind: 'failed'; status?: number; error: string; nonce?: Hex; authorizeTx?: Hex };
+  | { kind: 'failed'; status?: number; error: string; nonce?: Hex; authorizeTx?: Hex; diagnostics?: Record<string, unknown> };
 
 /** One paid request through x402, paid from the PolicyWallet. */
 export async function payUrl(
@@ -58,11 +58,22 @@ export async function payUrl(
         reason = (JSON.parse(atob(required)) as { error?: string }).error ?? reason;
       } catch {}
     }
-    return { kind: 'failed', status: res.status, error: reason, nonce: authorized?.nonce, authorizeTx: authorized?.txHash };
+    // An intermittent bare `402 {}` after a successful authorize has been seen (001 T049/T050):
+    // keep what the server sent so the next one can be diagnosed.
+    const diagnostics = { headers: [...res.headers.keys()], settlement, paymentRequired: required ? safeDecode(required) : undefined };
+    return { kind: 'failed', status: res.status, error: reason, nonce: authorized?.nonce, authorizeTx: authorized?.txHash, diagnostics };
   } catch (err) {
     const e = refusal ?? findCause(err);
     if (e instanceof PolicyRefusedError) return { kind: 'refused', reason: e.reason, nonce: e.nonce, authorizeTx: e.txHash };
     return { kind: 'failed', error: (e as Error).message ?? String(e), nonce: authorized?.nonce, authorizeTx: authorized?.txHash };
+  }
+}
+
+function safeDecode(b64: string): unknown {
+  try {
+    return JSON.parse(atob(b64));
+  } catch {
+    return b64.slice(0, 200);
   }
 }
 

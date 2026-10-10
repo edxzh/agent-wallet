@@ -3,7 +3,9 @@ import { HTTPFacilitatorClient, type FacilitatorClient } from '@x402/core/server
 import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { paymentMiddleware, x402ResourceServer } from '@x402/hono';
 
-export type Env = { NETWORK: string; PAYEE_ADDRESS: string; FACILITATOR_URL: string };
+import { asOfFor, closedUntil, identityExtra, SERVICES, type Service, type ServiceEnv } from './services.js';
+
+export type Env = ServiceEnv & { NETWORK: string; PAYEE_ADDRESS: string; FACILITATOR_URL: string };
 
 export const TESTNET = 'eip155:84532';
 export const PRICE = '$0.01'; // 10000 USDC base units
@@ -35,45 +37,52 @@ export function createApp(opts: { facilitator?: (url: string) => FacilitatorClie
 
   app.get('/health', (c) => c.json({ ok: true, network: c.env.NETWORK, testnetOnly: true }));
 
-  // Validate before payment, so a malformed request is never charged.
-  app.use('/quote', async (c, next) => {
-    const pair = c.req.query('pair') ?? 'ETH-USDC';
-    if (!PAIR.test(pair)) return c.json({ error: 'bad pair; expected e.g. ETH-USDC' }, 400);
-    await next();
-  });
-
-  app.use('/quote', async (c, next) => {
-    if (!/^0x[0-9a-fA-F]{40}$/.test(c.env.PAYEE_ADDRESS)) return c.json({ error: 'PAYEE_ADDRESS not configured' }, 500);
-    const key = `${c.env.PAYEE_ADDRESS}|${c.env.FACILITATOR_URL}`;
-    let mw = payment.get(key);
-    if (!mw) {
-      const server = new x402ResourceServer(facilitatorFor(c.env.FACILITATOR_URL)).register(
-        TESTNET,
-        new ExactEvmScheme(),
-      );
-      mw = paymentMiddleware(
-        {
-          'GET /quote': {
-            accepts: { scheme: 'exact', price: PRICE, network: TESTNET, payTo: c.env.PAYEE_ADDRESS },
-            description: 'Sample quote for the Yunshu agent wallet demo (test network only)',
-          },
-        },
-        server,
-      );
-      payment.set(key, mw);
-    }
-    return mw(c, next);
-  });
-
-  app.get('/quote', (c) => {
-    const pair = c.req.query('pair') ?? 'ETH-USDC';
-    return c.json({
-      pair,
-      price: samplePrice(pair),
-      asOf: new Date().toISOString(),
-      note: 'Sample data for the Yunshu agent wallet demo. Test network only.',
+  // 001's /quote and 002's /s/<key>/quote: the same checks, payment and body (contracts/paid-services.md).
+  const mount = (path: string, service: Service) => {
+    // Validate before payment, so a malformed request is never charged.
+    app.use(path, async (c, next) => {
+      const pair = c.req.query('pair') ?? 'ETH-USDC';
+      if (!PAIR.test(pair)) return c.json({ error: 'bad pair; expected e.g. ETH-USDC' }, 400);
+      const opensAt = closedUntil(service.key, c.env, Date.now());
+      if (opensAt) return c.json({ error: 'not open yet', opensAt }, 503); // no 402: nothing to pay or rate
+      await next();
     });
-  });
+
+    app.use(path, async (c, next) => {
+      const payTo = service.payTo(c.env);
+      if (!payTo) return c.json({ error: `payee for ${service.key} not configured` }, service.key === 'quote' ? 500 : 503);
+      const agentId = service.agentId(c.env);
+      const key = `${path}|${payTo}|${agentId ?? '-'}|${c.env.FACILITATOR_URL}`;
+      let mw = payment.get(key);
+      if (!mw) {
+        const server = new x402ResourceServer(facilitatorFor(c.env.FACILITATOR_URL)).register(TESTNET, new ExactEvmScheme());
+        const extra = identityExtra(agentId);
+        mw = paymentMiddleware(
+          {
+            [`GET ${path}`]: {
+              accepts: { scheme: 'exact', price: PRICE, network: TESTNET, payTo, ...(extra ? { extra } : {}) },
+              description: 'Sample quote for the Yunshu agent wallet demo (test network only)',
+            },
+          },
+          server,
+        );
+        payment.set(key, mw);
+      }
+      return mw(c, next);
+    });
+
+    app.get(path, (c) => {
+      const pair = c.req.query('pair') ?? 'ETH-USDC';
+      return c.json({
+        pair,
+        price: samplePrice(pair),
+        asOf: asOfFor(service.key, c.env, Date.now()),
+        note: 'Sample data for the Yunshu agent wallet demo. Test network only.',
+      });
+    });
+  };
+
+  for (const service of SERVICES) mount(service.key === 'quote' ? '/quote' : `/s/${service.key}/quote`, service);
 
   app.notFound((c) => c.json({ error: 'not found' }, 404));
   return app;

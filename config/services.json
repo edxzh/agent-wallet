@@ -3,8 +3,8 @@
     {
       "key": "quote",
       "route": "/quote",
-      "agentId": null,
-      "payTo": null,
+      "agentId": "9613",
+      "payTo": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
       "label": {
         "en": "Demo quote API",
         "zh": "演示报价 API"
@@ -14,8 +14,8 @@
     {
       "key": "reliable",
       "route": "/s/reliable/quote",
-      "agentId": null,
-      "payTo": null,
+      "agentId": "9614",
+      "payTo": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
       "label": {
         "en": "Reliable quotes",
         "zh": "可靠报价"
@@ -25,32 +25,32 @@
     {
       "key": "flaky",
       "route": "/s/flaky/quote",
-      "agentId": null,
-      "payTo": null,
+      "agentId": "9615",
+      "payTo": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
       "label": {
         "en": "Flaky quotes",
         "zh": "不稳定报价"
       },
       "claims": "self",
-      "degradeAt": null
+      "degradeAt": "2026-10-10T18:17:00Z"
     },
     {
       "key": "newcomer",
       "route": "/s/newcomer/quote",
-      "agentId": null,
-      "payTo": null,
+      "agentId": "9616",
+      "payTo": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
       "label": {
         "en": "Newcomer quotes",
         "zh": "新来的报价服务"
       },
       "claims": "self",
-      "opensAt": null
+      "opensAt": "2026-10-11T18:17:00Z"
     },
     {
       "key": "impostor",
       "route": "/s/impostor/quote",
       "agentId": null,
-      "payTo": null,
+      "payTo": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
       "label": {
         "en": "Impostor",
         "zh": "冒充者"
@@ -61,12 +61,13 @@
       "key": "anonymous",
       "route": "/s/anonymous/quote",
       "agentId": null,
-      "payTo": null,
+      "payTo": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
       "label": {
         "en": "Anonymous quotes",
         "zh": "匿名报价"
       },
       "claims": null
     }
-  ]
+  ],
+  "launch": "2026-10-10T06:17:00Z"
 }

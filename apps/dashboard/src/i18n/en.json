@@ -176,6 +176,11 @@
     "OVER_PER_PAYMENT_CAP": "Over the per-payment cap",
     "OVER_TASK_BUDGET": "Would exceed the task's budget",
     "OVER_DAILY_BUDGET": "Would exceed today's budget",
-    "INSUFFICIENT_FUNDS": "Not enough USDC in the wallet"
+    "INSUFFICIENT_FUNDS": "Not enough USDC in the wallet",
+    "PAYEE_IDENTITY_UNVERIFIED": "Service has no verified identity",
+    "PAYEE_IDENTITY_MISMATCH": "Service claimed someone else's identity",
+    "REPUTATION_UNAVAILABLE": "Couldn't read reputation, so it didn't pay",
+    "NOT_ENOUGH_TRUSTED_REVIEWS": "Not enough reviews from trusted reviewers yet",
+    "PAYEE_REPUTATION_TOO_LOW": "Trusted reviewers rate this service too low"
   }
 }

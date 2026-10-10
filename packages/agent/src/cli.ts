@@ -23,10 +23,13 @@ import { policyWalletAbi, policyWalletBytecode, policyWalletFactoryAbi, policyWa
 import { blockRanges, formatUsdc, guardedPublicClient, parseUsdc, usdcAbi, walletClientFor, type PublicClient } from './chain.js';
 import { WrongNetworkError } from './chainGuard.js';
 import { DEPLOYMENTS_PATH, loadConfig, readDeployments, readPayees, ROOT, txUrl, USDC, type Deployments } from './config.js';
-import { payUrl } from './pay.js';
+import { payUrl, type PayOutcome } from './pay.js';
+import { parseErc8004Claim } from './identity.js';
+import { runTrustScenario } from './trustScenario.js';
 import { rateOutcome } from './rate.js';
+import { registerServices, registrationAbi, type ServiceEntry } from './registration.js';
 import { reasonName } from './reasons.js';
-import { identityAbi, IDENTITY_REGISTRY, RegistryChangedError, REPUTATION_REGISTRY, reputationAbi } from './registries.js';
+import { assertRegistriesPinned, identityAbi, IDENTITY_REGISTRY, RegistryChangedError, REPUTATION_REGISTRY, reputationAbi } from './registries.js';
 import { EXIT, runScenario } from './scenario.js';
 import { readWalletState, taskIdOf } from './state.js';
 
@@ -322,6 +325,75 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     return EXIT.OK;
   },
 
+  /**
+   * register-services — give quote, reliable, flaky and newcomer their ERC-8004 identities
+   * (owner-run; services-owner + payee keys from .env, never CI). Idempotent. Writes config/services.json.
+   */
+  async 'register-services'(pub) {
+    const env = (k: string) => process.env[k] || undefined;
+    const ownerKey = need(env('SERVICES_OWNER_PRIVATE_KEY') as Hex | undefined, 'SERVICES_OWNER_PRIVATE_KEY');
+    const payeeKeys: Record<string, Hex> = {};
+    for (const [key, name] of [
+      ['quote', 'SERVICE_PAYEE_PRIVATE_KEY'],
+      ['reliable', 'PAYEE_RELIABLE_PRIVATE_KEY'],
+      ['flaky', 'PAYEE_FLAKY_PRIVATE_KEY'],
+      ['newcomer', 'PAYEE_NEWCOMER_PRIVATE_KEY'],
+    ] as const) {
+      payeeKeys[key] = need(env(name) as Hex | undefined, name);
+    }
+    const accounts = Object.fromEntries(Object.entries(payeeKeys).map(([k, key]) => [k, privateKeyToAccount(key)]));
+    const impostor = getAddress(need(env('PAYEE_IMPOSTOR'), 'PAYEE_IMPOSTOR'));
+    const servicePayee = need(cfg.servicePayee, 'SERVICE_PAYEE');
+    if (accounts.quote!.address !== servicePayee) throw new ConfigError("SERVICE_PAYEE_PRIVATE_KEY isn't the key of SERVICE_PAYEE");
+    // research R9: reliable must not be 001's allowlisted payee, or the gated wallet would pay it via the allowlist.
+    if (accounts.reliable!.address === servicePayee) throw new ConfigError('PAYEE_RELIABLE must not be SERVICE_PAYEE');
+    const payees: Record<string, Address> = {
+      ...Object.fromEntries(Object.entries(accounts).map(([k, a]) => [k, a.address])),
+      impostor,
+      anonymous: impostor,
+    };
+    const owner = walletClientFor(cfg.rpcUrl, ownerKey);
+    const byAddress = Object.fromEntries(Object.values(accounts).map((a) => [a.address, a]));
+    const path = `${ROOT}config/services.json`;
+    const file = JSON.parse(readFileSync(path, 'utf8')) as { services: ServiceEntry[] };
+    await registerServices(file.services, payees, {
+      owner: owner.account.address,
+      now: async () => (await pub.getBlock()).timestamp,
+      getAgentWallet: (id) => pub.readContract({ address: IDENTITY_REGISTRY, abi: registrationAbi, functionName: 'getAgentWallet', args: [id] }),
+      async register(agentURI) {
+        const tx = await owner.writeContract({ address: IDENTITY_REGISTRY, abi: registrationAbi, functionName: 'register', args: [agentURI] });
+        const receipt = await pub.waitForTransactionReceipt({ hash: tx });
+        const ev = parseEventLogs({ abi: registrationAbi, logs: receipt.logs, eventName: 'Registered' })[0];
+        if (!ev) throw new Error(`No Registered event in ${txUrl(tx)}`);
+        // The public RPC can answer from a node that hasn't seen the mint yet (setAgentWallet would
+        // then revert ERC721NonexistentToken): wait until the new identity is visible.
+        for (let i = 0; i < 30; i++) {
+          const w = await pub.readContract({ address: IDENTITY_REGISTRY, abi: registrationAbi, functionName: 'getAgentWallet', args: [ev.args.agentId] });
+          if (getAddress(w) === owner.account.address) break;
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+        return { agentId: ev.args.agentId, tx };
+      },
+      signWalletSet: (payee, td) => byAddress[payee]!.signTypedData(td),
+      async setAgentWallet(agentId, payee, deadline, signature) {
+        const tx = await owner.writeContract({
+          address: IDENTITY_REGISTRY,
+          abi: registrationAbi,
+          functionName: 'setAgentWallet',
+          args: [agentId, payee, deadline, signature],
+        });
+        await send(pub, tx, 'agent-wallet-tx', { agentId, payee });
+        return tx;
+      },
+      save(entry) {
+        file.services = file.services.map((s) => (s.key === entry.key ? entry : s));
+        writeFileSync(path, JSON.stringify(file, null, 2) + '\n');
+      },
+      log: (event, data) => out(event, data),
+    });
+    return EXIT.OK;
+  },
+
   /** status — rules, spend, balances (read-only). */
   async status(pub) {
     const wallet = resolveWallet();
@@ -376,8 +448,13 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     return EXIT.OK;
   },
 
-  /** run-scenario [--seed n] [--api <base url>] — the scripted agent (US5). */
+  /**
+   * run-scenario [--seed n] [--api <base url>] — the scripted agent (US5). Once feature 002 is set
+   * up (scout wallets, research-bot-01 on the 002 implementation, registered services) it runs the
+   * trust scenario around 001's; until then, 001's scenario exactly as before.
+   */
   async 'run-scenario'(pub) {
+    const d = readDeployments();
     const wallet = resolveWallet();
     const agentKey = need(cfg.agentKey, 'AGENT_PRIVATE_KEY');
     const servicePayee = need(cfg.servicePayee ?? readPayees().map((p) => p.address).find((a) => isAddress(a)) as Address | undefined, 'SERVICE_PAYEE');
@@ -386,35 +463,71 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     const marketTask = taskIdOf('market-research');
     const probeTask = taskIdOf('archive-research');
     const agent = agentClient();
-    out('scenario-start', { wallet, api, seed });
-    return runScenario(
-      {
-        readState: () => readWalletState(pub, wallet, [marketTask, probeTask], [servicePayee]),
-        pay: (pair) => payUrl(`${api}/quote?pair=${pair}`, { wallet, agentKey, taskId: marketTask, rpcUrl: cfg.rpcUrl }),
-        async probe(a) {
-          const nonce = keccak256(toHex(`probe:${wallet}:${Date.now()}:${Math.random()}`));
-          const hash = await agent.writeContract({
-            address: wallet,
-            abi: policyWalletAbi,
-            functionName: 'authorize',
-            args: [nonce, a.payee, a.amount, 0n, a.validBefore, a.taskId],
-          });
-          const receipt = await pub.waitForTransactionReceipt({ hash });
-          const events = parseEventLogs({ abi: policyWalletAbi, logs: receipt.logs });
-          const refused = events.find((e) => e.eventName === 'PaymentRefused');
-          return refused && refused.eventName === 'PaymentRefused'
-            ? { kind: 'refused', reason: reasonName(Number(refused.args.reason)), nonce, txHash: hash }
-            : { kind: 'authorized', reason: 'NONE', nonce, txHash: hash };
+    const probeOn = (w: Address) => async (a: { payee: Address; amount: bigint; taskId: Hex; validBefore: bigint }) => {
+      const nonce = keccak256(toHex(`probe:${w}:${Date.now()}:${Math.random()}`));
+      const hash = await agent.writeContract({ address: w, abi: policyWalletAbi, functionName: 'authorize', args: [nonce, a.payee, a.amount, 0n, a.validBefore, a.taskId] });
+      const receipt = await pub.waitForTransactionReceipt({ hash });
+      const events = parseEventLogs({ abi: policyWalletAbi, logs: receipt.logs });
+      const refused = events.find((e) => e.eventName === 'PaymentRefused');
+      return refused && refused.eventName === 'PaymentRefused'
+        ? { kind: 'refused' as const, reason: reasonName(Number(refused.args.reason)), nonce, txHash: hash }
+        : { kind: 'authorized' as const, reason: 'NONE', nonce, txHash: hash };
+    };
+    const rateWith = (w: Address, out: PayOutcome, url: string) =>
+      rateOutcome(out, { url, now: new Date(), wallet: w, clients: { publicClient: pub, walletClient: agent } });
+
+    const scouts = ['scout-02', 'scout-03'].map((name) => d.wallets.find((w) => w.name === name)).filter((w) => w !== undefined);
+    const services = readServices();
+    const gatedImpl = await pub.readContract({ address: wallet, abi: policyWalletAbi, functionName: 'identityRegistry' }).catch(() => undefined);
+    const trustReady = scouts.length === 2 && gatedImpl === IDENTITY_REGISTRY && services.some((s) => s.key === 'reliable' && s.agentId !== null);
+
+    const run001 = (afterPay?: (out: Extract<PayOutcome, { kind: 'settled' }>, url: string) => Promise<boolean>) =>
+      runScenario(
+        {
+          readState: () => readWalletState(pub, wallet, [marketTask, probeTask], [servicePayee]),
+          pay: (pair) => payUrl(`${api}/quote?pair=${pair}`, { wallet, agentKey, taskId: marketTask, rpcUrl: cfg.rpcUrl }),
+          probe: probeOn(wallet),
+          servicePayee,
+          quoteAmount: 10_000n,
+          marketTask,
+          probeTask,
+          strangerAddress: privateKeyToAccount(generatePrivateKey()).address,
+          log: (line) => out('scenario-step', line),
+          ...(trustReady
+            ? {
+                unlistedProbe: { wallet: scouts[0]!.address, readState: () => readWalletState(pub, scouts[0]!.address, [], []), probe: probeOn(scouts[0]!.address) },
+                afterPay: (o: Extract<PayOutcome, { kind: 'settled' }>, pair: string) => afterPay!(o, `${api}/quote?pair=${pair}`),
+              }
+            : {}),
         },
-        servicePayee,
-        quoteAmount: 10_000n,
-        marketTask,
-        probeTask,
-        strangerAddress: privateKeyToAccount(generatePrivateKey()).address,
-        log: (line) => out('scenario-step', line),
+        seed,
+      );
+
+    out('scenario-start', { wallet, api, seed, trust: trustReady });
+    if (!trustReady) return run001();
+    return runTrustScenario({
+      assertPinned: () => assertRegistriesPinned(pub as never),
+      services: services.map((s) => ({ key: s.key, url: `${api}${s.route}?pair=ETH-USDC` })),
+      scouts: scouts.map((w) => ({ name: w.name, wallet: w.address })),
+      gated: wallet,
+      async requirement(url) {
+        const res = await fetch(url);
+        const header = res.headers.get('PAYMENT-REQUIRED');
+        if (res.status !== 402 || !header) return { open: false, status: res.status };
+        const accepts = (JSON.parse(atob(header)) as { accepts: { payTo: string; extra?: Record<string, unknown> }[] }).accepts[0]!;
+        return { open: true, payTo: getAddress(accepts.payTo), agentId: parseErc8004Claim(accepts.extra) };
       },
-      seed,
-    );
+      readState: (w) => readWalletState(pub, w, [], []),
+      async checkPayee(w, payee, agentId) {
+        const code = await pub.readContract({ address: w, abi: policyWalletAbi, functionName: 'checkPayee', args: [payee, agentId !== undefined, agentId ?? 0n] });
+        return reasonName(Number(code));
+      },
+      pay: (w, url) => payUrl(url, { wallet: w, agentKey, rpcUrl: cfg.rpcUrl }),
+      rate: rateWith,
+      run001: (rateSettled) => run001((o, url) => rateSettled(o, url)),
+      quoteAmount: 10_000n,
+      log: (line) => out('scenario-step', line),
+    });
   },
 };
 

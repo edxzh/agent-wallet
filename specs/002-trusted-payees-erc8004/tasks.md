@@ -70,7 +70,7 @@ Claude prepares everything around them. No new key ever goes to CI (constitution
   - `degradeAt: null` (flaky only) and `opensAt: null` (newcomer only).
 
   Shape per data-model.md, "Service identity".
-- [ ] T005 **(owner)** Generate keys and fund the services owner:
+- [X] T005 **(owner)** Generate keys and fund the services owner:
   - run `cast wallet new` 4 times (services-owner, reliable payee, flaky payee, newcomer payee), plus one more and use only its address for the impostor;
   - put them in `.env`, never in chat;
   - fund the **services-owner** with Base Sepolia ETH (0.01 ETH is plenty; the payees need none);
@@ -363,26 +363,27 @@ These are quickstart scenarios 13 and 14.
 
 ### Tests for User Story 4 ⚠️ (write first, must fail)
 
-- [ ] T038 [P] [US4] Write `packages/service/test/services.test.ts` (Vitest with Hono's `app.request`):
+- [X] T038 [P] [US4] Write `packages/service/test/services.test.ts` (Vitest with Hono's `app.request`):
   - each route's 402 has `payTo` and `extra.erc8004 = { agentRegistry: "eip155:84532:0x8004A818…", agentId }` **while keeping** `extra.name` and `extra.version`;
   - `/s/impostor/quote` claims reliable's `agentId` with `PAYEE_IMPOSTOR`;
   - `/s/anonymous/quote` has no `erc8004` key;
   - `/s/newcomer/quote` returns 503 `{error, opensAt}` before `NEWCOMER_OPENS_AT`;
   - `/s/flaky/quote`'s body has `asOf` = now − 1 h after `FLAKY_DEGRADE_AT`, and is fresh before;
   - the Worker refuses to start unless `NETWORK = eip155:84532`.
-- [ ] T039 [P] [US4] Write `packages/agent/test/registration.test.ts`:
+- [X] T039 [P] [US4] Write `packages/agent/test/registration.test.ts`:
   - `buildAgentURI(service)` produces a `data:application/json;base64` file whose decoded JSON matches research R9's shape;
   - `register-services` is idempotent: it skips an id whose `getAgentWallet` already equals `payTo`;
   - the `AgentWalletSet` typed data has domain `{ name: "ERC8004IdentityRegistry", version: "1", chainId: 84532, verifyingContract: identity proxy }`, type `AgentWalletSet(uint256 agentId,address newWallet,address owner,uint256 deadline)` and `deadline ≤ now + 300`.
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Implement `packages/service/src/services.ts`. It mounts the routes from contracts/paid-services.md on the existing Hono app in `packages/service/src/index.ts`, using `@x402/hono` per route:
+- [X] T040 [US4] Implement `packages/service/src/services.ts`. It mounts the routes from contracts/paid-services.md on the existing Hono app in `packages/service/src/index.ts`, using `@x402/hono` per route:
   - each route's own `payTo` and `extra`;
   - 001's `/quote` gains `extra.erc8004` with `AGENT_ID_QUOTE`.
 
   Add the vars `PAYEE_RELIABLE`, `PAYEE_FLAKY`, `PAYEE_NEWCOMER`, `PAYEE_IMPOSTOR`, `AGENT_ID_QUOTE`, `AGENT_ID_RELIABLE`, `AGENT_ID_FLAKY`, `AGENT_ID_NEWCOMER`, `FLAKY_DEGRADE_AT` and `NEWCOMER_OPENS_AT` to `packages/service/wrangler.toml` (placeholders). Behaviour depends only on server time. T038 passes.
-- [ ] T041 [US4] Implement `packages/agent/src/registration.ts` (`buildAgentURI`, `signAgentWalletSet`) and the CLI command `register-services` in `packages/agent/src/cli.ts`:
+  - Done: `src/services.ts` + one shared paid-route helper in `app.ts` (001's `/quote` goes through it too). x402 merges a route's `extra` with USDC's `name`/`version` (checked). Unset or empty vars mean not configured: a 503 with no 402. `AGENT_ID_QUOTE` stays empty until T043 (see T044). Not deployed: the Worker gets these routes at T044.
+- [X] T041 [US4] Implement `packages/agent/src/registration.ts` (`buildAgentURI`, `signAgentWalletSet`) and the CLI command `register-services` in `packages/agent/src/cli.ts`:
   - it uses the services-owner key to `register(agentURI)`;
   - each payee key, including `SERVICE_PAYEE_PRIVATE_KEY` for quote, signs `AgentWalletSet`;
   - it calls `setAgentWallet`;
@@ -390,6 +391,7 @@ These are quickstart scenarios 13 and 14.
   - it never prints keys.
 
   T039 passes.
+  - Done: `registerServices` in `registration.ts` (injectable, unit-tested; the AgentWalletSet hash is checked against a by-hand keccak of the registry's formula) and `register-services` in the CLI. It refuses a reliable payee equal to `SERVICE_PAYEE` (R9) and checks `SERVICE_PAYEE_PRIVATE_KEY` belongs to `SERVICE_PAYEE`. Saves `services.json` after each step, so a rerun never registers twice.
 - [X] T042 [US4] Security review gate (constitution workflow) **before** any deploy. Run `/security-review` on `contracts/src/`, plus a manual checklist:
   - assembly bounds in `_readAgentWallet` and `_readSummary`;
   - the gas guard;
@@ -399,7 +401,7 @@ These are quickstart scenarios 13 and 14.
   - the append-only `Reason` enum.
 
   Fix the findings and record the outcome in `specs/002-trusted-payees-erc8004/research.md` as "R12. Security review".
-- [ ] T043 [US4] **(owner-funded)** Deploy and migrate on Base Sepolia:
+- [X] T043 [US4] **(owner-funded)** Deploy and migrate on Base Sepolia:
   1. deploy the new implementation and factory (`deploy-factory`);
   2. `withdraw` the USDC from 001's old `research-bot-01` to the operator;
   3. `create-wallet research-bot-01 --cap 1 --daily 5` (new address) and re-apply 001's payee and task rules, including allowlisting 001's `SERVICE_PAYEE`;
@@ -410,11 +412,17 @@ These are quickstart scenarios 13 and 14.
   8. `set-reputation --wallet research-bot-01 --min-avg 70 --min-count 3`.
 
   Record the addresses in `config/deployments.json`. Depends on T042.
-- [ ] T044 [US4] **(owner)** Run `register-services` locally (it uses local-only keys). Then:
+  - Done 2026-10-10 with **smaller amounts** (owner choice (b): only 9.74 test USDC on hand): research-bot-01 7.70, each scout 1.00 (≈ 8 days at 0.12/day; top up later). Daily budget kept at 001's **1.00**, not 5, so the over-daily probe stays an honest over-daily refusal (a 5 budget makes it hit the per-payment cap first).
+  - Implementation `0x0d0f43777c7572d77975011dc14791730ace64fd`, factory `0xad04a77c6170a5dee15ed61146f9232dfdc8b38c`; research-bot-01 `0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc`, scout-02 `0x1dAb793c0dBF670bd03935A54Ab9833A20cb704B`, scout-03 `0x3E8441303A46c56FD2E0492Bd41838A14d57C438`. 001's wallet is recorded under `retired` in `config/deployments.json` after its 8.79 USDC was withdrawn.
+  - The services owner was funded with 0.00002 test ETH from the operator (the Chrome extension wasn't connected for the faucet).
+- [X] T044 [US4] **(owner)** Run `register-services` locally (it uses local-only keys). Then:
   - set the Worker vars from `config/services.json`, with `FLAKY_DEGRADE_AT` = launch + 12 h and `NEWCOMER_OPENS_AT` = launch + 36 h, where launch is the planned first scheduled run (record it in `config/services.json`);
   - redeploy the Worker through its Git integration;
   - commit `config/services.json` and `config/deployments.json` (public addresses only).
   - **Order matters**: don't give the live `/quote` an `extra.erc8004` before T043 has moved `research-bot-01` to the new implementation. The agent would then call `authorizeWithIdentity` on a wallet that doesn't have it, and every scheduled payment would revert.
+  - Done 2026-10-10: quote #9613, reliable #9614, flaky #9615, newcomer #9616, each registered to its payTo. The newcomer's setAgentWallet first reverted `ERC721NonexistentToken` (the public RPC hadn't seen the mint yet); the idempotent rerun finished it, and `register-services` now waits until a new identity is visible.
+  - Launch = the 06:17 UTC run on 2026-10-10: `FLAKY_DEGRADE_AT` 2026-10-10T18:17Z, `NEWCOMER_OPENS_AT` 2026-10-11T18:17Z. The Worker was deployed with `wrangler deploy` (no Git integration); all six routes checked live.
+  - First live trust run (01:2x UTC, before launch): every outcome matched `checkPayee` (0 mismatches). It exposed a bug: 001's LINK-USDC and OP-USDC payments were scored against the ETH-USDC URL, so the gated wallet published two **20 "wrong-data"** ratings for quote #9613 that should have been 90. Fixed (rate against the URL actually paid) with a regression test. The two ratings stay on the public record (the wallet has no revoke function); quote is allowlisted, so they never affect a decision.
 - [ ] T045 [US4] Run quickstart scenarios 2, 3, 4, 5 and 9 on Base Sepolia with the CLI, and record the outputs and tx links in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
 
 **Checkpoint**: real identities are live, the upgraded wallets are deployed, and US1 and US2 are proven on the live network.
@@ -435,7 +443,7 @@ These are quickstart scenario 12 and SC-003/004.
 
 ### Tests for User Story 5 ⚠️ (write first, must fail)
 
-- [ ] T046 [P] [US5] Extend `packages/agent/test/scenario.test.ts` (mocked chain, fetch and signer):
+- [X] T046 [P] [US5] Extend `packages/agent/test/scenario.test.ts` (mocked chain, fetch and signer):
   - **order**: `assertRegistriesPinned`; then both scouts pay and rate every open service; then 001's scenario on research-bot-01, **with 001's payee-not-allowed probe running on scout-02** and expecting 3; then the gated wallet tries reliable, flaky, newcomer, impostor and anonymous;
   - **expectations**: every expected outcome comes from `checkPayee` just before its attempt;
   - **ratings**: every settled payment with identity is rated, `/quote` included;
@@ -443,7 +451,9 @@ These are quickstart scenario 12 and SC-003/004.
 
 ### Implementation for User Story 5
 
-- [ ] T047 [US5] Implement the extended `run-scenario` in `packages/agent/src/scenario.ts` per T046 and contracts/agent-cli.md. Wallet addresses come from `config/deployments.json`, and services from `config/services.json`. T046 passes.
+- [X] T047 [US5] Implement the extended `run-scenario` in `packages/agent/src/scenario.ts` per T046 and contracts/agent-cli.md. Wallet addresses come from `config/deployments.json`, and services from `config/services.json`. T046 passes.
+  - Done: `src/trustScenario.ts`. `run-scenario` runs it only when 002 is set up (both scouts in `deployments.json`, `research-bot-01` on the 002 implementation, `reliable` registered); otherwise 001's scenario exactly as before, checked live 2026-10-09 (`trust: false`, all 4 probes correct). Exit codes from T046 are tested.
+  - That live run's 3rd payment failed with a bare `402 {}` after a successful authorize, as in 001's first GitHub run (both before any 002 code; 4 payments in a row then all settled). `pay` now logs `diagnostics` (response headers, decoded settlement and requirements) on such failures to find the cause.
 - [ ] T048 [US5] Update `.github/workflows/agent-run.yml`:
   - keep the 6-hour cron;
   - run `run-scenario`. On exit 4, skip payments but still run the snapshot, so the dashboard shows the "registry changed" banner from `pinnedOk: false`;

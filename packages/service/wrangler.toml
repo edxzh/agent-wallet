@@ -8,3 +8,16 @@ routes = [{ pattern = "api.demo.yunshu.ai", custom_domain = true }]
 NETWORK = "eip155:84532"
 PAYEE_ADDRESS = "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6"
 FACILITATOR_URL = "https://www.x402.org/facilitator"
+# ── 002: trusted payees (contracts/paid-services.md). Empty = not configured (503). From config/services.json (T044). ──
+PAYEE_RELIABLE = "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A"
+PAYEE_FLAKY = "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70"
+PAYEE_NEWCOMER = "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B"
+PAYEE_IMPOSTOR = "0x7bd4971F48A22f857F9B47472bF305756c1acEb1"
+# AGENT_ID_QUOTE needs research-bot-01 on the 002 implementation (done in T043): with an id, the
+# agent calls authorizeWithIdentity, which 001's wallets don't have.
+AGENT_ID_QUOTE = "9613"
+AGENT_ID_RELIABLE = "9614"
+AGENT_ID_FLAKY = "9615"
+AGENT_ID_NEWCOMER = "9616"
+FLAKY_DEGRADE_AT = "2026-10-10T18:17:00Z"
+NEWCOMER_OPENS_AT = "2026-10-11T18:17:00Z"

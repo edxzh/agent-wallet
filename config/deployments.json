@@ -1,16 +1,28 @@
 {
   "network": "eip155:84532",
-  "implementation": "0xe5c698f13afa1a2a554651a75f2aead30546e8ef",
+  "implementation": "0x0d0f43777c7572d77975011dc14791730ace64fd",
   "wallets": [
     {
       "name": "research-bot-01",
-      "address": "0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0",
+      "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
       "agent": "0x1F1906b97EBB69dc826bAA03282e0d6F9074C3DB",
-      "createdBlock": 47828734
+      "createdBlock": 47912815
+    },
+    {
+      "name": "scout-02",
+      "address": "0x1dAb793c0dBF670bd03935A54Ab9833A20cb704B",
+      "agent": "0x1F1906b97EBB69dc826bAA03282e0d6F9074C3DB",
+      "createdBlock": 47912817
+    },
+    {
+      "name": "scout-03",
+      "address": "0x3E8441303A46c56FD2E0492Bd41838A14d57C438",
+      "agent": "0x1F1906b97EBB69dc826bAA03282e0d6F9074C3DB",
+      "createdBlock": 47912819
     }
   ],
-  "factory": "0xdc2f3fdcaa54399c315360ba7c831634e0f0f204",
-  "factoryBlock": 47828733,
+  "factory": "0xad04a77c6170a5dee15ed61146f9232dfdc8b38c",
+  "factoryBlock": 47912810,
   "tasks": [
     {
       "id": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
@@ -19,6 +31,18 @@
     {
       "id": "0xead08f4e28c200ed114a28c17b2374ebe77cddb2c1c4fb36166df1590ed7d468",
       "label": "archive-research"
+    }
+  ],
+  "retired": [
+    {
+      "name": "research-bot-01",
+      "address": "0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0",
+      "agent": "0x1F1906b97EBB69dc826bAA03282e0d6F9074C3DB",
+      "createdBlock": 47828734,
+      "implementation": "0xe5c698f13afa1a2a554651a75f2aead30546e8ef",
+      "factory": "0xdc2f3fdcaa54399c315360ba7c831634e0f0f204",
+      "retiredAt": "2026-10-10",
+      "note": "001's wallet; its USDC moved to the 002 research-bot-01 (T043)"
     }
   ]
 }

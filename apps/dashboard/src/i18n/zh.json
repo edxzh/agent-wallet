@@ -176,6 +176,11 @@
     "OVER_PER_PAYMENT_CAP": "超过单笔上限",
     "OVER_TASK_BUDGET": "会超出任务预算",
     "OVER_DAILY_BUDGET": "会超出今日预算",
-    "INSUFFICIENT_FUNDS": "钱包里的 USDC 不够"
+    "INSUFFICIENT_FUNDS": "钱包里的 USDC 不够",
+    "PAYEE_IDENTITY_UNVERIFIED": "服务没有经过验证的身份",
+    "PAYEE_IDENTITY_MISMATCH": "服务冒用了他人的身份",
+    "REPUTATION_UNAVAILABLE": "无法读取信誉，因此未付款",
+    "NOT_ENOUGH_TRUSTED_REVIEWS": "可信评价数量还不够",
+    "PAYEE_REPUTATION_TOO_LOW": "可信评价方给这个服务的评分太低"
   }
 }

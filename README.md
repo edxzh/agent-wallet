@@ -7,7 +7,7 @@ refusal is on a public record anyone can verify.
 > **Test network only (Base Sepolia). No real money.**
 
 - Live dashboard: https://demo.yunshu.ai (中文: https://demo.yunshu.ai/zh/)
-- Demo wallet `research-bot-01`: [`0x7b14…EeBf0`](https://sepolia.basescan.org/address/0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0)
+- Demo wallet `research-bot-01`: [`0xC788…b0Fc`](https://sepolia.basescan.org/address/0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc) (since 2026-10-10, with the trusted-payees rule; 001's wallet was [`0x7b14…EeBf0`](https://sepolia.basescan.org/address/0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0))
 - Spec, plan, tasks and test results: [`specs/001-agent-wallet-demo/`](specs/001-agent-wallet-demo/)
 - Built by [Yunshu AI](https://yunshu.ai)
 

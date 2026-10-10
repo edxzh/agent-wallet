@@ -39,7 +39,11 @@ const usdcAbi = parseAbi([
   'event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce)',
   'function balanceOf(address) view returns (uint256)',
 ]);
-const REASONS = ['NONE', 'PAUSED', 'INVALID_AMOUNT', 'PAYEE_NOT_ALLOWED', 'OVER_PER_PAYMENT_CAP', 'OVER_TASK_BUDGET', 'OVER_DAILY_BUDGET', 'INSUFFICIENT_FUNDS'];
+const REASONS = [
+  'NONE', 'PAUSED', 'INVALID_AMOUNT', 'PAYEE_NOT_ALLOWED', 'OVER_PER_PAYMENT_CAP', 'OVER_TASK_BUDGET', 'OVER_DAILY_BUDGET', 'INSUFFICIENT_FUNDS',
+  // 002: trusted payees (contracts/src/Reason.sol, append only)
+  'PAYEE_IDENTITY_UNVERIFIED', 'PAYEE_IDENTITY_MISMATCH', 'REPUTATION_UNAVAILABLE', 'NOT_ENOUGH_TRUSTED_REVIEWS', 'PAYEE_REPUTATION_TOO_LOW',
+];
 const AUTH_USED_TOPIC = '0x98de503528ee59b575ef0c0a2576a82497bfc029a5685b209e9ec333479b10a5';
 
 let rpcId = 0;

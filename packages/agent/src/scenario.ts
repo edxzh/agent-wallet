@@ -20,6 +20,10 @@ export type ScenarioDeps = {
   /** An address that is not on the allowlist. */
   strangerAddress: Address;
   log(line: Record<string, unknown>): void;
+  /** 002: run the unlisted-payee probe on another wallet (a scout with the reputation rule off). */
+  unlistedProbe?: { readState(): Promise<WalletState>; probe: ScenarioDeps['probe']; wallet: Address };
+  /** 002: called after each settled payment (to rate it). Returns false if that failed. */
+  afterPay?(out: Extract<PayOutcome, { kind: 'settled' }>, pair: string): Promise<boolean>;
 };
 
 export const EXIT = { OK: 0, CONFIG: 1, MISMATCH: 2, INSUFFICIENT_FUNDS: 3, REGISTRY_CHANGED: 4 } as const;
@@ -60,6 +64,7 @@ export async function runScenario(deps: ScenarioDeps, seed: number): Promise<num
     const out = await deps.pay(pair);
     const actual = out.kind === 'settled' ? 'NONE' : out.kind === 'refused' ? out.reason : `FAILED: ${out.error}`;
     check(`pay ${pair}`, expected, actual, out.kind === 'settled' ? { nonce: out.nonce, settlementTx: out.settlementTx } : { ...out });
+    if (out.kind === 'settled' && deps.afterPay && !(await deps.afterPay(out, pair))) mismatches++;
     if (actual === 'INSUFFICIENT_FUNDS') {
       deps.log({ step: 'stop', reason: 'insufficient funds: top up the wallet' });
       return EXIT.INSUFFICIENT_FUNDS;
@@ -78,12 +83,16 @@ export async function runScenario(deps: ScenarioDeps, seed: number): Promise<num
     },
   ];
   for (const p of probes) {
-    const s = await deps.readState();
+    // With 002's rule on, an unlisted payee is refused as PAYEE_IDENTITY_UNVERIFIED, so this probe
+    // runs on a rule-off wallet to keep PAYEE_NOT_ALLOWED on the record (research R5).
+    const on = p.intended === 'PAYEE_NOT_ALLOWED' && deps.unlistedProbe ? deps.unlistedProbe : deps;
+    const s = await on.readState();
     const a = { ...p.attempt(s), validBefore: s.now + 60n };
     const expected = expectedOutcome(s, a);
     if (expected !== p.intended) deps.log({ step: p.step, note: `state makes this probe give ${expected}, not ${p.intended}` });
-    const out = await deps.probe(a);
-    check(p.step, expected, out.kind === 'authorized' ? 'NONE' : out.reason, { amount: formatUsdc(a.amount), nonce: out.nonce, tx: out.txHash });
+    const out = await on.probe(a);
+    const where = on === deps ? {} : { wallet: deps.unlistedProbe!.wallet };
+    check(p.step, expected, out.kind === 'authorized' ? 'NONE' : out.reason, { amount: formatUsdc(a.amount), nonce: out.nonce, tx: out.txHash, ...where });
   }
 
   deps.log({ step: 'done', mismatches });
