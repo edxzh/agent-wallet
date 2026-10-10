@@ -1,0 +1,50 @@
+---
+import { t, type Lang } from '../i18n';
+import { history } from '../lib/history';
+import ServiceCard from './ServiceCard.astro';
+import { shortAddress } from '../lib/rows';
+
+/** Feature 002: the trust rule, the trusted reviewers and one card per demo service. */
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = t(lang).trust;
+const rule = history?.reputationRule;
+const services = history?.services ?? [];
+const gated = history?.wallets[0];
+const allowed = new Set((gated?.payees ?? []).filter((p) => p.allowed).map((p) => p.address.toLowerCase()));
+const sentence = rule?.enabled ? tr.rule.replace('{avg}', String(rule.minAverage)).replace('{count}', String(rule.minCount)) : tr.ruleOff;
+---
+
+{rule && services.length > 0 && (
+  <section class="section trust" aria-labelledby="trust-h">
+    <h2 id="trust-h">{tr.heading}</h2>
+    <p class="lead muted">{tr.intro}</p>
+    {history?.erc8004 && !history.erc8004.pinnedOk && <p class="banner" role="alert">{tr.registryChanged}</p>}
+    <div class="card rule">
+      <p class="sentence" data-trust="rule">{sentence}</p>
+      <p class="reviewers">
+        <span class="muted">{tr.reviewers}:</span>
+        {rule.trustedReviewers.map((r) => (
+          <span class="chip mono" title={r.address}>{r.label === r.address ? shortAddress(r.address) : r.label}</span>
+        ))}
+      </p>
+    </div>
+    <h3 class="sub">{tr.servicesHeading}</h3>
+    <ul class="services" role="list">
+      {services.map((s) => (
+        <ServiceCard lang={lang} service={s} threshold={rule.minAverage} allowlisted={!!s.payTo && allowed.has(s.payTo.toLowerCase())} />
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .rule { display: grid; gap: 10px; margin: 16px 0 24px; }
+  .sentence { font-size: 18px; }
+  .reviewers { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+  .chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--border); }
+  .sub { font-size: 18px; margin-bottom: 12px; }
+  .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 0; margin: 0; }
+  .banner { color: #fbbf24; background: rgb(251 191 36 / 0.1); border: 1px solid rgb(251 191 36 / 0.3); border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+  .muted { color: var(--text-muted); }
+</style>

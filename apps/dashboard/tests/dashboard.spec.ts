@@ -103,3 +103,41 @@ test('live events join the newest run, or start a new one when far apart', async
   await expect(groups.first().locator('.counts')).toHaveText('1 refused');
   await expect(groups.nth(1).locator('li.row')).toHaveCount(before + 1); // +1 min: joined
 });
+
+// ── 002: trusted payees (T031) ─────────────────────────────────────────────────────────────
+const trustPages = [
+  { path: '/', rule: 'Pays services it hasn', payable: /^(Payable|Not payable)$/, rated: 'Rated ' },
+  { path: '/zh/', rule: '未经手动允许的服务', payable: /^(可付款|不可付款)$/, rated: '评分' },
+];
+for (const p of trustPages) {
+  test(`${p.path}: trust rule, one card per service, rated rows`, async ({ page }) => {
+    await page.route('https://sepolia.base.org', (r) => r.abort());
+    await page.goto(p.path);
+    await expect(page.locator('[data-trust="rule"]')).toContainText(p.rule);
+    const cards = page.locator('.services > li.service');
+    expect(await cards.count()).toBe(6);
+    for (const key of ['quote', 'reliable', 'flaky', 'newcomer', 'impostor', 'anonymous']) {
+      const card = page.locator(`[data-service="${key}"]`);
+      await expect(card.locator('[data-svc="badge"]')).toHaveText(p.payable);
+      if (key !== 'anonymous') {
+        await expect(card.locator('[data-svc="average"]')).not.toBeEmpty();
+        await expect(card.locator('[data-svc="count"]')).toHaveText(/^\d+$/);
+      }
+    }
+    // A refused service always says why.
+    const refusedReason = page.locator('.service:has(.badge.off) [data-svc="reason"]').first();
+    await expect(refusedReason).not.toBeEmpty();
+    const rated = page.locator('.timeline li.row', { hasText: p.rated }).first();
+    await expect(rated.locator('a')).toHaveAttribute('href', /^https:\/\/sepolia\.basescan\.org\/tx\/0x[0-9a-f]{64}$/);
+  });
+}
+
+test.describe('trust section without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+  test('renders the rule and every card', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('[data-trust="rule"]')).toBeVisible();
+    expect(await page.locator('.services > li.service').count()).toBe(6);
+    await expect(page.locator('[data-service="impostor"] [data-svc="reason"]')).toHaveText("Service claimed someone else's identity");
+  });
+});

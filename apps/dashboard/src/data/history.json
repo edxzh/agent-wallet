@@ -1,7 +1,7 @@
 {
   "network": "eip155:84532",
-  "generatedAt": "2026-10-10T01:06:35.727Z",
-  "lastBlock": 47913049,
+  "generatedAt": "2026-10-10T01:23:06.549Z",
+  "lastBlock": 47913533,
   "wallets": [
     {
       "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
@@ -148,6 +148,18 @@
           "reason": "OVER_PER_PAYMENT_CAP"
         },
         {
+          "block": 47912966,
+          "logIndex": 86,
+          "txHash": "0xbc54ccc34b02c4e62274929e75e1f248026531d7582322d3dfa758e62a3e7da7",
+          "time": "2026-10-10T01:03:40.000Z",
+          "kind": "rated",
+          "nonce": "0x566c37c74006a538b0971eff76b7bc05f02ead4fc71cd0ec12e2bb18c67582b0",
+          "agentId": "9613",
+          "score": 20,
+          "tag": "wrong-data",
+          "feedbackIndex": "3"
+        },
+        {
           "block": 47912959,
           "logIndex": 4,
           "txHash": "0xcd212070dbba6190e48a5df39a7fbb92d8e3cce8e227e2390d6d319a87286177",
@@ -161,6 +173,18 @@
           "settledTx": "0x51b00e96e1b20a447624293eb70370e9ad02ad84f8a9e3d19ef93c64f2695153"
         },
         {
+          "block": 47912957,
+          "logIndex": 50,
+          "txHash": "0xb02e197a3b86d1a9fbafcfff4a4ec6e08f8c914a8a1dabab1568f22b7f07087b",
+          "time": "2026-10-10T01:03:22.000Z",
+          "kind": "rated",
+          "nonce": "0xe848382f84754e1cea193e5365996f8ca95e0457fc25d36305254b112f92a785",
+          "agentId": "9613",
+          "score": 20,
+          "tag": "wrong-data",
+          "feedbackIndex": "2"
+        },
+        {
           "block": 47912950,
           "logIndex": 2,
           "txHash": "0x6a9a3f74e1e4750e2d549ed46aac1d9ed397c43d29dedd441c3831df68d3aa92",
@@ -172,6 +196,18 @@
           "taskId": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
           "amount": "10000",
           "settledTx": "0x877178869c3fcb4da343a452c0741e4138567a7275a713a284c5943a0e267b82"
+        },
+        {
+          "block": 47912948,
+          "logIndex": 62,
+          "txHash": "0x208708303079857af1ba2a7346f2050894bf23cca7563ed23946802326753327",
+          "time": "2026-10-10T01:03:04.000Z",
+          "kind": "rated",
+          "nonce": "0x8fc1402e39284eedbdda9610fdfaad9d64e9e52fa390e08033e6667e2257bb62",
+          "agentId": "9613",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "1"
         },
         {
           "block": 47912941,
@@ -345,7 +381,7 @@
         "day": 20736,
         "spent": "20000"
       },
-      "balance": "980000",
+      "balance": "4980000",
       "events": [
         {
           "block": 47912969,
@@ -360,6 +396,18 @@
           "reason": "PAYEE_NOT_ALLOWED"
         },
         {
+          "block": 47912925,
+          "logIndex": 92,
+          "txHash": "0x88c5e8c128476fc2738b09c7e7c10839d2bde86488c0918a7124483438bb8614",
+          "time": "2026-10-10T01:02:18.000Z",
+          "kind": "rated",
+          "nonce": "0xee24cd26f2372a2ec78d9174747651d7515673650ead509985791dc12c029bca",
+          "agentId": "9615",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "1"
+        },
+        {
           "block": 47912918,
           "logIndex": 221,
           "txHash": "0x2fea8093ead0aa9d96cfcefada93e3c2903ae00f486c67658305988fe653336b",
@@ -371,6 +419,18 @@
           "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
           "amount": "10000",
           "settledTx": "0x8c47c3dfaade3b9eaeb4527cd96a5a9f55cc1669eba47acdd2ec7b8ed560ff93"
+        },
+        {
+          "block": 47912917,
+          "logIndex": 64,
+          "txHash": "0x7fe9a089b94f81029b8294f4aef821074e96baf5564c0b979925e5daaf694c19",
+          "time": "2026-10-10T01:02:02.000Z",
+          "kind": "rated",
+          "nonce": "0xc5fc6b54067a04faec9f0084144a2b747059c7de8025a0a570fee9713bc7805f",
+          "agentId": "9614",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "1"
         },
         {
           "block": 47912911,
@@ -478,8 +538,20 @@
         "day": 20736,
         "spent": "20000"
       },
-      "balance": "980000",
+      "balance": "4980000",
       "events": [
+        {
+          "block": 47912940,
+          "logIndex": 19,
+          "txHash": "0xdeabf8ab4ccdf734012e15f209136a243b607f6a77654810af51f27ec4b134df",
+          "time": "2026-10-10T01:02:48.000Z",
+          "kind": "rated",
+          "nonce": "0x5c7372319d1e419aca3675b921800f518cd6769efbdaf2470b3054d9e96dfa1c",
+          "agentId": "9615",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "1"
+        },
         {
           "block": 47912934,
           "logIndex": 38,
@@ -492,6 +564,18 @@
           "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
           "amount": "10000",
           "settledTx": "0x2543539450fd349dde0c2a5ac5ed9300eb746327eb763d861037592254df2596"
+        },
+        {
+          "block": 47912933,
+          "logIndex": 58,
+          "txHash": "0xc7e51851e830614b65f29b31c5d5cbb3f9acd95b99db5a42d6af96e1c968efa5",
+          "time": "2026-10-10T01:02:34.000Z",
+          "kind": "rated",
+          "nonce": "0xa5809036b66e25b3e7afcbd67089819081a4dd6782813053e686a4a9085cd781",
+          "agentId": "9614",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "1"
         },
         {
           "block": 47912926,
@@ -538,6 +622,224 @@
           "ruleKey": "0x0000000000000000000000009c8824deb0f2a883e0833afb2ef7ee75986e9b3a",
           "oldValue": "0",
           "newValue": "1"
+        }
+      ]
+    }
+  ],
+  "erc8004": {
+    "identity": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "reputation": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+    "implementations": {
+      "identity": "0x7274e874CA62410a93Bd8bf61c69d8045E399c02",
+      "reputation": "0x16e0FA7f7C56B9a767E34B192B51f921BE31dA34"
+    },
+    "pinnedOk": true
+  },
+  "reputationRule": {
+    "wallet": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+    "enabled": true,
+    "minAverage": 70,
+    "minCount": 3,
+    "trustedReviewers": [
+      {
+        "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+        "label": "research-bot-01"
+      },
+      {
+        "address": "0x1dAb793c0dBF670bd03935A54Ab9833A20cb704B",
+        "label": "scout-02"
+      },
+      {
+        "address": "0x3E8441303A46c56FD2E0492Bd41838A14d57C438",
+        "label": "scout-03"
+      }
+    ]
+  },
+  "services": [
+    {
+      "key": "quote",
+      "label": {
+        "en": "Demo quote API",
+        "zh": "演示报价 API"
+      },
+      "agentId": "9613",
+      "claims": "self",
+      "payTo": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+      "name": "Yunshu demo · Demo quote API",
+      "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
+      "registeredWallet": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+      "summary": {
+        "count": 3,
+        "average": "43",
+        "decimals": 0,
+        "block": 47913533
+      },
+      "payable": true,
+      "since": "2026-10-10T01:22:34.000Z",
+      "snapshots": [
+        {
+          "time": "2026-10-10T01:22:34.000Z",
+          "block": 47913533,
+          "count": 3,
+          "average": "43",
+          "decimals": 0,
+          "payable": true
+        }
+      ]
+    },
+    {
+      "key": "reliable",
+      "label": {
+        "en": "Reliable quotes",
+        "zh": "可靠报价"
+      },
+      "agentId": "9614",
+      "claims": "self",
+      "payTo": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
+      "name": "Yunshu demo · Reliable quotes",
+      "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
+      "registeredWallet": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
+      "summary": {
+        "count": 2,
+        "average": "90",
+        "decimals": 0,
+        "block": 47913533
+      },
+      "payable": false,
+      "reason": "NOT_ENOUGH_TRUSTED_REVIEWS",
+      "since": "2026-10-10T01:22:34.000Z",
+      "snapshots": [
+        {
+          "time": "2026-10-10T01:22:34.000Z",
+          "block": 47913533,
+          "count": 2,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "NOT_ENOUGH_TRUSTED_REVIEWS"
+        }
+      ]
+    },
+    {
+      "key": "flaky",
+      "label": {
+        "en": "Flaky quotes",
+        "zh": "不稳定报价"
+      },
+      "agentId": "9615",
+      "claims": "self",
+      "payTo": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
+      "name": "Yunshu demo · Flaky quotes",
+      "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
+      "registeredWallet": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
+      "summary": {
+        "count": 2,
+        "average": "90",
+        "decimals": 0,
+        "block": 47913533
+      },
+      "payable": false,
+      "reason": "NOT_ENOUGH_TRUSTED_REVIEWS",
+      "since": "2026-10-10T01:22:34.000Z",
+      "snapshots": [
+        {
+          "time": "2026-10-10T01:22:34.000Z",
+          "block": 47913533,
+          "count": 2,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "NOT_ENOUGH_TRUSTED_REVIEWS"
+        }
+      ]
+    },
+    {
+      "key": "newcomer",
+      "label": {
+        "en": "Newcomer quotes",
+        "zh": "新来的报价服务"
+      },
+      "agentId": "9616",
+      "claims": "self",
+      "payTo": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
+      "name": "Yunshu demo · Newcomer quotes",
+      "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
+      "registeredWallet": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
+      "summary": {
+        "count": 0,
+        "average": "0",
+        "decimals": 0,
+        "block": 47913533
+      },
+      "payable": false,
+      "reason": "NOT_ENOUGH_TRUSTED_REVIEWS",
+      "since": "2026-10-10T01:22:34.000Z",
+      "snapshots": [
+        {
+          "time": "2026-10-10T01:22:34.000Z",
+          "block": 47913533,
+          "count": 0,
+          "average": "0",
+          "decimals": 0,
+          "payable": false,
+          "reason": "NOT_ENOUGH_TRUSTED_REVIEWS"
+        }
+      ]
+    },
+    {
+      "key": "impostor",
+      "label": {
+        "en": "Impostor",
+        "zh": "冒充者"
+      },
+      "agentId": "9614",
+      "claims": "reliable",
+      "payTo": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
+      "name": "Yunshu demo · Reliable quotes",
+      "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
+      "registeredWallet": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
+      "summary": {
+        "count": 2,
+        "average": "90",
+        "decimals": 0,
+        "block": 47913533
+      },
+      "payable": false,
+      "reason": "PAYEE_IDENTITY_MISMATCH",
+      "since": "2026-10-10T01:22:34.000Z",
+      "snapshots": [
+        {
+          "time": "2026-10-10T01:22:34.000Z",
+          "block": 47913533,
+          "count": 2,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_MISMATCH"
+        }
+      ]
+    },
+    {
+      "key": "anonymous",
+      "label": {
+        "en": "Anonymous quotes",
+        "zh": "匿名报价"
+      },
+      "agentId": null,
+      "claims": null,
+      "payTo": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
+      "payable": false,
+      "reason": "PAYEE_IDENTITY_UNVERIFIED",
+      "since": "2026-10-10T01:22:34.000Z",
+      "snapshots": [
+        {
+          "time": "2026-10-10T01:22:34.000Z",
+          "block": 47913533,
+          "count": 0,
+          "average": "0",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
         }
       ]
     }

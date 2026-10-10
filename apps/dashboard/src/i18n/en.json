@@ -80,6 +80,26 @@
         "body": "The recipient isn't on the agent's allowed list."
       },
       {
+        "code": "PAYEE_IDENTITY_UNVERIFIED",
+        "body": "Not on the allowed list, and the service claims no ERC-8004 identity (with the reputation rule on)."
+      },
+      {
+        "code": "PAYEE_IDENTITY_MISMATCH",
+        "body": "The service claims an identity that's registered to a different address. Checked even for allowed payees."
+      },
+      {
+        "code": "REPUTATION_UNAVAILABLE",
+        "body": "The reputation registry couldn't be read, so it doesn't pay rather than guess."
+      },
+      {
+        "code": "NOT_ENOUGH_TRUSTED_REVIEWS",
+        "body": "Too few ratings from the reviewers the operator trusts."
+      },
+      {
+        "code": "PAYEE_REPUTATION_TOO_LOW",
+        "body": "The trusted reviewers' average is below the minimum."
+      },
+      {
         "code": "OVER_PER_PAYMENT_CAP",
         "body": "This single payment is above the per-payment cap."
       },
@@ -136,6 +156,31 @@
     "wallet": "Wallet",
     "contract": "contract ↗"
   },
+  "trust": {
+    "heading": "Who the agent may pay",
+    "intro": "Services it hasn't allowed by hand need a good public reputation from reviewers the operator trusts. The scores come straight from the ERC-8004 reputation registry, the same numbers the wallet checks before paying.",
+    "rule": "Pays services it hasn't allowed by hand only with an average of {avg}+ from at least {count} trusted reviews.",
+    "ruleOff": "The reputation rule is off: it pays only services allowed by hand.",
+    "reviewers": "Trusted reviewers",
+    "servicesHeading": "Services",
+    "payable": "Payable",
+    "notPayable": "Not payable",
+    "since": "since {time}",
+    "average": "Trusted average",
+    "count": "Trusted reviews",
+    "noReviews": "No trusted reviews yet",
+    "noIdentity": "Claims no identity",
+    "claims": "Claims identity #{id}",
+    "paidAt": "Paid at",
+    "registeredTo": "Identity registered to",
+    "mismatch": "different address",
+    "nearLimit": "Approaching the on-chain check limit ({count} reviews)",
+    "trend": "Trusted average over time: {values}",
+    "registryChanged": "The ERC-8004 registry changed, so the demo is paused for review.",
+    "notConfigured": "Not configured yet",
+    "identityLink": "identity ↗",
+    "allowlisted": "Allowed by hand"
+  },
   "row": {
     "paid": "Paid {amount} USDC",
     "pending": "Authorized {amount} USDC, awaiting settlement",
@@ -153,6 +198,15 @@
       "payeeRemoved": "Payee removed: {payee}",
       "taskBudget": "Task budget {task}: {old} → {new} USDC",
       "agent": "Agent key rotated"
+    },
+    "rated": "Rated {service} {score} · {tag}",
+    "statusPayable": "{service} became payable",
+    "statusNotPayable": "{service} is no longer payable",
+    "tags": {
+      "accurate": "accurate",
+      "stale": "stale",
+      "wrong-data": "wrong data",
+      "malformed": "malformed"
     }
   },
   "group": {
@@ -167,7 +221,8 @@
     "paused": "paused",
     "unpaused": "resumed",
     "spent": "{amount} USDC spent",
-    "older": "Older activity ({n})"
+    "older": "Older activity ({n})",
+    "rated": "{n} rated"
   },
   "reason": {
     "PAUSED": "The operator has paused this agent",

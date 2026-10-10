@@ -80,6 +80,26 @@
         "body": "收款方不在 agent 的白名单上。"
       },
       {
+        "code": "PAYEE_IDENTITY_UNVERIFIED",
+        "body": "不在白名单上，且服务没有声明 ERC-8004 身份（信誉规则开启时）。"
+      },
+      {
+        "code": "PAYEE_IDENTITY_MISMATCH",
+        "body": "服务声明的身份登记在另一个地址上。即使是白名单上的收款方也会检查。"
+      },
+      {
+        "code": "REPUTATION_UNAVAILABLE",
+        "body": "无法读取信誉注册表，因此不付款，而不是猜测。"
+      },
+      {
+        "code": "NOT_ENOUGH_TRUSTED_REVIEWS",
+        "body": "运营方信任的评价方给出的评分太少。"
+      },
+      {
+        "code": "PAYEE_REPUTATION_TOO_LOW",
+        "body": "可信评价方的平均分低于最低要求。"
+      },
+      {
         "code": "OVER_PER_PAYMENT_CAP",
         "body": "这笔付款超过了单笔上限。"
       },
@@ -136,6 +156,31 @@
     "wallet": "钱包",
     "contract": "合约 ↗"
   },
+  "trust": {
+    "heading": "Agent 可以付款给谁",
+    "intro": "未经手动加入白名单的服务，需要在运营方信任的评价方那里有良好的公开信誉。分数直接来自 ERC-8004 信誉注册表，与钱包付款前检查的数字完全相同。",
+    "rule": "未经手动允许的服务，只有在至少 {count} 条可信评价、平均分 {avg} 以上时才付款。",
+    "ruleOff": "信誉规则已关闭：只向手动允许的服务付款。",
+    "reviewers": "可信评价方",
+    "servicesHeading": "服务",
+    "payable": "可付款",
+    "notPayable": "不可付款",
+    "since": "自 {time} 起",
+    "average": "可信平均分",
+    "count": "可信评价数",
+    "noReviews": "还没有可信评价",
+    "noIdentity": "未声明身份",
+    "claims": "声明身份 #{id}",
+    "paidAt": "收款地址",
+    "registeredTo": "身份登记地址",
+    "mismatch": "地址不一致",
+    "nearLimit": "接近链上检查上限（{count} 条评价）",
+    "trend": "可信平均分走势：{values}",
+    "registryChanged": "ERC-8004 注册表发生了变化，演示已暂停，等待审核。",
+    "notConfigured": "尚未配置",
+    "identityLink": "身份 ↗",
+    "allowlisted": "已手动允许"
+  },
   "row": {
     "paid": "已付款 {amount} USDC",
     "pending": "已授权 {amount} USDC，等待结算",
@@ -153,6 +198,15 @@
       "payeeRemoved": "移出白名单：{payee}",
       "taskBudget": "任务预算 {task}：{old} → {new} USDC",
       "agent": "更换了 agent 密钥"
+    },
+    "rated": "给 {service} 评分 {score} · {tag}",
+    "statusPayable": "{service} 变为可付款",
+    "statusNotPayable": "{service} 不再可付款",
+    "tags": {
+      "accurate": "准确",
+      "stale": "过时",
+      "wrong-data": "数据错误",
+      "malformed": "格式错误"
     }
   },
   "group": {
@@ -167,7 +221,8 @@
     "paused": "已暂停",
     "unpaused": "已恢复",
     "spent": "支出 {amount} USDC",
-    "older": "更早的活动（{n}）"
+    "older": "更早的活动（{n}）",
+    "rated": "{n} 条评分"
   },
   "reason": {
     "PAUSED": "运营方已暂停这个 agent",

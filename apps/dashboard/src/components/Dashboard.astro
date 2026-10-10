@@ -3,6 +3,7 @@ import { t, type Lang } from '../i18n';
 import RulesCard from './RulesCard.astro';
 import SpendBars from './SpendBars.astro';
 import Timeline from './Timeline.astro';
+import TrustRule from './TrustRule.astro';
 import { history, labelsFor, rowTextFor } from '../lib/history';
 import { formatTime } from '../lib/rows';
 
@@ -28,6 +29,17 @@ const liveData = wallet && history && {
   text: rowTextFor(lang),
   groupText: d.group,
   networkDown: d.live.networkDown,
+  trust:
+    history.reputationRule && history.services
+      ? {
+          reputation: history.erc8004?.reputation ?? '',
+          trusted: history.reputationRule.trustedReviewers.map((r) => r.address),
+          services: history.services.map((s) => ({ key: s.key, agentId: s.agentId, payTo: s.payTo })),
+          payable: d.trust.payable,
+          notPayable: d.trust.notPayable,
+          reasons: d.reason as Record<string, string>,
+        }
+      : undefined,
 };
 ---
 
@@ -63,6 +75,8 @@ const liveData = wallet && history && {
     <script type="application/json" id="aw-live" set:html={JSON.stringify(liveData)} />
   </section>
 )}
+
+<TrustRule lang={lang} />
 
 <section class="section" aria-labelledby="how">
   <h2 id="how">{d.how.heading}</h2>

@@ -89,3 +89,58 @@ describe('log fetching ranges', () => {
     expect(blockRanges(lastBlock + 1n, lastBlock + 600n)[0]![0]).toBe(lastBlock + 1n);
   });
 });
+
+// ── 002: trusted payees (T030) ────────────────────────────────────────────────────────────
+import { appendSnapshot, decodeAgentURI, MAX_SNAPSHOTS, sinceOf, statusChange, type ServiceSnapshot } from './lib/trust.js';
+
+const rated = (nonce: Hex, block: number) =>
+  log('PaymentRated', { nonce, agentId: 9614n }, encodeAbiParameters([{ type: 'uint8' }, { type: 'string' }, { type: 'uint64' }], [90, 'accurate', 3n]), block);
+const snap = (block: number, payable: boolean, reason?: string): ServiceSnapshot => ({
+  time: new Date(1_791_000_000_000 + block * 1000).toISOString(),
+  block,
+  count: 3,
+  average: '90',
+  decimals: 0,
+  payable,
+  reason,
+});
+
+describe('trusted payees in the snapshot', () => {
+  it('decodes PaymentRated into a rated row with the registry index', () => {
+    const [e] = decodeWalletLogs([rated(n1, 10)], new Map([[10, '2026-10-10T06:17:00.000Z']]));
+    expect(e).toMatchObject({ kind: 'rated', nonce: n1, agentId: '9614', score: 90, tag: 'accurate', feedbackIndex: '3', block: 10 });
+  });
+
+  it('reads name and description from an on-chain registration file, and tolerates anything else', () => {
+    const file = { name: 'Yunshu demo · Reliable quotes', description: 'Demo', endpoints: [] };
+    expect(decodeAgentURI(`data:application/json;base64,${Buffer.from(JSON.stringify(file)).toString('base64')}`)).toEqual({ name: file.name, description: 'Demo' });
+    expect(decodeAgentURI('https://example.com/agent.json')).toEqual({});
+    expect(decodeAgentURI('data:application/json;base64,!!!')).toEqual({});
+    expect(decodeAgentURI(undefined)).toEqual({});
+  });
+
+  it('keeps one snapshot per block, oldest first, capped at 400', () => {
+    let s: ServiceSnapshot[] = [];
+    for (let b = 1; b <= MAX_SNAPSHOTS + 5; b++) s = appendSnapshot(s, snap(b, true));
+    s = appendSnapshot(s, snap(MAX_SNAPSHOTS + 5, false)); // same block again replaces, never duplicates
+    expect(s).toHaveLength(MAX_SNAPSHOTS);
+    expect(s[0]!.block).toBe(6);
+    expect(s.at(-1)).toMatchObject({ block: MAX_SNAPSHOTS + 5, payable: false });
+  });
+
+  it('dates "since" from the start of the current status streak', () => {
+    const s = [snap(1, false, 'NOT_ENOUGH_TRUSTED_REVIEWS'), snap(2, true), snap(3, true)];
+    expect(sinceOf(s)).toBe(s[1]!.time);
+    expect(sinceOf([])).toBe('');
+  });
+
+  it('adds a statusChanged row only when payable flips, with a stable id', () => {
+    expect(statusChange('flaky', '9615', undefined, snap(5, true))).toBeUndefined(); // first reading
+    expect(statusChange('flaky', '9615', snap(4, true), snap(5, true))).toBeUndefined();
+    const row = statusChange('flaky', '9615', snap(4, true), snap(5, false, 'PAYEE_REPUTATION_TOO_LOW'))!;
+    expect(row).toMatchObject({ kind: 'statusChanged', service: 'flaky', agentId: '9615', payable: false, reason: 'PAYEE_REPUTATION_TOO_LOW', block: 5 });
+    expect(statusChange('flaky', '9615', snap(4, true), snap(5, false))!.txHash).toBe(row.txHash);
+    // Merged twice (two snapshot runs see the same flip), it stays one row.
+    expect(mergeEvents([row], [row], new Map())).toHaveLength(1);
+  });
+});

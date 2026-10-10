@@ -3,7 +3,7 @@
  * tail (browser), so both render identical text. No dependencies.
  */
 export type Entry = {
-  kind: 'authorized' | 'refused' | 'expired' | 'ruleChange' | 'paused' | 'unpaused';
+  kind: 'authorized' | 'refused' | 'expired' | 'ruleChange' | 'paused' | 'unpaused' | 'rated' | 'statusChanged';
   settled?: boolean;
   settledTx?: string;
   nonce?: string;
@@ -15,6 +15,12 @@ export type Entry = {
   ruleKey?: string;
   oldValue?: string;
   newValue?: string;
+  agentId?: string;
+  score?: number;
+  tag?: string;
+  feedbackIndex?: string;
+  service?: string;
+  payable?: boolean;
   block: number;
   logIndex: number;
   txHash: string;
@@ -24,6 +30,8 @@ export type Entry = {
 export type Labels = {
   payees: Record<string, string>; // lower-case address → label
   tasks: Record<string, string>; // taskId → label
+  services?: Record<string, string>; // 002: agentId → service label
+  serviceKeys?: Record<string, string>; // 002: service key → label
 };
 
 export type RowText = {
@@ -39,6 +47,10 @@ export type RowText = {
   task: string;
   verify: string;
   unknownPayee: string;
+  rated: string;
+  statusPayable: string;
+  statusNotPayable: string;
+  tags: Record<string, string>;
 };
 
 export type Row = { key: string; icon: string; tone: 'ok' | 'bad' | 'muted' | 'info'; title: string; detail: string; href: string; time: string };
@@ -54,6 +66,9 @@ export function usdc(units: string | bigint | undefined): string {
 
 export const shortAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 export const txLink = (hash: string) => `https://sepolia.basescan.org/tx/${hash}`;
+export const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
+/** The ERC-8004 identity (an NFT) on BaseScan. */
+export const identityLink = (agentId: string) => `https://sepolia.basescan.org/nft/${IDENTITY_REGISTRY}/${agentId}`;
 
 const fill = (t: string, vars: Record<string, string>) => t.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? '');
 
@@ -75,6 +90,23 @@ export function toRow(e: Entry, labels: Labels, t: RowText): Row {
       return { ...base, icon: '⏸', tone: 'info', title: t.paused, detail: '' };
     case 'unpaused':
       return { ...base, icon: '▶', tone: 'info', title: t.unpaused, detail: '' };
+    case 'rated': {
+      const service = labels.services?.[e.agentId ?? ''] ?? `#${e.agentId}`;
+      const tag = t.tags[e.tag ?? ''] ?? e.tag ?? '';
+      return { ...base, icon: '★', tone: (e.score ?? 0) >= 70 ? 'ok' : 'bad', title: fill(t.rated, { service, score: String(e.score), tag }), detail: '' };
+    }
+    case 'statusChanged': {
+      const service = labels.serviceKeys?.[e.service ?? ''] ?? e.service ?? '';
+      const reason = e.payable ? '' : (t.reason[e.reason ?? ''] ?? e.reason ?? '');
+      return {
+        ...base,
+        icon: e.payable ? '↑' : '↓',
+        tone: e.payable ? 'ok' : 'bad',
+        title: fill(e.payable ? t.statusPayable : t.statusNotPayable, { service }),
+        detail: reason,
+        href: e.agentId ? identityLink(e.agentId) : base.href, // not a transaction: link the identity
+      };
+    }
     case 'ruleChange': {
       const f = e.ruleField ?? '';
       let title: string;
@@ -97,7 +129,7 @@ export function toRow(e: Entry, labels: Labels, t: RowText): Row {
 // The agent acts in bursts (a scheduled run is a few payments and probes within a minute), so
 // the timeline groups entries that are close in time. Operator actions get groups of their own.
 
-export type RowKind = 'paid' | 'pending' | 'refused' | 'released' | 'rule' | 'paused' | 'unpaused';
+export type RowKind = 'paid' | 'pending' | 'refused' | 'released' | 'rule' | 'paused' | 'unpaused' | 'rated' | 'status';
 
 export type GroupText = {
   agent: string;
@@ -112,6 +144,7 @@ export type GroupText = {
   unpaused: string;
   spent: string;
   older: string;
+  rated: string;
 };
 
 export type Group = { key: string; operator: boolean; entries: Entry[] };
@@ -129,6 +162,10 @@ export function rowKind(e: Entry): RowKind {
       return 'released';
     case 'ruleChange':
       return 'rule';
+    case 'rated':
+      return 'rated';
+    case 'statusChanged':
+      return 'status';
     default:
       return e.kind;
   }
@@ -153,7 +190,7 @@ export function groupEntries(entries: Entry[]): Group[] {
 export function summarize(items: { kind: RowKind; amount?: string }[], operator: boolean, t: GroupText): { title: string; counts: string } {
   const n = (k: RowKind) => items.filter((i) => i.kind === k).length;
   const parts: string[] = [];
-  for (const k of ['paid', 'pending', 'refused', 'released'] as const) if (n(k)) parts.push(fill(t[k], { n: String(n(k)) }));
+  for (const k of ['paid', 'pending', 'refused', 'released', 'rated'] as const) if (n(k)) parts.push(fill(t[k], { n: String(n(k)) }));
   if (n('rule')) parts.push(fill(n('rule') === 1 ? t.rule : t.rules, { n: String(n('rule')) }));
   if (n('paused')) parts.push(t.paused);
   if (n('unpaused')) parts.push(t.unpaused);

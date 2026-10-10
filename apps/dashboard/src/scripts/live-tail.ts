@@ -4,7 +4,7 @@
  * (or starts a new one). The page is
  * complete without it (constitution VII); this only adds what happened since the last snapshot.
  */
-import { decodeEventLog, encodeFunctionData, parseAbi, type Hex, type Log } from 'viem';
+import { decodeEventLog, decodeFunctionResult, encodeFunctionData, parseAbi, type Hex, type Log } from 'viem';
 import { formatTime, GROUP_GAP_MS, isOperatorKind, rowKind, summarize, toRow, usdc, type Entry, type GroupText, type Labels, type RowKind, type RowText } from '../lib/rows';
 
 type LiveData = {
@@ -18,6 +18,15 @@ type LiveData = {
   text: RowText;
   groupText: GroupText;
   networkDown: string;
+  /** 002: what the service cards need to refresh themselves. */
+  trust?: {
+    reputation: string;
+    trusted: string[];
+    services: { key: string; agentId: string | null; payTo: string | null }[];
+    payable: string;
+    notPayable: string;
+    reasons: Record<string, string>;
+  };
 };
 
 const RPC = 'https://sepolia.base.org';
@@ -34,7 +43,14 @@ const walletAbi = parseAbi([
   'event Paused()',
   'event Unpaused()',
   'function spentOn(uint256 day) view returns (uint256)',
+  // 002
+  'event PaymentRated(bytes32 indexed nonce, uint256 indexed agentId, uint8 score, string tag, uint64 feedbackIndex)',
+  'function checkPayee(address payee, bool hasClaim, uint256 payeeAgentId) view returns (uint8)',
 ]);
+const reputationAbi = parseAbi([
+  'function getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2) view returns (uint64 count, int128 summaryValue, uint8 summaryValueDecimals)',
+]);
+const TRUST_REFRESH_MS = 30_000; // contracts/dashboard.md: getSummary no faster than every 30 s
 const usdcAbi = parseAbi([
   'event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce)',
   'function balanceOf(address) view returns (uint256)',
@@ -87,6 +103,8 @@ function toEntry(log: Log, time: string): Entry | undefined {
       return { ...base, kind: 'paused' };
     case 'Unpaused':
       return { ...base, kind: 'unpaused' };
+    case 'PaymentRated':
+      return { ...base, kind: 'rated', nonce: a.nonce, agentId: String(a.agentId), score: Number(a.score), tag: a.tag, feedbackIndex: String(a.feedbackIndex) };
   }
   return undefined;
 }
@@ -222,6 +240,48 @@ export function start() {
     }
   };
 
+  // 002: re-read each card's trusted summary and payable status (same calls the wallet makes).
+  let lastTrust = 0;
+  const refreshTrust = async () => {
+    const tr = data.trust;
+    if (!tr || Date.now() - lastTrust < TRUST_REFRESH_MS) return;
+    lastTrust = Date.now();
+    for (const s of tr.services) {
+      const card = document.querySelector<HTMLElement>(`[data-service="${s.key}"]`);
+      if (!card) continue;
+      if (s.agentId !== null && tr.trusted.length) {
+        const ret = await rpc<Hex>('eth_call', [
+          { to: tr.reputation, data: encodeFunctionData({ abi: reputationAbi, functionName: 'getSummary', args: [BigInt(s.agentId), tr.trusted as Hex[], '', ''] }) },
+          'latest',
+        ]);
+        const [count, value, decimals] = decodeFunctionResult({ abi: reputationAbi, functionName: 'getSummary', data: ret });
+        const set = (sel: string, text: string) => {
+          const el = card.querySelector(`[data-svc="${sel}"]`);
+          if (el) el.textContent = text;
+        };
+        set('count', String(count));
+        set('average', count > 0n ? (Number(value) / 10 ** decimals).toFixed(decimals ? 1 : 0) : '–');
+      }
+      if (s.payTo) {
+        const ret = await rpc<Hex>('eth_call', [
+          { to: data.wallet, data: encodeFunctionData({ abi: walletAbi, functionName: 'checkPayee', args: [s.payTo as Hex, s.agentId !== null, BigInt(s.agentId ?? 0)] }) },
+          'latest',
+        ]);
+        const code = Number(decodeFunctionResult({ abi: walletAbi, functionName: 'checkPayee', data: ret }));
+        const badge = card.querySelector('[data-svc="badge"]');
+        const wasPayable = badge?.classList.contains('on');
+        if (badge && wasPayable !== (code === 0)) {
+          badge.classList.toggle('on', code === 0);
+          badge.classList.toggle('off', code !== 0);
+          badge.textContent = code === 0 ? tr.payable : tr.notPayable;
+          const reason = card.querySelector('[data-svc="reason"]');
+          if (reason) reason.textContent = code === 0 ? '' : (tr.reasons[REASONS[code] ?? ''] ?? REASONS[code] ?? '');
+        }
+      }
+    }
+  };
+
   void tick();
   setInterval(() => void tick(), POLL_MS);
+  setInterval(() => void refreshTrust().catch(() => {}), POLL_MS);
 }

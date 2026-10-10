@@ -8,7 +8,7 @@ import { usdcAbi } from '../../packages/agent/src/chain.js';
 import { reasonName } from '../../packages/agent/src/reasons.js';
 
 export type Entry = {
-  kind: 'authorized' | 'refused' | 'expired' | 'ruleChange' | 'paused' | 'unpaused';
+  kind: 'authorized' | 'refused' | 'expired' | 'ruleChange' | 'paused' | 'unpaused' | 'rated' | 'statusChanged';
   /** For `authorized`: whether USDC settled it, and the settlement tx. */
   settled?: boolean;
   settledTx?: Hex;
@@ -21,6 +21,14 @@ export type Entry = {
   ruleKey?: Hex;
   oldValue?: string;
   newValue?: string;
+  /** 002 `rated`: the wallet's rating of a settled, identity-checked payment (PaymentRated). */
+  agentId?: string;
+  score?: number;
+  tag?: string;
+  feedbackIndex?: string;
+  /** 002 `statusChanged`: a demo service became payable or not (from consecutive snapshots). */
+  service?: string;
+  payable?: boolean;
   block: number;
   logIndex: number;
   txHash: Hex;
@@ -39,7 +47,16 @@ export type WalletHistory = {
   events: Entry[];
 };
 
-export type History = { network: string; generatedAt: string; lastBlock: number; wallets: WalletHistory[] };
+export type History = {
+  network: string;
+  generatedAt: string;
+  lastBlock: number;
+  wallets: WalletHistory[];
+  // 002: trusted payees (optional until set up)
+  erc8004?: import('./trust.js').Erc8004Info;
+  reputationRule?: import('./trust.js').ReputationRuleView;
+  services?: import('./trust.js').ServiceView[];
+};
 
 export const MAX_EVENTS = 500;
 
@@ -79,6 +96,17 @@ export function decodeWalletLogs(logs: Log[], times: Map<number, string>): Entry
         break;
       case 'Unpaused':
         out.push({ ...base, kind: 'unpaused' });
+        break;
+      case 'PaymentRated':
+        out.push({
+          ...base,
+          kind: 'rated',
+          nonce: a.nonce as Hex,
+          agentId: String(a.agentId),
+          score: Number(a.score),
+          tag: a.tag as string,
+          feedbackIndex: String(a.feedbackIndex),
+        });
         break;
     }
   }
