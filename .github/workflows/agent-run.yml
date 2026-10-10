@@ -50,9 +50,14 @@ jobs:
       - name: Release expired authorizations
         if: steps.setup.outputs.ready == 'true'
         run: npm run cli -w packages/agent -- release-expired
+      # Exit 4 (an ERC-8004 registry changed) stops the run before any payment; the snapshot still
+      # runs, so the dashboard shows "registry changed" (pinnedOk: false).
       - name: Snapshot for the dashboard
         if: steps.setup.outputs.ready == 'true'
         run: npm run snapshot
+      - name: Dashboard numbers equal the registry (FR-015)
+        if: steps.setup.outputs.ready == 'true'
+        run: npx tsx scripts/check-reputation.ts
       - name: Commit snapshot
         if: steps.setup.outputs.ready == 'true'
         run: |

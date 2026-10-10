@@ -306,13 +306,13 @@ These are quickstart scenarios 13 and 14.
 
 ### Tests for User Story 3 ⚠️ (write first, must fail)
 
-- [ ] T030 [P] [US3] Extend `scripts/snapshot.test.ts` with recorded fixtures in `scripts/fixtures/erc8004/`:
+- [X] T030 [P] [US3] Extend `scripts/snapshot.test.ts` with recorded fixtures in `scripts/fixtures/erc8004/`:
   - `services[].summary` is copied verbatim from the `getSummary` result;
   - `NewFeedback` and `PaymentRated` logs are joined by nonce into `rated` rows;
   - `statusChanged` rows come from consecutive snapshots with a different `payable`;
   - snapshots are capped at 400 per service;
   - `erc8004.pinnedOk` is false when the implementation slot differs.
-- [ ] T031 [P] [US3] Extend `apps/dashboard/tests/dashboard.spec.ts` (Playwright):
+- [X] T031 [P] [US3] Extend `apps/dashboard/tests/dashboard.spec.ts` (Playwright):
   - the trust-rule sentence is present in en and zh;
   - one card per service has an average, a count and a Payable / Not payable badge with reason text;
   - a rated row has a Basescan link;
@@ -321,7 +321,7 @@ These are quickstart scenarios 13 and 14.
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Extend `scripts/snapshot.ts` to fill these `history.json` sections per contracts/dashboard.md:
+- [X] T032 [US3] Extend `scripts/snapshot.ts` to fill these `history.json` sections per contracts/dashboard.md:
   - **`erc8004`**: run `assertRegistriesPinned` and set `pinnedOk`.
   - **`reputationRule`**: from the gated wallet's views.
   - **`services`**:
@@ -332,24 +332,26 @@ These are quickstart scenarios 13 and 14.
   - **New logs**: `NewFeedback` logs fetched in 500-block chunks, filtered by demo `agentId`s and `clientAddress` ∈ the demo wallets, joined with `PaymentRated` into `rated` rows. `statusChanged` rows are derived from the snapshots.
 
   T030 passes.
-- [ ] T033 [P] [US3] Create `scripts/check-reputation.ts`. For every service in `history.json` it re-reads `getSummary` at `summary.block` and exits 1 on any difference. Add it to `.github/workflows/ci.yml` after the dashboard build, and to `agent-run.yml` after the snapshot (FR-015, SC-005).
-- [ ] T034 [P] [US3] Add strings to `apps/dashboard/src/i18n/en.json` and `zh.json`, with identical keys:
+  - Done, with one simplification: `rated` rows come from the wallet's own `PaymentRated` events (they carry nonce, agentId, score, tag and the registry's feedbackIndex), so no join with the registry's `NewFeedback` logs is needed. Logs use 200-block chunks (the RPC's current limit). Every card's summary and payable status are read at one block. Pure helpers in `scripts/lib/trust.ts`. `history.json` was rebuilt once from the wallets' creation blocks so the first ratings were included.
+- [X] T033 [P] [US3] Create `scripts/check-reputation.ts`. For every service in `history.json` it re-reads `getSummary` at `summary.block` and exits 1 on any difference. Add it to `.github/workflows/ci.yml` after the dashboard build, and to `agent-run.yml` after the snapshot (FR-015, SC-005).
+- [X] T034 [P] [US3] Add strings to `apps/dashboard/src/i18n/en.json` and `zh.json`, with identical keys:
   - the rule sentence template;
   - section headings;
   - Payable / Not payable, "since", and the count warning;
   - the `reason.*` texts for 8–12 from contracts/dashboard.md;
   - `rated` and `statusChanged` row templates.
-- [ ] T035 [US3] Create the components and add them to `apps/dashboard/src/pages/index.astro` and `zh/index.astro` above the timeline:
+- [X] T035 [US3] Create the components and add them to `apps/dashboard/src/pages/index.astro` and `zh/index.astro` above the timeline:
   - `apps/dashboard/src/components/TrustRule.astro`;
   - `ServiceCard.astro`: name, description, agent id linked to the registry on Basescan, registered address, average and count, badge with reason, since;
   - `Sparkline.astro`: inline SVG from the snapshots, no JS, with an `aria-label` summary.
 
   Extend `Timeline.astro` for `rated` and `statusChanged` rows. T031 passes.
-- [ ] T036 [US3] Extend `apps/dashboard/src/scripts/live-tail.ts`:
+- [X] T036 [US3] Extend `apps/dashboard/src/scripts/live-tail.ts`:
   - add the `NewFeedback` logs for the demo services to the existing 10 s log poll;
   - refresh each card's `summary` with `getSummary`, no faster than every 30 s;
   - keep the first-screen JS budget ≤ 50 KB gzip (viem stays in the lazy chunk).
-- [ ] T037 [US3] In `ServiceCard.astro`, show "Approaching the on-chain check limit" when `summary.count > 1500` (research R7). Add a fixture case in T030's tests.
+  - Done: the live tail decodes `PaymentRated` and re-reads each card's `getSummary` and `checkPayee` every 30 s. Scouts' ratings aren't live rows (they're the scouts' events); they show up through the cards' numbers. First-screen JS stays ~1 KB gzip; the lazy chunk is 17 KB gzip.
+- [X] T037 [US3] In `ServiceCard.astro`, show "Approaching the on-chain check limit" when `summary.count > 1500` (research R7). Add a fixture case in T030's tests.
 
 **Checkpoint**: the dashboard explains trust, both languages, without JS, with numbers matching the registry.
 
@@ -454,13 +456,14 @@ These are quickstart scenario 12 and SC-003/004.
 - [X] T047 [US5] Implement the extended `run-scenario` in `packages/agent/src/scenario.ts` per T046 and contracts/agent-cli.md. Wallet addresses come from `config/deployments.json`, and services from `config/services.json`. T046 passes.
   - Done: `src/trustScenario.ts`. `run-scenario` runs it only when 002 is set up (both scouts in `deployments.json`, `research-bot-01` on the 002 implementation, `reliable` registered); otherwise 001's scenario exactly as before, checked live 2026-10-09 (`trust: false`, all 4 probes correct). Exit codes from T046 are tested.
   - That live run's 3rd payment failed with a bare `402 {}` after a successful authorize, as in 001's first GitHub run (both before any 002 code; 4 payments in a row then all settled). `pay` now logs `diagnostics` (response headers, decoded settlement and requirements) on such failures to find the cause.
-- [ ] T048 [US5] Update `.github/workflows/agent-run.yml`:
+- [X] T048 [US5] Update `.github/workflows/agent-run.yml`:
   - keep the 6-hour cron;
   - run `run-scenario`. On exit 4, skip payments but still run the snapshot, so the dashboard shows the "registry changed" banner from `pinnedOk: false`;
   - run `snapshot` and then `check-reputation`;
   - commit `history.json`.
 
   No new secrets: only `AGENT_PRIVATE_KEY`, from 001.
+  - Done: `check-reputation` runs after the snapshot (and a mismatch stops the snapshot commit), and in CI after the dashboard build. Exit 4 already skips payments while the snapshot still runs.
 - [ ] T049 [US5] After launch, let the schedule run for 3 days. Check against `history.json` and the dashboard:
   - quickstart scenario 12: the flaky crossing time, every later flaky attempt refused with 12, the newcomer refused with 11 and then payable, and ratings for every settled call;
   - quickstart scenario 14.
@@ -498,6 +501,7 @@ These are quickstart scenario 12 and SC-003/004.
   - the new owner keys (local-only);
   - a link to this spec.
 - [ ] T053 [P] Update `apps/dashboard/src/components/Dashboard.astro`'s project-page content and the `en.json`/`zh.json` "how it works" and refusal-reason lists, so the current public page at `demo.yunshu.ai` mentions trusted payees and the five new reasons.
+  - Partly done: the page's refusal-reason list has the five new reasons in check order (en/zh), and the trust section explains the rule. "How it works" still describes 001 only.
 - [ ] T054 **(owner)** Fix the constitution drift noted in the plan:
   - allow Cloudflare's GitHub app access to `edxzh/agent-wallet`;
   - create a Git-connected Pages project (build `npm run build -w apps/dashboard`, output `apps/dashboard/dist`, `NODE_VERSION=22`);

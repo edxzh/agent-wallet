@@ -41,6 +41,10 @@ jobs:
         run: npm test
       - name: Build dashboard
         run: npm run build -w apps/dashboard
+      - name: Dashboard reputation numbers equal the registry (FR-015)
+        run: npx tsx scripts/check-reputation.ts
+        env:
+          RPC_URL: https://sepolia.base.org   # public endpoint, not a secret
       - name: Dashboard smoke tests (Playwright, desktop + phone)
         run: |
           npx playwright install --with-deps chromium
