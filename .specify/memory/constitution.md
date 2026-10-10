@@ -1,32 +1,34 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (unversioned template) → 1.0.0
-Bump rationale: First ratification. Every placeholder replaced with concrete principles.
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR. Materially changed deployment guidance: the dashboard deploys from GitHub
+Actions with a Pages-only Cloudflare token, gated on CI, and the Worker is deployed by the owner.
+Owner decision 2026-10-10, which resolves feature 002's T054 ("constitution drift").
 
-Principles (template slot → adopted title):
-  - [PRINCIPLE_1_NAME] → I. Testnet Only (NON-NEGOTIABLE)
-  - [PRINCIPLE_2_NAME] → II. Rules Enforced On-Chain, Refusals on the Record
-  - [PRINCIPLE_3_NAME] → III. Proven Contracts (NON-NEGOTIABLE)
-  - [PRINCIPLE_4_NAME] → IV. Keys Stay Where They Belong
-  - [PRINCIPLE_5_NAME] → V. Zero Running Cost
-Added principles:
-  - VI. Standards Over Inventions
-  - VII. A Dashboard Anyone Can Read
-Added sections:
-  - Technology & Deployment Constraints
-  - Development Workflow & Quality Gates
+Modified principles:
+  - IV. Keys Stay Where They Belong: adds the one Cloudflare credential allowed in CI
+    (Pages Edit only) and forbids any other.
+Modified sections:
+  - Technology & Deployment Constraints › Hosting: "Deploys use Cloudflare's Git integrations,
+    so no Cloudflare token is in CI" → the Actions deploy for the dashboard, gated on CI, and an
+    owner deploy for the Worker.
+Added sections: none
+Removed sections: none
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md: Constitution Check is filled at plan time; no edit
-  ✅ .specify/templates/spec-template.md: no mandatory section added; no edit
-  ✅ .specify/templates/tasks-template.md: tests optional by default; Principle III makes
-     contract tests mandatory, which feature 001's tasks already include; no edit
-  N/A README / agent guidance files: none to update
+  ✅ .specify/templates/plan-template.md: no deployment rule in it; no edit
+  ✅ .specify/templates/spec-template.md: no edit
+  ✅ .specify/templates/tasks-template.md: no edit
+  ✅ specs/001-agent-wallet-demo/plan.md, research.md: Git-integration deploy notes marked
+     superseded by 1.1.0
+  ✅ specs/002-trusted-payees-erc8004/plan.md (drift note), tasks.md (T054): resolved
+  ✅ .github/workflows/deploy-dashboard.yml: already matches (CI-gated, Pages-only token)
+  N/A README: describes no deploy mechanism
 
-Follow-up TODOs: none. specs/001-agent-wallet-demo/plan.md was checked against the yunshu.ai
-website constitution plus plan-level gates. Those gates are now Principles I–V here, so the
-plan's Constitution Check still holds.
+Follow-up TODOs: none.
+
+Previous: 1.0.0 (2026-10-07), first ratification.
 -->
 
 # Agent Wallet Constitution
@@ -82,6 +84,9 @@ traceable, including what was blocked.
   added by the owner.
 - Code MUST never print, log or send a private key. Errors show addresses, never keys.
 - `.env` files are git-ignored. Only `.env.example` with empty values is committed.
+- The only Cloudflare credential allowed in CI is the dashboard's deploy token, scoped to
+  Account › Cloudflare Pages › Edit and stored as the `CLOUDFLARE_API_TOKEN` secret by the owner.
+  A token that can touch Workers, DNS or the account MUST never be in CI.
 
 **Rationale**: Even on testnet, leaked keys teach bad habits, and the same code may one day hold
 real funds.
@@ -129,8 +134,13 @@ protocol only proves itself.
   - agent and scripts: TypeScript on Node 22 with viem and `@x402/*`;
   - paid service: Hono on Cloudflare Workers;
   - dashboard: Astro static on Cloudflare Pages.
-- **Hosting**: dashboard at `demo.yunshu.ai`, API at `api.demo.yunshu.ai`. Deploys use
-  Cloudflare's Git integrations, so no Cloudflare token is in CI.
+- **Hosting**: dashboard at `demo.yunshu.ai`, API at `api.demo.yunshu.ai`.
+  - **Dashboard**: deployed by GitHub Actions (`deploy-dashboard.yml`) with the Pages-only token
+    (Principle IV), and only after CI passes on `main` or after the scheduled agent run commits
+    its snapshot. Not Cloudflare's Git integration: its builds skip the snapshot commits (they
+    carry the skip-ci marker) and deploy every push whether or not CI passes.
+  - **API Worker**: deployed by the owner from their machine with `wrangler deploy`, after the
+    service tests pass.
 - **Data**: on-chain state and events are the source of truth. The dashboard's `history.json`
   is a rebuildable cache, committed by the scheduled job.
 
@@ -161,4 +171,4 @@ protocol only proves itself.
   before research and after design. Violations go in Complexity Tracking with a justification,
   or the plan is rejected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.1.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-10

@@ -140,6 +140,9 @@ Deploys:
 - dashboard: Cloudflare Pages Git integration, rebuilt when `history.json` is committed;
 - Worker: Cloudflare Workers Builds (Git integration), so no API token is in CI.
 
+Superseded by constitution 1.1.0 (2026-10-10): the dashboard deploys from GitHub Actions with a
+Pages-only token after CI passes, and the owner deploys the Worker with `wrangler deploy`.
+
 ## Risks & Follow-ups
 
 - **Design A depends on the facilitator accepting ERC-1271** (R2c, documented but not yet tested

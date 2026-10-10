@@ -505,11 +505,12 @@ These are quickstart scenario 12 and SC-003/004.
   - a link to this spec.
 - [X] T053 [P] Update `apps/dashboard/src/components/Dashboard.astro`'s project-page content and the `en.json`/`zh.json` "how it works" and refusal-reason lists, so the current public page at `demo.yunshu.ai` mentions trusted payees and the five new reasons.
   - Partly done: the page's refusal-reason list has the five new reasons in check order (en/zh), and the trust section explains the rule. "How it works" still describes 001 only.
-- [ ] T054 **(owner)** Fix the constitution drift noted in the plan:
+- [X] T054 **(owner)** Fix the constitution drift noted in the plan:
   - allow Cloudflare's GitHub app access to `edxzh/agent-wallet`;
   - create a Git-connected Pages project (build `npm run build -w apps/dashboard`, output `apps/dashboard/dist`, `NODE_VERSION=22`);
   - move `demo.yunshu.ai` to it;
   - delete the hand-uploaded `agent-wallet-demo` project.
+  - Resolved 2026-10-10 by owner decision, **not** by the steps above: constitution amended to 1.1.0. The dashboard keeps its CI-gated GitHub Actions deploy with a Pages-only token (Pages' Git builds would skip the scheduled snapshot commits and deploy pushes that fail CI); the owner deploys the Worker with `wrangler deploy`.
 - [X] T055 Run quickstart scenarios 15 (edit the pin and get exit 4 before any payment, then restore it) and 16 (registry failure modes and the low-gas revert, from the T012 tests). Record them in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
 - [ ] T056 After 1 month:
   - check that the Cloudflare and GitHub billing pages show $0 (SC-007);

@@ -187,7 +187,9 @@ are dropped.
     case).
 - **How the snapshot is published (decided)**: the scheduled GitHub Actions job runs the agent,
   regenerates `history.json` and **commits it** to the repo. Cloudflare Pages' Git integration
-  rebuilds the dashboard. $0, and no Cloudflare token in CI.
+  rebuilds the dashboard. $0, and no Cloudflare token in CI. (Superseded by constitution
+  1.1.0: a CI-gated GitHub Actions deploy with a Pages-only token, because Pages' Git builds
+  skip the snapshot commits.)
 - **Alternatives**:
   - Browser-only full scan: too many 500-block calls.
   - Block explorer API: needs a key and its browser access is unverified.

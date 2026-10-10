@@ -189,7 +189,8 @@ config/
 - **Constitution drift, outside this feature**: the constitution says deploys use Cloudflare
   Git integrations, but `demo.yunshu.ai` is currently a manual upload (project
   `agent-wallet-demo`). Move it to a Git-connected project before this feature's dashboard work
-  ships.
+  ships. **Resolved 2026-10-10 by amending the constitution (1.1.0)** instead: the dashboard
+  deploys from GitHub Actions with a Pages-only token, gated on CI (T054).
 
 ## Complexity Tracking
 
