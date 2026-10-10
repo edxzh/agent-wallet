@@ -110,3 +110,43 @@ HTML, so they show without JS. The 09:28 refusals will appear with the next snap
 12:17 UTC scheduled run), or right away in a browser through the live tail.
 
 **Pass.**
+
+## Registry safety: scenarios 15 and 16 (T055)
+
+### Scenario 15: a changed registry stops the run before any payment
+
+2026-10-10 ~12:35 UTC, run locally with the live config:
+1. Changed `reputation.implementation` in `config/erc8004.json` by one character
+   (`…dA34` → `…dA35`).
+2. Ran `run-scenario`. It printed `scenario-start` (`trust: true`), then:
+
+   ```json
+   {"event":"scenario-step","step":"stop","reason":"ERC-8004 registry changed: demo paused for review","registry":"reputation","expected":"0x16e0Fa7F7c56B9A767e34b192B51F921bE31da35","actual":"0x16e0FA7f7C56B9a767E34B192B51f921BE31dA34"}
+   ```
+
+   It exited with **4**.
+3. The agent account's transaction count stayed at 106 before and after (blocks 47933907–47933909),
+   so nothing was sent: no `authorize`, no payment, no rating.
+4. Restored the pin with `git checkout config/erc8004.json` (no diff left).
+
+**Pass.**
+
+### Scenario 16: registry failure modes and the low-gas revert
+
+`forge test --match-test "test_registryFailures|test_lowGas|test_order_summaryFailure|test_order_allowlistedPassesWhenIdentityRegistryFails"`:
+6 passed, 0 failed.
+
+| Test | What it shows |
+| --- | --- |
+| `test_registryFailures_identity` | `getAgentWallet` reverts, burns all gas, returns garbage, or returns 4 KB that starts with a passing answer: each is refused `REPUTATION_UNAVAILABLE`, never a revert or a pass |
+| `test_registryFailures_summary` | The same four modes on `getSummary`, with a 1 MB return: each refused `REPUTATION_UNAVAILABLE` |
+| `test_order_summaryFailure` | A failing summary read refuses a payee that isn't allowlisted, with 10 |
+| `test_order_allowlistedPassesWhenIdentityRegistryFails` | An allowlisted payee is still paid when the identity read fails, as in 001 |
+| `test_lowGas_reverts` | `authorizeWithIdentity` with 1 M gas reverts `InsufficientGas`, and the nonce is not used |
+| `test_lowGas_minimumPassingGasStillFundsTheRegistry` | The least gas that passes the guard (found by binary search) still gives a registry needing almost all of its 5 M budget enough to answer, so an agent can't force a false refusal 10 |
+
+The identity read's oversized return is 4 KB, not the quickstart's 1 MB: its 100 k gas budget
+can't build 1 MB. The test leads that return with a passing answer, so only the exact-size check
+refuses it.
+
+**Pass.**

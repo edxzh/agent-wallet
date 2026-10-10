@@ -510,7 +510,7 @@ These are quickstart scenario 12 and SC-003/004.
   - create a Git-connected Pages project (build `npm run build -w apps/dashboard`, output `apps/dashboard/dist`, `NODE_VERSION=22`);
   - move `demo.yunshu.ai` to it;
   - delete the hand-uploaded `agent-wallet-demo` project.
-- [ ] T055 Run quickstart scenarios 15 (edit the pin and get exit 4 before any payment, then restore it) and 16 (registry failure modes and the low-gas revert, from the T012 tests). Record them in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
+- [X] T055 Run quickstart scenarios 15 (edit the pin and get exit 4 before any payment, then restore it) and 16 (registry failure modes and the low-gas revert, from the T012 tests). Record them in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
 - [ ] T056 After 1 month:
   - check that the Cloudflare and GitHub billing pages show $0 (SC-007);
   - check that every scheduled run's settled calls were rated (SC-003);
