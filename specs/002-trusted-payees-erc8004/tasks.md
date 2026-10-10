@@ -503,7 +503,7 @@ These are quickstart scenario 12 and SC-003/004.
   - the pinned registries and the exit-4 behaviour;
   - the new owner keys (local-only);
   - a link to this spec.
-- [ ] T053 [P] Update `apps/dashboard/src/components/Dashboard.astro`'s project-page content and the `en.json`/`zh.json` "how it works" and refusal-reason lists, so the current public page at `demo.yunshu.ai` mentions trusted payees and the five new reasons.
+- [X] T053 [P] Update `apps/dashboard/src/components/Dashboard.astro`'s project-page content and the `en.json`/`zh.json` "how it works" and refusal-reason lists, so the current public page at `demo.yunshu.ai` mentions trusted payees and the five new reasons.
   - Partly done: the page's refusal-reason list has the five new reasons in check order (en/zh), and the trust section explains the rule. "How it works" still describes 001 only.
 - [ ] T054 **(owner)** Fix the constitution drift noted in the plan:
   - allow Cloudflare's GitHub app access to `edxzh/agent-wallet`;

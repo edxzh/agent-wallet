@@ -2,12 +2,12 @@
   "meta": {
     "htmlLang": "en",
     "title": "Agent Wallet Demo · Yunshu AI",
-    "description": "An AI agent wallet with spending limits enforced on-chain: it pays for services on its own, is stopped when it goes over budget or out of scope, and every payment is on a public record."
+    "description": "An AI agent wallet with spending limits enforced on-chain: it pays for services on its own, is stopped when it goes over budget or out of scope, pays unknown services only if they have a trusted on-chain reputation, and every payment is on a public record."
   },
   "banner": "Test network only. No real money.",
   "eyebrow": "Agent Wallet · Base Sepolia · x402",
   "heading": "An agent that pays on its own, and can't overspend",
-  "intro": "An AI agent gets its own wallet with spending limits written into a smart contract. It pays for API calls by itself. Any payment that breaks a rule is refused before money moves, and every payment and refusal is on a public record anyone can check.",
+  "intro": "An AI agent gets its own wallet with spending limits written into a smart contract. It pays for API calls by itself. Any payment that breaks a rule is refused before money moves, and every payment and refusal is on a public record anyone can check. It can also pay services that aren't on its list, but only if they have an ERC-8004 identity and a good enough reputation from reviewers the operator trusts.",
   "statusLabel": "Status",
   "repoCta": "View on GitHub",
   "specCta": "Read the spec",
@@ -20,11 +20,15 @@
       },
       {
         "title": "The wallet checks the rules",
-        "body": "Before signing, the agent asks its wallet contract to authorise the payment. The contract checks every limit on-chain, where the agent can't get around it."
+        "body": "Before signing, the agent asks its wallet contract to authorise the payment. The contract checks every limit on-chain, where the agent can't get around it, and the reputation of any service that isn't on its list."
       },
       {
         "title": "Allowed: the payment settles",
         "body": "The agent signs a standard x402 payment with the wallet as payer. The x402 facilitator settles it in test USDC and the API returns its data."
+      },
+      {
+        "title": "Paid: the service gets rated",
+        "body": "After a payment settles, the wallet rates the service on the public ERC-8004 reputation registry. It can only rate payments that really happened, so a service's reputation comes from real use."
       },
       {
         "title": "Refused: nothing moves",
@@ -55,6 +59,11 @@
         "name": "Allowed payees",
         "body": "The agent can only pay addresses on its list.",
         "example": "Demo: the demo API only"
+      },
+      {
+        "name": "Trusted payees",
+        "body": "A service that isn't on the list can still be paid if it has an ERC-8004 identity and enough good ratings from reviewers the operator trusts.",
+        "example": "Demo: average ≥ 70 from ≥ 3 trusted reviews"
       },
       {
         "name": "Pause switch",
@@ -124,6 +133,7 @@
       "OpenZeppelin",
       "x402",
       "USDC on Base Sepolia",
+      "ERC-8004",
       "viem",
       "Cloudflare Workers",
       "Astro"
