@@ -256,11 +256,11 @@ the run cleanly.
 - [X] T053 **(owner, Cloudflare dashboard)** Deploy `packages/service` with Cloudflare Workers Builds from `edxzh/agent-wallet` (root `packages/service`) on custom domain `api.demo.yunshu.ai`; set `PAYEE_ADDRESS`. Re-run scenario 1 against the deployed URL
   - Done 2026-10-09 with `wrangler deploy` (custom domain in `packages/service/wrangler.toml`, not Workers Builds). Scenario 1 against `https://api.demo.yunshu.ai`: 402 with the right requirements, 400 for a bad pair, one paid request settled (tx `0x94f9ee9c…14b9`)
 - [X] T054 Run a security review of `contracts/src/` (the `/security-review` command plus a manual checklist: reentrancy impossible since no external calls before state writes in `authorize`; signature malleability via OpenZeppelin `ECDSA`; digest bound to `from = this`, token domain and nonce; operator-only coverage; no `selfdestruct` or `delegatecall` in clones beyond EIP-1167). Fix findings and record them in `specs/001-agent-wallet-demo/research.md`
-- [ ] T055 In the **yunshu.ai repo**, update the website's Work section:
+- [X] T055 *(done 2026-10-11 in yunshu.ai `b91522c` and `f9aed66`: Work section shipped with demo and repo links, dashboard screenshots in English and Chinese from `scripts/capture-work.mjs`, new copy)* In the **yunshu.ai repo**, update the website's Work section:
   - in `src/data/site.json`, set `work.status: "shipped"`, `repoUrl: "https://github.com/edxzh/agent-wallet"` and `image` to a dashboard screenshot saved as `public/work/agent-wallet.{webp,avif}` at 1x/2x;
   - update `work.heading`/`description` copy in `src/i18n/en.json` and `zh.json`;
   - add a "Live demo" link to `https://demo.yunshu.ai` (new i18n key, both files).
-- [ ] T056 In the **yunshu.ai repo**, mark feature 002 as moved: replace `specs/002-agent-wallet-demo/` contents with a `README.md` pointing to `edxzh/agent-wallet/specs/001-agent-wallet-demo`, and reset `.specify/feature.json` to `specs/001-website-v1`
+- [X] T056 *(done 2026-10-11 in yunshu.ai `30d970f`: specs/002 replaced by a pointer README; Spec Kit reset to specs/001-website-v1)* In the **yunshu.ai repo**, mark feature 002 as moved: replace `specs/002-agent-wallet-demo/` contents with a `README.md` pointing to `edxzh/agent-wallet/specs/001-agent-wallet-demo`, and reset `.specify/feature.json` to `specs/001-website-v1`
 - [ ] T057 After 1 month, check Cloudflare and GitHub billing pages show $0 (SC-006) and that the dashboard had activity on ≥ 95% of days (SC-007)
 
 ---
