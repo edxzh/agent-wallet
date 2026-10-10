@@ -87,3 +87,26 @@ In the 06:01 UTC scheduled run, scout-02's flaky payment was authorized and then
 bare `402 {}`. It never settled, and the run exited 2. This is the intermittent failure from 001.
 It is now narrowed to the facilitator's settle call throwing, and handled by resending the same
 signed payment. See commit `c0887cc` and the T047 notes in [tasks.md](./tasks.md).
+
+## US6: scenarios 7 and 8 (T051)
+
+Run 2026-10-10 09:28 UTC from research-bot-01 with the CLI.
+
+| # | Request | Claims | Result | Transaction |
+| --- | --- | --- | --- | --- |
+| 7 | `pay …/s/impostor/quote` | reliable's identity #9614; payTo `0x7bd4…eEb1` ≠ its registered `0x9c88…9b3A` | Refused `PAYEE_IDENTITY_MISMATCH` | [`0xaf200382…`](https://sepolia.basescan.org/tx/0xaf2003828af3d32e3d152ca2e3377e67256ef42f0c0ef551c75acdefcdf6efae) |
+| 8 | `pay …/s/anonymous/quote` | no identity, payee not allowlisted | Refused `PAYEE_IDENTITY_UNVERIFIED` | [`0x5ec44e3b…`](https://sepolia.basescan.org/tx/0x5ec44e3b529df567c9eadfccd997d23f9fa809c1f106334343abd32b234de78c) |
+
+Each transaction emits only the wallet's refusal event, with no USDC `Transfer`, so no funds
+moved. The scheduled runs made the same two refusals at 01:04 and 06:03 UTC, each matching
+`checkPayee`.
+
+Dashboard: the live `https://demo.yunshu.ai/` lists those earlier refusals in plain language:
+- "Service claimed someone else's identity";
+- "Service has no verified identity".
+
+`/zh/` shows them as "服务冒用了他人的身份" and "服务没有经过验证的身份". Both are in the static
+HTML, so they show without JS. The 09:28 refusals will appear with the next snapshot (the
+12:17 UTC scheduled run), or right away in a browser through the live tail.
+
+**Pass.**

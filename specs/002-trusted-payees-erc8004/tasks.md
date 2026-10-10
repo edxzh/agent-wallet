@@ -487,7 +487,8 @@ These are quickstart scenario 12 and SC-003/004.
   - after the owner transfers the identity NFT (`agentWallet` cleared) → 9;
   - after `setAgentWallet` to a new payee, paying the old address → 9;
   - an allowlisted payee claiming a mismatched identity → 9 (the mismatch check isn't skipped by the allowlist).
-- [ ] T051 [US6] Run quickstart scenarios 7 and 8 on Base Sepolia from research-bot-01. Confirm the refusals appear on the dashboard with the plain-language text, and record them in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
+- [X] T051 [US6] Run quickstart scenarios 7 and 8 on Base Sepolia from research-bot-01. Confirm the refusals appear on the dashboard with the plain-language text, and record them in `specs/002-trusted-payees-erc8004/quickstart-results.md`.
+  - Done 2026-10-10 09:28 UTC: 7 → `PAYEE_IDENTITY_MISMATCH`, 8 → `PAYEE_IDENTITY_UNVERIFIED`, no USDC moved; the page shows both in plain language (en and zh, no JS needed).
 
 **Checkpoint**: all six user stories work.
 
