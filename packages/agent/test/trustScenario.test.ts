@@ -151,4 +151,13 @@ describe('runTrustScenario (T046)', () => {
     expect(await runTrustScenario(d)).toBe(EXIT.OK);
     expect(calls.some((c) => c.endsWith('newcomer'))).toBe(false);
   });
+
+  it("logs a failed payment's status and diagnostics, so a bare 402 can be traced", async () => {
+    const { d, lines } = world();
+    const diagnostics = { headers: ['content-type'], paymentRequired: undefined };
+    d.pay = vi.fn(async (): Promise<PayOutcome> => ({ kind: 'failed', status: 402, error: '{}', nonce: '0x01', authorizeTx: '0x02', diagnostics }));
+    expect(await runTrustScenario(d)).toBe(EXIT.MISMATCH);
+    const first = lines.find((l) => l.step === 'scout-02 → reliable');
+    expect(first).toMatchObject({ actual: 'FAILED: {}', ok: false, status: 402, authorizeTx: '0x02', diagnostics });
+  });
 });

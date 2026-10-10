@@ -27,7 +27,7 @@ export async function payUrl(
   let authorized: AuthorizedPayment | undefined;
   let refusal: PolicyRefusedError | undefined;
   const { client } = createPolicyWalletClient({ ...opts, onAuthorized: (p) => (authorized = p), onRefused: (e) => (refusal = e) });
-  const paying = wrapFetchWithPayment(opts.fetchImpl ?? fetch, client);
+  const paying = wrapFetchWithPayment(resendOnBareSettleFailure(opts.fetchImpl ?? fetch), client);
   try {
     const res = await paying(url);
     const header = res.headers.get('PAYMENT-RESPONSE') ?? res.headers.get('X-PAYMENT-RESPONSE');
@@ -67,6 +67,30 @@ export async function payUrl(
     if (e instanceof PolicyRefusedError) return { kind: 'refused', reason: e.reason, nonce: e.nonce, authorizeTx: e.txHash };
     return { kind: 'failed', error: (e as Error).message ?? String(e), nonce: authorized?.nonce, authorizeTx: authorized?.txHash };
   }
+}
+
+/**
+ * The intermittent bare `402 {}` (001 T049/T050, 002 launch run): @x402/hono answers that when the
+ * facilitator's settle call throws after verify passed, and nothing settles. Resend the same
+ * signed payment a couple of times: its EIP-3009 nonce can settle at most once, so a resend can
+ * never pay twice. Any other answer, including a 402 that says why, is returned as is.
+ */
+export function resendOnBareSettleFailure(inner: typeof fetch, tries = 2, delayMs = 3000): typeof fetch {
+  return async (input, init) => {
+    const request = new Request(input, init);
+    let res = await inner(request.clone());
+    const paid = request.headers.has('PAYMENT-SIGNATURE') || request.headers.has('X-PAYMENT');
+    for (let i = 0; paid && i < tries && (await isBareSettleFailure(res)); i++) {
+      await new Promise((r) => setTimeout(r, delayMs));
+      res = await inner(request.clone());
+    }
+    return res;
+  };
+}
+
+async function isBareSettleFailure(res: Response): Promise<boolean> {
+  if (res.status !== 402 || res.headers.has('PAYMENT-REQUIRED')) return false;
+  return (await res.clone().text()).trim() === '{}';
 }
 
 function safeDecode(b64: string): unknown {

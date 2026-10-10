@@ -93,7 +93,8 @@ export async function runTrustScenario(d: TrustDeps): Promise<number> {
     const ok = actual === expected;
     if (!ok) mismatches++;
     if (actual === 'INSUFFICIENT_FUNDS') outOfFunds = true;
-    d.log({ step, wallet, expected, actual, ok, agentId: req.agentId, nonce: out.nonce, settlementTx: out.kind === 'settled' ? out.settlementTx : undefined });
+    const failure = out.kind === 'failed' ? { status: out.status, authorizeTx: out.authorizeTx, diagnostics: out.diagnostics } : {};
+    d.log({ step, wallet, expected, actual, ok, agentId: req.agentId, nonce: out.nonce, settlementTx: out.kind === 'settled' ? out.settlementTx : undefined, ...failure });
     if (!(await rateIfVerified(wallet, out, u, step))) mismatches++;
   };
 
