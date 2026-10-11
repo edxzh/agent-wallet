@@ -31,7 +31,8 @@ contract Erc1271ForkTest is Test {
     );
     address constant IDENTITY = 0x8004A818BFB912233c491871b3d84c89A494BD9e; // ERC-8004 v2.0.0 (unused here)
     address constant REPUTATION = 0x8004B663056A597Dffe9eCcC1965A193B7388713;
-    address constant FUNDER = 0xc6E78B511c87688BC33C9db7539E5E0334B2Ad59; // demo operator, holds test USDC
+    // research-bot-01: holds the demo's test USDC. Impersonated on the fork only; nothing is broadcast.
+    address constant FUNDER = 0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc;
 
     PolicyWallet wallet;
     address agent;
