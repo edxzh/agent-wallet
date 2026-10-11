@@ -35,7 +35,7 @@ const tryData = wallet && {
   <h1>{tr.heading}</h1>
   <p class="intro">{tr.intro}</p>
   <p class="how card">{tr.how}</p>
-  <p><a href={dashboard}>← {tr.back}</a></p>
+  <p class="back"><a href={dashboard}>← {tr.back}</a></p>
   <noscript><p class="nojs card">{tr.noJs} <a href={dashboard}>{tr.result.recordLink}</a></p></noscript>
 </section>
 
@@ -139,36 +139,69 @@ const tryData = wallet && {
 </script>
 
 <style>
+  /* Same rhythm as the dashboard (Dashboard.astro): global.css resets margins to 0. */
   .hero {
-    padding-block: 48px 8px;
+    padding-bottom: calc(var(--section-gap) / 2);
+  }
+  .hero .eyebrow {
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: clamp(34px, 5.5vw, var(--fs-hero));
+    line-height: var(--lh-hero);
+    max-width: 20ch;
   }
   .intro {
-    max-width: 68ch;
-    font-size: 18px;
+    max-width: 62ch;
+    margin-top: 20px;
+    color: var(--text-muted);
   }
   .how,
   .nojs {
-    max-width: 68ch;
+    max-width: 62ch;
+    margin-top: 32px;
+    padding: 18px 22px;
+    font-size: 15px;
+    line-height: 1.6;
     color: var(--text-muted);
+  }
+  .back {
+    margin-top: 28px;
+    font-size: 15px;
+  }
+  h2 {
+    margin-bottom: 12px;
+  }
+  .lead {
+    max-width: 62ch;
+    margin-bottom: 28px;
   }
   .presets {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 16px;
+    padding: 0;
+    margin-top: 28px;
   }
   .presets .card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+  }
+  .presets h3 {
+    font-size: 18px;
   }
   .told {
     flex: 1;
     margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
   }
   .label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     font-size: 12px;
+    letter-spacing: 0.04em;
     color: var(--text-muted);
   }
   .presets .btn {
@@ -212,7 +245,8 @@ const tryData = wallet && {
   }
   .result {
     display: grid;
-    gap: 12px;
+    gap: 14px;
+    margin-top: 28px;
   }
   .result :global(ol) {
     display: grid;
@@ -247,7 +281,11 @@ const tryData = wallet && {
     font-weight: 600;
   }
   .record {
-    margin-top: 12px;
+    margin-top: 16px;
     font-size: 14px;
+  }
+  .result :global(p) {
+    margin: 0;
+    line-height: 1.6;
   }
 </style>
