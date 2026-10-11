@@ -131,7 +131,8 @@ for (const p of trustPages) {
     // A refused service always says why.
     const refusedReason = page.locator('.service:has(.badge.off) [data-svc="reason"]').first();
     await expect(refusedReason).not.toBeEmpty();
-    const rated = page.locator('.timeline li.row', { hasText: p.rated }).first();
+    // Not a status row: its reason ("…评分太低") also contains the Chinese word for "rated".
+    const rated = page.locator('.timeline li.row:not([data-kind="status"])', { hasText: p.rated }).first();
     await expect(rated.locator('a')).toHaveAttribute('href', /^https:\/\/sepolia\.basescan\.org\/tx\/0x[0-9a-f]{64}$/);
   });
 }
