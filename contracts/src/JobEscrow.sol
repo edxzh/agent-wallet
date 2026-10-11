@@ -36,11 +36,19 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
     uint256 public constant MAX_WINDOW = 30 days;
     /// Gas for reading a wallet's `agent()` or `operator()`: a plain storage read.
     uint256 private constant AGENT_GAS = 50_000;
+    /// Gas that must be left after a refused payout. A caller can't force a deferral by starving
+    /// the transfer of gas: a starved call leaves only 1/64 of its gas, too little for the deferral's
+    /// storage write, so the whole call reverts. That holds by itself for a normally priced
+    /// transfer; this floor keeps it true even if the token's transfer became very expensive.
+    uint256 private constant DEFER_GAS_FLOOR = 50_000;
 
     address public immutable token;
     address public immutable owner;
-    /// Money owed to jobs that haven't closed. Always ≤ this contract's token balance.
+    /// Money owed: the price of every job not yet closed, plus payouts the token refused
+    /// (`owed`). Always ≤ this contract's token balance.
     uint256 public held;
+    /// Closed jobs' payouts the token refused (e.g. a blacklisted address), per recipient.
+    mapping(address recipient => uint256) public owed;
 
     mapping(bytes32 jobId => Job) private _jobs;
 
@@ -58,6 +66,8 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
     error NotDue(bytes32 jobId);
     error FundingMismatch(uint256 received, uint256 expected);
     error EmptyHash();
+    error NothingOwed(address to);
+    error OutOfGas();
 
     constructor(address token_) {
         if (block.chainid != 84532 && block.chainid != 31337) revert WrongChain(); // Base Sepolia, or local tests
@@ -75,7 +85,8 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
         // The hiring wallet's operator settles disputes: the hirer can't judge its own dispute.
         if (p.arbiter != _addressOf(p.client, IPolicyWallet.operator.selector)) revert ArbiterNotOperator();
         if (
-            p.worker == p.client || p.amount == 0 || p.amount > type(uint128).max || p.deliverBy <= block.timestamp
+            p.worker == p.client || p.worker == p.arbiter || p.worker == address(this) || p.amount == 0
+                || p.amount > type(uint128).max || p.deliverBy <= block.timestamp
                 || p.deliverBy > block.timestamp + MAX_DELIVERY || !_validWindow(p.reviewWindow)
                 || !_validWindow(p.disputeWindow)
         ) revert InvalidTerms();
@@ -180,6 +191,16 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
         }
     }
 
+    /// @inheritdoc IJobEscrow
+    function withdrawOwed(address to) external nonReentrant {
+        uint256 amount = owed[to];
+        if (amount == 0) revert NothingOwed(to);
+        owed[to] = 0;
+        held -= amount;
+        IERC20(token).safeTransfer(to, amount); // still refused → the whole call reverts, credit kept
+        emit OwedWithdrawn(to, amount);
+    }
+
     // ── Owner ─────────────────────────────────────────────────────────────────────────────
 
     /// @inheritdoc IJobEscrow
@@ -204,13 +225,20 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
 
     // ── Internal ──────────────────────────────────────────────────────────────────────────
 
+    /// Closes the job, then pays. A payout the token refuses never undoes the close: it is owed
+    /// to the recipient and anyone can `withdrawOwed` it later (security review F1).
     function _close(bytes32 jobId, Job storage j, Outcome outcome, address to) internal {
         uint256 amount = j.amount;
         j.status = Status.Closed;
         j.outcome = outcome;
-        held -= amount;
-        IERC20(token).safeTransfer(to, amount);
         emit JobClosed(jobId, outcome, to, amount);
+        if (IERC20(token).trySafeTransfer(to, amount)) {
+            held -= amount;
+        } else {
+            if (gasleft() < DEFER_GAS_FLOOR) revert OutOfGas();
+            owed[to] += amount;
+            emit PaymentDeferred(jobId, to, amount);
+        }
     }
 
     function _emitOpened(bytes32 jobId, bytes32 nonce) private {

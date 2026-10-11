@@ -55,7 +55,8 @@ job's arbiter (the operator) can settle it: pay the worker or refund the hirer.
 
 ### User Story 3 - Nobody is stuck (Priority: P1)
 
-Every job ends, whoever goes silent.
+Every job ends, whoever goes silent, and even if the token refuses to pay one side (the payout
+is then owed, not stuck; security review F1).
 
 1. Worker misses the deadline → anyone can refund the hirer (`DELIVERY_TIMEOUT`).
 2. Hirer doesn't answer within the review window → anyone can pay the worker (`REVIEW_TIMEOUT`).
@@ -73,6 +74,10 @@ Every job ends, whoever goes silent.
   authorizes or signs anything (`hireAgent`), and the check inside `open` is the enforcement for a
   buggy or compromised agent.
 - The hirer's wallet changes its agent key: the new agent controls the hirer's side from then on.
+- The worker can't be the arbiter or the escrow itself (security review F2).
+- The arbiter is the hiring wallet's operator at the time the job opens. In this demo one owner
+  runs both the hiring wallet and the worker, so the arbiter is not independent of the worker:
+  a real deployment would need separately operated workers.
 - A refund returns money to the wallet but does not lower the day's spending (conservative: the
   budget counts what the agent committed, as with any payment).
 
@@ -89,9 +94,10 @@ Every job ends, whoever goes silent.
   the worker (or, if the worker is a PolicyWallet, its current agent) can deliver; only the job's
   arbiter can settle a dispute, and `open` requires the arbiter to be the hiring wallet's
   operator, so a hirer can't judge its own dispute.
-- **FR-003**: Each job closes exactly once, paying its full price to exactly one side, with one
-  outcome: `ACCEPTED`, `REVIEW_TIMEOUT`, `ARBITER_PAID`, `DELIVERY_TIMEOUT`, `ARBITER_REFUNDED`,
-  `ARBITER_TIMEOUT`.
+- **FR-003**: Each job closes exactly once, with one outcome (`ACCEPTED`, `REVIEW_TIMEOUT`,
+  `ARBITER_PAID`, `DELIVERY_TIMEOUT`, `ARBITER_REFUNDED`, `ARBITER_TIMEOUT`), and its full price
+  goes to exactly one side: paid at once, or, if the token refuses that payout (e.g. a
+  blacklisted address), owed to that side and paid by `withdrawOwed` once the token allows.
 - **FR-004**: Every step emits an event; the record is enough to replay each job.
 - **FR-005**: The escrow never pays out more than it holds for jobs; surplus recovery can't touch
   held money.

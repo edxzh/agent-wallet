@@ -12,6 +12,8 @@ contract MockUSDC is ERC20, EIP712 {
         "TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)"
     );
     mapping(address => mapping(bytes32 => bool)) public authorizationState;
+    /// Like FiatToken's blacklist: transfers to or from a blacklisted address revert.
+    mapping(address => bool) public isBlacklisted;
 
     event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce);
 
@@ -23,6 +25,19 @@ contract MockUSDC is ERC20, EIP712 {
 
     function mint(address to, uint256 amount) external {
         _mint(to, amount);
+    }
+
+    function blacklist(address a) external {
+        isBlacklisted[a] = true;
+    }
+
+    function unBlacklist(address a) external {
+        isBlacklisted[a] = false;
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        require(!isBlacklisted[from] && !isBlacklisted[to], "Blacklistable: account is blacklisted");
+        super._update(from, to, value);
     }
 
     function DOMAIN_SEPARATOR() external view returns (bytes32) {

@@ -11,6 +11,9 @@ interface IUSDCFork {
     function balanceOf(address) external view returns (uint256);
     function transfer(address, uint256) external returns (bool);
     function DOMAIN_SEPARATOR() external view returns (bytes32);
+    function blacklister() external view returns (address);
+    function blacklist(address) external;
+    function unBlacklist(address) external;
 }
 
 /// 004: against the real Base Sepolia USDC (FiatToken v2.2), a job funded by a PolicyWallet's
@@ -96,6 +99,38 @@ contract EscrowForkTest is Test {
         escrow.accept(jobId);
         assertEq(USDC.balanceOf(worker), 10_000);
         assertEq(USDC.balanceOf(address(escrow)), 0);
+    }
+
+    /// Security review F1 on Circle's real token: a blacklisted worker's payout is owed, not stuck,
+    /// and paid once Circle lifts the blacklist (the blacklister is impersonated on the fork only).
+    function test_fork_blacklistedWorker_PayoutOwedThenWithdrawn() public {
+        vm.skip(noRpc);
+        if (noRpc) return;
+        bytes32 nonce = keccak256("fork-escrow-3");
+        vm.prank(agent);
+        assertTrue(wallet.authorize(nonce, address(escrow), 10_000, 0, block.timestamp + 300, bytes32(0)));
+        IJobEscrow.OpenParams memory p = _params(nonce, 10_000);
+        vm.prank(agent);
+        (, bytes32 jobId) = escrow.open(p);
+        vm.prank(worker);
+        escrow.deliver(jobId, keccak256("fork result"));
+
+        address blacklister = USDC.blacklister();
+        vm.prank(blacklister);
+        USDC.blacklist(worker);
+        vm.prank(agent);
+        escrow.accept(jobId);
+        assertEq(uint8(escrow.job(jobId).status), uint8(IJobEscrow.Status.Closed));
+        assertEq(escrow.owed(worker), 10_000);
+        assertEq(USDC.balanceOf(worker), 0);
+        vm.expectRevert();
+        escrow.withdrawOwed(worker);
+
+        vm.prank(blacklister);
+        USDC.unBlacklist(worker);
+        escrow.withdrawOwed(worker);
+        assertEq(USDC.balanceOf(worker), 10_000);
+        assertEq(escrow.held(), 0);
     }
 
     function test_fork_unauthorizedFundingIsRejectedByUsdc() public {

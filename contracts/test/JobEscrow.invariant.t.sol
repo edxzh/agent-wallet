@@ -43,7 +43,7 @@ contract EscrowHandler is Test {
     bytes32[] public jobs;
     mapping(bytes32 => uint256) public amountOf;
     mapping(bytes32 => uint256) public closes; // ghost: how many times each job paid out
-    uint256 public paidOut; // ghost: total paid by closes
+    uint256 public paidOut; // ghost: total paid by closes, or deferred (owed) by them
     uint256 public closedAmounts; // ghost: total price of closed jobs
     uint256 private seq;
 
@@ -168,6 +168,7 @@ contract EscrowHandler is Test {
 
     function directTransfer(uint256 amount) external {
         amount = bound(amount, 1, 1e6);
+        if (usdc.isBlacklisted(address(fake))) return;
         vm.prank(address(fake));
         usdc.transfer(address(escrow), amount);
     }
@@ -182,13 +183,36 @@ contract EscrowHandler is Test {
     }
 
     function _closing(bytes32 id, bytes memory call) internal {
+        bool wasClosed = escrow.job(id).status == IJobEscrow.Status.Closed;
         uint256 before = usdc.balanceOf(address(escrow));
+        uint256 owedBefore = totalOwed();
         (bool ok,) = address(escrow).call(call);
-        if (ok && escrow.job(id).status == IJobEscrow.Status.Closed) {
+        if (ok && !wasClosed && escrow.job(id).status == IJobEscrow.Status.Closed) {
             closes[id]++;
-            paidOut += before - usdc.balanceOf(address(escrow));
+            paidOut += (before - usdc.balanceOf(address(escrow))) + (totalOwed() - owedBefore);
             closedAmounts += amountOf[id];
         }
+    }
+
+    /// Recipients a job can pay: the worker, the real hiring wallet, the hostile client.
+    function recipients() public view returns (address[3] memory) {
+        return [worker, address(wallet), address(fake)];
+    }
+
+    function totalOwed() public view returns (uint256 sum) {
+        address[3] memory r = recipients();
+        for (uint256 i; i < 3; i++) sum += escrow.owed(r[i]);
+    }
+
+    /// The token starts or stops refusing one recipient (Circle's blacklist).
+    function toggleBlacklist(uint256 i) external {
+        address a = recipients()[i % 3];
+        if (usdc.isBlacklisted(a)) usdc.unBlacklist(a);
+        else usdc.blacklist(a);
+    }
+
+    function withdrawOwed(uint256 i) external {
+        try escrow.withdrawOwed(recipients()[i % 3]) {} catch {}
     }
 }
 
@@ -205,14 +229,14 @@ contract JobEscrowInvariantTest is EscrowBaseTest {
         targetContract(address(handler));
     }
 
-    /// Money owed to jobs is exactly the price of every job not yet closed.
-    function invariant_HeldIsSumOfUnclosedJobs() public view {
+    /// Money held is exactly the price of every job not yet closed, plus refused payouts still owed.
+    function invariant_HeldIsUnclosedJobsPlusOwed() public view {
         uint256 sum;
         for (uint256 i; i < handler.jobCount(); i++) {
             bytes32 id = handler.jobs(i);
             if (escrow.job(id).status != IJobEscrow.Status.Closed) sum += handler.amountOf(id);
         }
-        assertEq(escrow.held(), sum);
+        assertEq(escrow.held(), sum + handler.totalOwed());
     }
 
     /// The escrow always holds at least what it owes (surplus recovery and direct transfers can't break it).
@@ -220,7 +244,7 @@ contract JobEscrowInvariantTest is EscrowBaseTest {
         assertGe(usdc.balanceOf(address(escrow)), escrow.held());
     }
 
-    /// Each job paid out at most once, and every close paid exactly its price.
+    /// Each job paid out at most once, and every close paid (or owed) exactly its price.
     function invariant_EachJobClosesOnce_ForItsPrice() public view {
         for (uint256 i; i < handler.jobCount(); i++) {
             assertLe(handler.closes(handler.jobs(i)), 1);

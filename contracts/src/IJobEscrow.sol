@@ -86,7 +86,12 @@ interface IJobEscrow {
     );
     event JobDelivered(bytes32 indexed jobId, bytes32 resultHash);
     event JobDisputed(bytes32 indexed jobId, bytes32 reasonHash);
+    /// The outcome is decided and the job can't change again. The price was paid to `to` in the
+    /// same transaction, unless a PaymentDeferred for this job follows it: then it is owed to `to`.
     event JobClosed(bytes32 indexed jobId, Outcome outcome, address indexed to, uint256 amount);
+    /// The token refused the payout (e.g. `to` is blacklisted): it is owed, see `withdrawOwed`.
+    event PaymentDeferred(bytes32 indexed jobId, address indexed to, uint256 amount);
+    event OwedWithdrawn(address indexed to, uint256 amount);
     event SurplusRecovered(address indexed to, uint256 amount);
 
     // ── Hirer (the client wallet's current agent) ─────────────────────────────────────────
@@ -106,6 +111,10 @@ interface IJobEscrow {
     /// Closes a job whose deadline or window has passed (see Outcome).
     function claimTimeout(bytes32 jobId) external;
 
+    /// Pays `to` what it is owed from refused payouts, once the token allows. Reverts, keeping
+    /// the credit, while it still refuses.
+    function withdrawOwed(address to) external;
+
     // ── Owner ─────────────────────────────────────────────────────────────────────────────
     /// Sends money that belongs to no job (e.g. a front-run transfer) to `to`. Never held money.
     function recoverSurplus(address to) external;
@@ -114,6 +123,7 @@ interface IJobEscrow {
     function token() external view returns (address);
     function owner() external view returns (address);
     function held() external view returns (uint256);
+    function owed(address recipient) external view returns (uint256);
     function job(bytes32 jobId) external view returns (Job memory);
     function jobIdFor(address client, bytes32 nonce) external pure returns (bytes32);
 }
