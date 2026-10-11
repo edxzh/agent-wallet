@@ -42,10 +42,12 @@ const escrowLog = (eventName: 'JobOpened' | 'JobRefused') => {
       };
 };
 
-function fakeClients(walletEvent: 'PaymentAuthorized' | 'PaymentRefused', escrowEvent: 'JobOpened' | 'JobRefused' = 'JobOpened') {
+function fakeClients(walletEvent: 'PaymentAuthorized' | 'PaymentRefused', escrowEvent: 'JobOpened' | 'JobRefused' = 'JobOpened', checkPayee = 0) {
   const writes: any[] = [];
+  const reads: any[] = [];
   return {
     writes,
+    reads,
     clients: {
       walletClient: {
         async writeContract(args: any) {
@@ -54,6 +56,10 @@ function fakeClients(walletEvent: 'PaymentAuthorized' | 'PaymentRefused', escrow
         },
       },
       publicClient: {
+        async readContract(args: any) {
+          reads.push(args);
+          return checkPayee;
+        },
         async waitForTransactionReceipt({ hash }: { hash: Hex }) {
           return { status: 'success' as const, logs: [hash === authTx ? walletLog(walletEvent) : escrowLog(escrowEvent)] as any };
         },
@@ -97,7 +103,15 @@ describe('hireAgent', () => {
     expect(writes.map((w) => w.functionName)).toEqual(['authorize']);
   });
 
-  it('reports a worker the wallet may not pay', async () => {
+  it('checks the worker for free first, and signs and sends nothing if the wallet would refuse', async () => {
+    const { clients, writes, reads } = fakeClients('PaymentAuthorized', 'JobOpened', 3);
+    const out = await hireAgent({ wallet, escrow, agentKey, terms: { ...terms, workerAgentId: 9614n }, nonce, now: 1_800_000_000n, clients });
+    expect(out).toEqual({ kind: 'worker-not-payable', reason: 'PAYEE_NOT_ALLOWED' });
+    expect(writes).toHaveLength(0);
+    expect(reads[0]).toMatchObject({ address: wallet, functionName: 'checkPayee', args: [worker, true, 9614n] });
+  });
+
+  it('reports a worker the escrow refused anyway (e.g. rules changed between the check and open)', async () => {
     const { clients } = fakeClients('PaymentAuthorized', 'JobRefused');
     const out = await hireAgent({ wallet, escrow, agentKey, terms, nonce, now: 1_800_000_000n, clients });
     expect(out).toMatchObject({ kind: 'refused-worker', reason: 'PAYEE_NOT_ALLOWED', jobId: jobIdFor(wallet, nonce) });

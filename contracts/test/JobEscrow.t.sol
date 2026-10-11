@@ -10,9 +10,11 @@ import {Reason} from "../src/Reason.sol";
 /// A contract that claims to be a wallet but has no checkPayee (like a 001 wallet).
 contract NoCheckWallet {
     address public agent;
+    address public operator;
 
-    constructor(address a) {
+    constructor(address a, address op) {
         agent = a;
+        operator = op;
     }
 }
 
@@ -149,7 +151,7 @@ contract JobEscrowTest is EscrowBaseTest {
     }
 
     function test_WalletWithoutCheckPayee_IsARefusal() public {
-        NoCheckWallet fake = new NoCheckWallet(agent);
+        NoCheckWallet fake = new NoCheckWallet(agent, operator);
         IJobEscrow.OpenParams memory p = _params(_nonce(), PRICE, worker);
         p.client = address(fake);
         vm.prank(agent);
@@ -420,6 +422,18 @@ contract JobEscrowTest is EscrowBaseTest {
         vm.prank(agent);
         vm.expectRevert(JobEscrow.ZeroAddress.selector);
         escrow.open(base);
+    }
+
+    function test_ArbiterMustBeTheHiringWalletsOperator() public {
+        bytes32 nonce = _nonce();
+        assertTrue(_authorize(nonce, address(escrow), PRICE, bytes32(0)));
+        IJobEscrow.OpenParams memory p = _params(nonce, PRICE, worker);
+        for (uint256 i; i < 3; i++) {
+            p.arbiter = [agent, worker, stranger][i];
+            vm.prank(agent);
+            vm.expectRevert(JobEscrow.ArbiterNotOperator.selector);
+            escrow.open(p);
+        }
     }
 
     function test_SameFundingTwice_JobExists() public {

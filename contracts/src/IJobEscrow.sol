@@ -39,6 +39,7 @@ interface IJobEscrow {
         bool workerHasClaim;
         /// The worker's ERC-8004 agentId, if it claims one (checked by the hirer's wallet).
         uint256 workerAgentId;
+        /// Must be the hiring wallet's operator.
         address arbiter;
         uint64 deliverBy;
         uint32 reviewWindow;

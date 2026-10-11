@@ -34,7 +34,7 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
     uint256 public constant MAX_DELIVERY = 30 days;
     uint256 public constant MIN_WINDOW = 1 hours;
     uint256 public constant MAX_WINDOW = 30 days;
-    /// Gas for reading a wallet's `agent()`: a plain storage read.
+    /// Gas for reading a wallet's `agent()` or `operator()`: a plain storage read.
     uint256 private constant AGENT_GAS = 50_000;
 
     address public immutable token;
@@ -49,6 +49,7 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
     error NotClientAgent();
     error NotWorker();
     error NotArbiter();
+    error ArbiterNotOperator();
     error NotOwner();
     error InvalidTerms();
     error JobExists(bytes32 jobId);
@@ -71,6 +72,8 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
     function open(OpenParams calldata p) external nonReentrant returns (bool opened, bytes32 jobId) {
         if (msg.sender != _agentOf(p.client)) revert NotClientAgent();
         if (p.worker == address(0) || p.arbiter == address(0)) revert ZeroAddress();
+        // The hiring wallet's operator settles disputes: the hirer can't judge its own dispute.
+        if (p.arbiter != _addressOf(p.client, IPolicyWallet.operator.selector)) revert ArbiterNotOperator();
         if (
             p.worker == p.client || p.amount == 0 || p.amount > type(uint128).max || p.deliverBy <= block.timestamp
                 || p.deliverBy > block.timestamp + MAX_DELIVERY || !_validWindow(p.reviewWindow)
@@ -234,8 +237,13 @@ contract JobEscrow is IJobEscrow, ReentrancyGuard {
     /// A PolicyWallet's current agent, or address(0) for an account without one. A low-level call,
     /// so an account with no code, or a contract that reverts or answers oddly, never reverts here.
     function _agentOf(address a) internal view returns (address) {
+        return _addressOf(a, IPolicyWallet.agent.selector);
+    }
+
+    /// An address-returning view (`agent()`, `operator()`), or address(0) if `a` can't answer.
+    function _addressOf(address a, bytes4 selector) internal view returns (address) {
         if (a.code.length == 0) return address(0);
-        (bool ok, bytes memory ret) = a.staticcall{gas: AGENT_GAS}(abi.encodeCall(IPolicyWallet.agent, ()));
+        (bool ok, bytes memory ret) = a.staticcall{gas: AGENT_GAS}(abi.encodeWithSelector(selector));
         if (!ok || ret.length != 32) return address(0);
         uint256 v = abi.decode(ret, (uint256));
         return v > type(uint160).max ? address(0) : address(uint160(v));

@@ -8,7 +8,7 @@
 import { encodeAbiParameters, getAddress, keccak256, parseEventLogs, toHex, type Address, type Hex, type TransactionReceipt } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { baseSepolia } from 'viem/chains';
-import { jobEscrowAbi } from './abi.js';
+import { jobEscrowAbi, policyWalletAbi } from './abi.js';
 import { USDC } from './config.js';
 import { reasonName } from './reasons.js';
 import { createPolicyWalletSigner, type PolicyWalletSignerOptions } from './signer.js';
@@ -36,10 +36,15 @@ export type JobTerms = {
 export type HireOutcome =
   | { kind: 'opened'; jobId: Hex; nonce: Hex; authorizeTx: Hex; openTx: Hex }
   | { kind: 'refused-by-wallet'; reason: string; nonce: Hex; authorizeTx: Hex }
+  /** The wallet's free payee check refused the worker: nothing was signed or sent. */
+  | { kind: 'worker-not-payable'; reason: string }
   | { kind: 'refused-worker'; reason: string; jobId: Hex; nonce: Hex; authorizeTx: Hex; openTx: Hex };
 
 type Clients = NonNullable<PolicyWalletSignerOptions['clients']> & {
-  publicClient: { waitForTransactionReceipt(args: { hash: Hex; confirmations?: number }): Promise<Pick<TransactionReceipt, 'logs' | 'status'>> };
+  publicClient: {
+    waitForTransactionReceipt(args: { hash: Hex; confirmations?: number }): Promise<Pick<TransactionReceipt, 'logs' | 'status'>>;
+    readContract(args: any): Promise<unknown>;
+  };
 };
 
 /** Same as JobEscrow.jobIdFor: keccak256(abi.encode(client, nonce)). */
@@ -77,9 +82,22 @@ export async function hireAgent(opts: {
   now: bigint;
   taskId?: Hex;
   rpcUrl?: string;
-  clients?: Clients;
+  clients: Clients;
 }): Promise<HireOutcome> {
-  const { terms } = opts;
+  const { terms, clients } = opts;
+  // Ask the wallet first, for free. A refused open() would still publish the funding signature in
+  // its calldata, and anyone could then submit it to USDC (the money would sit in the escrow as
+  // surplus). The same check inside open() stays as the enforcement.
+  const check = Number(
+    await clients.publicClient.readContract({
+      address: getAddress(opts.wallet),
+      abi: policyWalletAbi,
+      functionName: 'checkPayee',
+      args: [getAddress(terms.worker), terms.workerAgentId !== undefined, terms.workerAgentId ?? 0n],
+    }),
+  );
+  if (check !== 0) return { kind: 'worker-not-payable', reason: reasonName(check) };
+
   const account = privateKeyToAccount(opts.agentKey);
   const validBefore = opts.now + 300n;
   let authorizeTx: Hex | undefined;
@@ -88,7 +106,7 @@ export async function hireAgent(opts: {
     agentKey: opts.agentKey,
     taskId: opts.taskId,
     rpcUrl: opts.rpcUrl,
-    clients: opts.clients,
+    clients,
     onAuthorized: (p) => (authorizeTx = p.txHash),
   });
 
@@ -100,9 +118,7 @@ export async function hireAgent(opts: {
     if (err.reason && err.txHash) return { kind: 'refused-by-wallet', reason: err.reason, nonce: opts.nonce, authorizeTx: err.txHash };
     throw e;
   }
-  if (!opts.clients) throw new Error('hireAgent needs viem clients for the open call');
-
-  const openTx = await opts.clients.walletClient.writeContract({
+  const openTx = await clients.walletClient.writeContract({
     address: getAddress(opts.escrow),
     abi: jobEscrowAbi,
     functionName: 'open',
@@ -126,7 +142,7 @@ export async function hireAgent(opts: {
     account,
     chain: baseSepolia,
   });
-  const receipt = await opts.clients.publicClient.waitForTransactionReceipt({ hash: openTx });
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash: openTx });
   if (receipt.status !== 'success') throw new Error(`open transaction reverted: ${openTx}`);
   const jobId = jobIdFor(opts.wallet, opts.nonce);
   const events = parseEventLogs({ abi: jobEscrowAbi, logs: receipt.logs, strict: false });

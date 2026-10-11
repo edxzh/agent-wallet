@@ -1858,6 +1858,11 @@ export const jobEscrowAbi = [
   },
   {
     "type": "error",
+    "name": "ArbiterNotOperator",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "EmptyHash",
     "inputs": []
   },

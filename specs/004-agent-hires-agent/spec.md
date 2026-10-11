@@ -66,7 +66,12 @@ Every job ends, whoever goes silent.
 
 - Someone submits the hirer's signed transfer before the hirer opens the job (front-running):
   the money lands in the escrow without a job. No job's money is affected; the escrow's owner can
-  return such unattributed money (`recoverSurplus`), never money held for a job.
+  return such unattributed money (`recoverSurplus`), never money held for a job. The wallet's
+  reservation counts as settled, so `release` won't return that budget.
+- A refused `open` also publishes the funding signature (it is in the calldata), which anyone can
+  then submit the same way. So the agent asks the wallet's `checkPayee` for free **before** it
+  authorizes or signs anything (`hireAgent`), and the check inside `open` is the enforcement for a
+  buggy or compromised agent.
 - The hirer's wallet changes its agent key: the new agent controls the hirer's side from then on.
 - A refund returns money to the wallet but does not lower the day's spending (conservative: the
   budget counts what the agent committed, as with any payment).
@@ -82,7 +87,8 @@ Every job ends, whoever goes silent.
   `PolicyWallet` is unchanged.
 - **FR-002**: Only the hiring wallet's current agent can open a job and accept or reject it; only
   the worker (or, if the worker is a PolicyWallet, its current agent) can deliver; only the job's
-  arbiter can settle a dispute.
+  arbiter can settle a dispute, and `open` requires the arbiter to be the hiring wallet's
+  operator, so a hirer can't judge its own dispute.
 - **FR-003**: Each job closes exactly once, paying its full price to exactly one side, with one
   outcome: `ACCEPTED`, `REVIEW_TIMEOUT`, `ARBITER_PAID`, `DELIVERY_TIMEOUT`, `ARBITER_REFUNDED`,
   `ARBITER_TIMEOUT`.

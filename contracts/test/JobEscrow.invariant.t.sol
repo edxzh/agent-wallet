@@ -11,9 +11,11 @@ import {MockUSDC} from "./mocks/MockUSDC.sol";
 /// A hostile client: says yes to every check and signs anything. It can only spend its own money.
 contract FakeClient {
     address public agent;
+    address public operator;
 
-    constructor(address a) {
+    constructor(address a, address op) {
         agent = a;
+        operator = op;
     }
 
     function checkPayee(address, bool, uint256) external pure returns (uint8) {
@@ -54,7 +56,7 @@ contract EscrowHandler is Test {
         worker = wk;
         arbiter = arb;
         owner = own;
-        fake = new FakeClient(address(this));
+        fake = new FakeClient(address(this), arb);
         u.mint(address(fake), 1_000_000e6);
     }
 
