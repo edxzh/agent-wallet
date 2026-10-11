@@ -1,5 +1,5 @@
 ---
-import { t, type Lang } from '../i18n';
+import { t, pathFor, type Lang } from '../i18n';
 import RulesCard from './RulesCard.astro';
 import SpendBars from './SpendBars.astro';
 import Timeline from './Timeline.astro';
@@ -52,7 +52,8 @@ const liveData = wallet && history && {
     <strong>{d.statusLabel}:</strong>{' '}{wallet ? d.statusLive.replace('{time}', updated) : d.statusEmpty}
   </p>
   <div class="ctas">
-    <a class="btn btn-primary" href={repo}>{d.repoCta}</a>
+    {wallet && <a class="btn btn-primary" href={`${pathFor(lang)}try/`}>{d.try.cta}</a>}
+    <a class:list={['btn', wallet ? 'btn-secondary' : 'btn-primary']} href={repo}>{d.repoCta}</a>
     <a class="btn btn-secondary" href={spec}>{d.specCta}</a>
   </div>
 </section>

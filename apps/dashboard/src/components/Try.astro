@@ -1,0 +1,253 @@
+---
+import { t, pathFor, type Lang } from '../i18n';
+import { history } from '../lib/history';
+import { attacksFor, STRANGER, targetWallet } from '../lib/attacks';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const d = t(lang);
+const tr = d.try;
+const wallet = history && targetWallet(history);
+const attacks = history ? attacksFor(history) : [];
+const services = (history?.services ?? []).filter((s) => s.payTo);
+const identities = services.filter((s) => s.agentId && s.claims === 'self');
+const dashboard = pathFor(lang);
+
+// For the dry-run script (src/scripts/try.ts). Outcomes are not in here: the contract decides.
+const tryData = wallet && {
+  wallet: wallet.address,
+  attacks: attacks.map(({ id, payments }) => ({ id, payments })),
+  payees: Object.fromEntries([
+    ...wallet.payees.map((p) => [p.address.toLowerCase(), lang === 'zh' ? (p.labelZh ?? p.label) : p.label]),
+    ...services.map((s) => [s.payTo!.toLowerCase(), s.label[lang]]),
+  ]),
+  services: Object.fromEntries(identities.map((s) => [s.agentId!, s.label[lang]])),
+  tasks: Object.fromEntries(wallet.tasks.map((x) => [x.id, x.label])),
+  text: { ...tr.result, ...tr.invalid },
+  reasons: d.reason,
+};
+---
+
+<section class="hero">
+  <p class="eyebrow">{tr.eyebrow}</p>
+  <h1>{tr.heading}</h1>
+  <p class="intro">{tr.intro}</p>
+  <p class="how card">{tr.how}</p>
+  <p><a href={dashboard}>← {tr.back}</a></p>
+  <noscript><p class="nojs card">{tr.noJs} <a href={dashboard}>{tr.result.recordLink}</a></p></noscript>
+</section>
+
+{
+  tryData && (
+    <>
+      <section class="section" aria-labelledby="presets">
+        <h2 id="presets">{tr.presetsHeading}</h2>
+        <ul class="presets" role="list">
+          {attacks.map((a) => (
+            <li class="card">
+              <h3>{tr.presets[a.id].title}</h3>
+              <p class="told">
+                <span class="label mono">{tr.agentWasTold}</span>
+                <q>{tr.presets[a.id].says}</q>
+              </p>
+              <button type="button" class="btn btn-secondary" data-attack={a.id} disabled>
+                {tr.run}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="section" aria-labelledby="custom">
+        <h2 id="custom">{tr.customHeading}</h2>
+        <p class="lead muted">{tr.customIntro}</p>
+        <form class="custom card" id="aw-try-form" novalidate>
+          <label>
+            <span>{tr.form.payee}</span>
+            <select name="payee">
+              {services.map((s) => (
+                <option value={s.payTo}>{s.label[lang]}</option>
+              ))}
+              <option value="other">{tr.form.otherAddress}</option>
+            </select>
+          </label>
+          <label class="other" hidden>
+            <span>{tr.form.address}</span>
+            <input name="address" class="mono" value={STRANGER} maxlength="42" spellcheck="false" autocomplete="off" />
+          </label>
+          <label>
+            <span>{tr.form.claim}</span>
+            <select name="claim">
+              <option value="">{tr.form.claimNone}</option>
+              {identities.map((s) => (
+                <option value={s.agentId}>{s.label[lang]} (#{s.agentId})</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>{tr.form.amount}</span>
+            <input name="amount" class="mono" value="0.01" inputmode="decimal" maxlength="24" autocomplete="off" />
+          </label>
+          <label>
+            <span>{tr.form.task}</span>
+            <select name="task">
+              <option value="">{tr.form.taskNone}</option>
+              {wallet.tasks.map((x) => (
+                <option value={x.id}>{x.label}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>{tr.form.repeat}</span>
+            <select name="repeat">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option value={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+          <p class="invalid" role="alert" hidden />
+          <button type="submit" class="btn btn-primary" disabled>
+            {tr.form.run}
+          </button>
+        </form>
+      </section>
+
+      <section class="section" aria-labelledby="result">
+        <h2 id="result">{tr.result.heading}</h2>
+        <div class="result card" id="aw-try-result" aria-live="polite">
+          <p class="muted">{tr.result.empty}</p>
+        </div>
+        <p class="muted record">
+          {tr.result.record} <a href={dashboard}>{tr.result.recordLink}</a>
+        </p>
+        <script type="application/json" id="aw-try" set:html={JSON.stringify(tryData)} />
+      </section>
+    </>
+  )
+}
+
+<script>
+  // Load the dry-run script after first paint, so it never costs first-screen JS.
+  const load = () => import('../scripts/try').then((m) => m.start());
+  const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 2000 }) : setTimeout(cb, 1));
+  if (document.getElementById('aw-try')) {
+    if (document.readyState === 'complete') idle(load);
+    else addEventListener('load', () => idle(load));
+  }
+</script>
+
+<style>
+  .hero {
+    padding-block: 48px 8px;
+  }
+  .intro {
+    max-width: 68ch;
+    font-size: 18px;
+  }
+  .how,
+  .nojs {
+    max-width: 68ch;
+    color: var(--text-muted);
+  }
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .presets .card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .told {
+    flex: 1;
+    margin: 0;
+  }
+  .label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .presets .btn {
+    align-self: flex-start;
+  }
+  .custom {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: end;
+  }
+  .custom label {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .custom label[hidden] {
+    display: none;
+  }
+  .custom select,
+  .custom input {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 15px;
+  }
+  .custom input.mono {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .invalid {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--accent-2);
+  }
+  .result {
+    display: grid;
+    gap: 12px;
+  }
+  .result :global(ol) {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .result :global(li) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .result :global(.what) {
+    overflow-wrap: anywhere;
+  }
+  .result :global(.verdict) {
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .result :global(.verdict[data-ok='true']) {
+    color: var(--accent);
+  }
+  .result :global(.verdict[data-ok='false']) {
+    color: var(--accent-2);
+  }
+  .result :global(.summary) {
+    margin: 0;
+    font-weight: 600;
+  }
+  .record {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+</style>

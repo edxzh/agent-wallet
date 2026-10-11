@@ -7,6 +7,9 @@ refusal is on a public record anyone can verify.
 > **Test network only (Base Sepolia). No real money.**
 
 - Live dashboard: https://demo.yunshu.ai (中文: https://demo.yunshu.ai/zh/)
+- Try to make it overspend: https://demo.yunshu.ai/try/ — tell the agent to overspend or pay an impostor
+  and see the real contract's answer, as a free dry run (`eth_simulateV1`; nothing is sent).
+  [Spec](specs/003-try-to-overspend/)
 - Demo wallet `research-bot-01`: [`0xC788…b0Fc`](https://sepolia.basescan.org/address/0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc) (since 2026-10-10, with the trusted-payees rule; 001's wallet was [`0x7b14…EeBf0`](https://sepolia.basescan.org/address/0x7b146350cc960A45036C9Db1DcD45Be7693EeBf0))
 - Spec, plan, tasks and test results: [`specs/001-agent-wallet-demo/`](specs/001-agent-wallet-demo/),
   and for trusted payees [`specs/002-trusted-payees-erc8004/`](specs/002-trusted-payees-erc8004/)

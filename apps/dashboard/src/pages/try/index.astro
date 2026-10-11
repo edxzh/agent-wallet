@@ -1,0 +1,8 @@
+---
+import Page from '../../components/Page.astro';
+import Try from '../../components/Try.astro';
+import { t } from '../../i18n';
+const d = t('en').try;
+---
+
+<Page lang="en" path="try/" title={d.meta.title} description={d.meta.description}><Try lang="en" /></Page>

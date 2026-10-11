@@ -1,3 +1,1 @@
-{
-  "feature_directory": "specs/002-trusted-payees-erc8004"
-}
+{ "feature_directory": "specs/003-try-to-overspend" }

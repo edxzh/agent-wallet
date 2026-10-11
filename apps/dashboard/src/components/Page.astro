@@ -7,10 +7,15 @@ import { t, pathFor, type Lang } from '../i18n';
 
 interface Props {
   lang: Lang;
+  /** Page path under the language root, e.g. 'try/' (default: the dashboard). */
+  path?: string;
+  title?: string;
+  description?: string;
 }
-const { lang } = Astro.props;
+const { lang, path = '', title, description } = Astro.props;
 const d = t(lang);
 const abs = (p: string) => new URL(p, Astro.site!).href;
+const here = (l: Lang) => pathFor(l) + path;
 const langs: { code: Lang; label: string; hreflang: string }[] = [
   { code: 'zh', label: '中文', hreflang: 'zh-Hans' },
   { code: 'en', label: 'EN', hreflang: 'en' },
@@ -22,12 +27,12 @@ const langs: { code: Lang; label: string; hreflang: string }[] = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>{d.meta.title}</title>
-    <meta name="description" content={d.meta.description} />
-    <link rel="canonical" href={abs(pathFor(lang))} />
-    <link rel="alternate" hreflang="zh-Hans" href={abs('/zh/')} />
-    <link rel="alternate" hreflang="en" href={abs('/')} />
-    <link rel="alternate" hreflang="x-default" href={abs('/')} />
+    <title>{title ?? d.meta.title}</title>
+    <meta name="description" content={description ?? d.meta.description} />
+    <link rel="canonical" href={abs(here(lang))} />
+    <link rel="alternate" hreflang="zh-Hans" href={abs(here('zh'))} />
+    <link rel="alternate" hreflang="en" href={abs(here('en'))} />
+    <link rel="alternate" hreflang="x-default" href={abs(here('en'))} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -37,7 +42,7 @@ const langs: { code: Lang; label: string; hreflang: string }[] = [
       <nav class="lang" aria-label={d.langSwitchLabel}>
         {
           langs.map((o) => (
-            <a href={pathFor(o.code)} lang={o.hreflang} hreflang={o.hreflang} aria-current={o.code === lang ? 'true' : undefined}>
+            <a href={here(o.code)} lang={o.hreflang} hreflang={o.hreflang} aria-current={o.code === lang ? 'true' : undefined}>
               {o.label}
             </a>
           ))
