@@ -38,6 +38,9 @@ export type Deployments = {
   implementation?: Address;
   factory?: Address;
   factoryBlock?: number;
+  /** 004: the JobEscrow, and the block it was deployed in (for the dashboard's event scan). */
+  escrow?: Address;
+  escrowBlock?: number;
   wallets: { name: string; address: Address; agent: Address; createdBlock: number }[];
   tasks?: { id: Hex; label: string }[];
 };

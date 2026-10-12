@@ -22,6 +22,8 @@ export const policyWalletFactoryAbi = ${JSON.stringify(factory.abi, null, 2)} as
 
 export const jobEscrowAbi = ${JSON.stringify(escrow.abi, null, 2)} as const;
 
+export const jobEscrowBytecode = '${escrow.bytecode.object}' as const;
+
 export const policyWalletBytecode = '${wallet.bytecode.object}' as const;
 
 export const policyWalletFactoryBytecode = '${factory.bytecode.object}' as const;

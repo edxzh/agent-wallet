@@ -11,7 +11,8 @@
 - [x] T008 Security review of `JobEscrow.sol` ([security-review.md](security-review.md)): F1
       (refused payout froze a job) and F2 (worker = arbiter / escrow) fixed and tested; F3–F6
       accepted and documented. Self-review by the author, not an independent audit
-- [ ] T009 Owner: deploy the escrow on Base Sepolia; `setPayee(escrow, true)` and the worker on research-bot-01
-- [ ] T010 Owner: worker key and wallet (`worker-bot-01`), GitHub secret
+- [x] T008b `deploy-escrow` CLI command and owner runbook ([quickstart.md](quickstart.md)), rehearsed on a local fork
+- [ ] T009 Owner: deploy the escrow on Base Sepolia; `setPayee(escrow, true)` and the worker on research-bot-01 (quickstart steps 1, 4)
+- [ ] T010 Owner: worker key and wallet (`worker-bot-01`), GitHub secret (quickstart steps 2, 3, 6)
 - [ ] T011 Scheduled scenario: hire, deliver, accept; one deliberate dispute; timeouts
 - [ ] T012 Dashboard: jobs on the timeline, a "hired agents" card (en/zh)

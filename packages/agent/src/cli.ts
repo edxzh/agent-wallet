@@ -19,7 +19,7 @@ import {
   type Hex,
 } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { policyWalletAbi, policyWalletBytecode, policyWalletFactoryAbi, policyWalletFactoryBytecode } from './abi.js';
+import { jobEscrowAbi, jobEscrowBytecode, policyWalletAbi, policyWalletBytecode, policyWalletFactoryAbi, policyWalletFactoryBytecode } from './abi.js';
 import { blockRanges, formatUsdc, guardedPublicClient, parseUsdc, usdcAbi, walletClientFor, type PublicClient } from './chain.js';
 import { WrongNetworkError } from './chainGuard.js';
 import { DEPLOYMENTS_PATH, loadConfig, readDeployments, readPayees, ROOT, txUrl, USDC, type Deployments } from './config.js';
@@ -155,6 +155,28 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     const factory = receipt.contractAddress!;
     out('factory-deployed', { factory, tx: txUrl(facHash) });
     saveDeployments({ ...readDeployments(), implementation: impl, factory, factoryBlock: Number(receipt.blockNumber) });
+    return EXIT.OK;
+  },
+
+  /**
+   * deploy-escrow (operator, once; 004). Deploys JobEscrow for Base Sepolia USDC; the operator key
+   * becomes its owner (recoverSurplus only). Refuses to replace a recorded escrow that has code.
+   */
+  async 'deploy-escrow'(pub) {
+    const d = readDeployments();
+    if (d.escrow && (await pub.getCode({ address: d.escrow }))) {
+      out('escrow-exists', { escrow: d.escrow, note: 'remove "escrow" from config/deployments.json to deploy a new one' });
+      return EXIT.CONFIG;
+    }
+    const hash = await operatorClient().deployContract({ abi: jobEscrowAbi, bytecode: jobEscrowBytecode, args: [USDC] });
+    const receipt = await pub.waitForTransactionReceipt({ hash });
+    if (receipt.status !== 'success' || !receipt.contractAddress) throw new Error(`Escrow deploy failed: ${txUrl(hash)}`);
+    const escrow = receipt.contractAddress;
+    await waitForCode(pub, escrow);
+    const token = await pub.readContract({ address: escrow, abi: jobEscrowAbi, functionName: 'token' });
+    if (getAddress(token) !== getAddress(USDC)) throw new Error(`Escrow token is ${token}, expected USDC ${USDC}`);
+    saveDeployments({ ...readDeployments(), escrow, escrowBlock: Number(receipt.blockNumber) });
+    out('escrow-deployed', { escrow, owner: operatorClient().account.address, tx: txUrl(hash) });
     return EXIT.OK;
   },
 
