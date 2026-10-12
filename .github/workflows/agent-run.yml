@@ -20,6 +20,8 @@ jobs:
     timeout-minutes: 20
     env:
       AGENT_PRIVATE_KEY: ${{ secrets.AGENT_PRIVATE_KEY }}
+      # 004: worker-bot-01's agent key, for its deliveries. An agent key like the one above (constitution IV).
+      WORKER_AGENT_PRIVATE_KEY: ${{ secrets.WORKER_AGENT_PRIVATE_KEY }}
       WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
       API_URL: ${{ vars.API_URL || 'https://api.demo.yunshu.ai' }}
       RPC_URL: https://sepolia.base.org
@@ -47,6 +49,13 @@ jobs:
         id: scenario
         run: npm run cli -w packages/agent -- run-scenario
         continue-on-error: true
+      # 004: research-bot-01 hires worker-bot-01 through the escrow (accept / dispute / no-show), and
+      # closes earlier runs' due timeouts. Skips itself until the escrow is set up.
+      - name: Hire scenario
+        if: steps.setup.outputs.ready == 'true' && env.WORKER_AGENT_PRIVATE_KEY != ''
+        id: hires
+        run: npm run cli -w packages/agent -- run-hires
+        continue-on-error: true
       - name: Release expired authorizations
         if: steps.setup.outputs.ready == 'true'
         run: npm run cli -w packages/agent -- release-expired
@@ -64,9 +73,10 @@ jobs:
           git config user.name "agent-wallet-bot"
           git config user.email "agent-wallet-bot@users.noreply.github.com"
           git add apps/dashboard/src/data/history.json
+          if [ -f apps/dashboard/src/data/jobs.json ]; then git add apps/dashboard/src/data/jobs.json; fi
           git diff --cached --quiet || git commit -m "chore(snapshot): $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
           git pull --rebase --autostash
           git push
       - name: Fail if the scenario failed
-        if: steps.setup.outputs.ready == 'true' && steps.scenario.outcome == 'failure'
+        if: steps.setup.outputs.ready == 'true' && (steps.scenario.outcome == 'failure' || steps.hires.outcome == 'failure')
         run: exit 1

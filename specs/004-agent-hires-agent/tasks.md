@@ -14,5 +14,10 @@
 - [x] T008b `deploy-escrow` CLI command and owner runbook ([quickstart.md](quickstart.md)), rehearsed on a local fork
 - [x] T009 Owner: deploy the escrow on Base Sepolia; `setPayee(escrow, true)` and the worker on research-bot-01 (quickstart steps 1, 4)
 - [x] T010 Owner: worker key and wallet (`worker-bot-01`), GitHub secret (quickstart steps 2, 3, 6)
-- [ ] T011 Scheduled scenario: hire, deliver, accept; one deliberate dispute; timeouts
+- [x] T011 Scheduled scenario (`hireScenario.ts`, `cli run-hires`, step in agent-run.yml): every
+      run hires worker-bot-01 for an honest job (accepted) plus, alternating, a dispute (sloppy
+      result caught and rejected; arbiter timeout refunds) or a no-show (delivery timeout
+      refunds); closes earlier slots' due timeouts; publishes spec and result texts to
+      `apps/dashboard/src/data/jobs.json`. Rehearsed on a local fork over three slots (all
+      outcomes as expected). First live run: the next scheduled run after the push
 - [ ] T012 Dashboard: jobs on the timeline, a "hired agents" card (en/zh)

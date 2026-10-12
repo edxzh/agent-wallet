@@ -26,6 +26,8 @@ import { DEPLOYMENTS_PATH, loadConfig, readDeployments, readPayees, ROOT, txUrl,
 import { payUrl, type PayOutcome } from './pay.js';
 import { parseErc8004Claim } from './identity.js';
 import { runTrustScenario } from './trustScenario.js';
+import { hireAgent } from './escrow.js';
+import { runHireScenario, toJobView, type JobRecord, type JobView } from './hireScenario.js';
 import { rateOutcome } from './rate.js';
 import { registerServices, registrationAbi, type ServiceEntry } from './registration.js';
 import { reasonName } from './reasons.js';
@@ -178,6 +180,80 @@ const commands: Record<string, (pub: PublicClient) => Promise<number>> = {
     saveDeployments({ ...readDeployments(), escrow, escrowBlock: Number(receipt.blockNumber) });
     out('escrow-deployed', { escrow, owner: operatorClient().account.address, tx: txUrl(hash) });
     return EXIT.OK;
+  },
+
+  /**
+   * run-hires (agent + worker keys; 004 T011): research-bot-01 hires worker-bot-01 through the
+   * escrow (see hireScenario.ts), closes earlier slots' due timeouts, and publishes each job's spec
+   * and result texts to apps/dashboard/src/data/jobs.json, so anyone can check them against the
+   * hashes on-chain. Skips (exit 0) until the escrow and worker-bot-01 exist.
+   */
+  async 'run-hires'(pub) {
+    const d = readDeployments();
+    const worker = d.wallets.find((w) => w.name === 'worker-bot-01');
+    if (!d.escrow || !worker) {
+      out('hires-skipped', { reason: 'no escrow or worker-bot-01 in config/deployments.json (004 quickstart)' });
+      return EXIT.OK;
+    }
+    const escrow = getAddress(d.escrow);
+    const wallet = resolveWallet();
+    const agentKey = need(cfg.agentKey, 'AGENT_PRIVATE_KEY');
+    const workerKey = need(process.env.WORKER_AGENT_PRIVATE_KEY as Hex | undefined, 'WORKER_AGENT_PRIVATE_KEY');
+    const workerClient = walletClientFor(cfg.rpcUrl, workerKey);
+    const onChainWorkerAgent = await pub.readContract({ address: worker.address, abi: policyWalletAbi, functionName: 'agent' });
+    if (getAddress(onChainWorkerAgent) !== workerClient.account.address) {
+      throw new ConfigError(`WORKER_AGENT_PRIVATE_KEY is not worker-bot-01's agent (${onChainWorkerAgent})`);
+    }
+    const arbiter = getAddress(await pub.readContract({ address: wallet, abi: policyWalletAbi, functionName: 'operator' }));
+    const agent = agentClient();
+    const readJob = async (jobId: Hex): Promise<JobView> =>
+      toJobView((await pub.readContract({ address: escrow, abi: jobEscrowAbi, functionName: 'job', args: [jobId] })) as never);
+    // The public RPC load-balances across nodes that can lag a block: after a write, wait until a
+    // read shows the job has left its old status, so the scenario never checks a stale state.
+    const settled = async (jobId: Hex, from: JobView['status']) => {
+      for (let i = 0; i < 20; i++) {
+        if ((await readJob(jobId)).status !== from) return;
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      throw new Error(`job ${jobId} still ${from} 20 s after its transaction`);
+    };
+    const write = async (client: typeof agent, functionName: string, args: unknown[], jobId: Hex) => {
+      const from = (await readJob(jobId)).status;
+      const hash = await client.writeContract({ address: escrow, abi: jobEscrowAbi, functionName, args } as never);
+      const receipt = await pub.waitForTransactionReceipt({ hash });
+      if (receipt.status !== 'success') throw new Error(`${functionName} reverted: ${txUrl(hash)}`);
+      await settled(jobId, from);
+      return hash;
+    };
+    const records: JobRecord[] = [];
+    out('hires-start', { wallet, escrow, worker: worker.address, arbiter });
+    const code = await runHireScenario({
+      wallet,
+      worker: getAddress(worker.address),
+      arbiter,
+      now: async () => (await pub.getBlock()).timestamp,
+      readJob,
+      nonceUsed: (nonce) => pub.readContract({ address: wallet, abi: policyWalletAbi, functionName: 'nonceUsed', args: [nonce] }) as Promise<boolean>,
+      async hire(nonce, terms) {
+        const r = await hireAgent({ wallet, escrow, agentKey, terms, nonce, now: (await pub.getBlock()).timestamp, rpcUrl: cfg.rpcUrl, clients: { publicClient: pub, walletClient: agent } });
+        if (r.kind === 'opened') await settled(r.jobId, 'None');
+        return r;
+      },
+      deliver: (jobId, resultHash) => write(workerClient, 'deliver', [jobId, resultHash], jobId),
+      accept: (jobId) => write(agent, 'accept', [jobId], jobId),
+      reject: (jobId, reasonHash) => write(agent, 'reject', [jobId, reasonHash], jobId),
+      claimTimeout: (jobId) => write(agent, 'claimTimeout', [jobId], jobId),
+      publish: (r) => records.push(r),
+      log: (line) => out('hire-step', { ...line, ...(typeof line.tx === 'string' ? { tx: txUrl(line.tx as Hex) } : {}) }),
+    });
+    if (records.length) {
+      const path = `${ROOT}apps/dashboard/src/data/jobs.json`;
+      const prev = existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as { jobs: JobRecord[] }).jobs : [];
+      const jobs = [...prev.filter((p) => !records.some((r) => r.jobId === p.jobId)), ...records].sort((a, b) => b.slot - a.slot).slice(0, 60);
+      writeFileSync(path, JSON.stringify({ escrow, jobs }, null, 2) + '\n');
+      out('jobs-published', { path: 'apps/dashboard/src/data/jobs.json', added: records.length });
+    }
+    return code;
   },
 
   /** create-wallet --name <n> --cap <usdc> --daily <usdc> [--agent <addr>] (operator) */
