@@ -19,6 +19,12 @@
       "address": "0x3E8441303A46c56FD2E0492Bd41838A14d57C438",
       "agent": "0x1F1906b97EBB69dc826bAA03282e0d6F9074C3DB",
       "createdBlock": 47912819
+    },
+    {
+      "name": "worker-bot-01",
+      "address": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+      "agent": "0x6ad2A4f2622ADB774A38198686610Ee2b4dBa40A",
+      "createdBlock": 48003863
     }
   ],
   "factory": "0xad04a77c6170a5dee15ed61146f9232dfdc8b38c",
@@ -44,5 +50,7 @@
       "retiredAt": "2026-10-10",
       "note": "001's wallet; its USDC moved to the 002 research-bot-01 (T043)"
     }
-  ]
+  ],
+  "escrow": "0xf12b4e917c64ca692f6af8c635409740e66ff721",
+  "escrowBlock": 48003819
 }
