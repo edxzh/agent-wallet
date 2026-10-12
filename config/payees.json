@@ -23,5 +23,15 @@
     "address": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
     "label": "Demo services: impostor / anonymous",
     "labelZh": "演示服务：冒充者 / 匿名"
+  },
+  {
+    "address": "0xf12b4e917c64ca692f6af8c635409740e66ff721",
+    "label": "Job escrow",
+    "labelZh": "任务托管"
+  },
+  {
+    "address": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+    "label": "worker-bot-01",
+    "labelZh": "worker-bot-01"
   }
 ]

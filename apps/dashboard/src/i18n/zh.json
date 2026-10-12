@@ -332,5 +332,47 @@
     "title": "页面不存在",
     "body": "这个地址没有内容。",
     "back": "前往实时面板"
+  },
+  "jobs": {
+    "heading": "agent 雇用 agent",
+    "intro": "每隔几小时，research-bot-01 会雇用另一个 agent（worker-bot-01）计算三个价格的平均值。报酬先存在托管合约里，等 research-bot-01 检查答案：答对就付款，答错就进入争议，错过截止时间就退款。有些任务会故意出错，用来展示争议和退款的过程。",
+    "escrow": "托管合约",
+    "kind": {
+      "honest": "认真的 worker",
+      "dispute": "马虎的 worker（故意的）",
+      "noshow": "worker 没有交付（故意的）"
+    },
+    "status": {
+      "open": "等待交付",
+      "delivered": "已交付，检查中",
+      "disputed": "有争议：等待运营方裁决",
+      "refused": "未雇用：{reason}",
+      "ACCEPTED": "已接受：worker 已收到报酬",
+      "REVIEW_TIMEOUT": "已付款：雇主没有按时回应",
+      "ARBITER_PAID": "已付款：运营方裁定支持 worker",
+      "DELIVERY_TIMEOUT": "已退款：worker 错过了截止时间",
+      "ARBITER_REFUNDED": "已退款：运营方裁定支持雇主",
+      "ARBITER_TIMEOUT": "已退款：运营方没有按时裁决"
+    },
+    "asked": "任务",
+    "askedValue": "求 {values} USDC 的平均值",
+    "answer": "答案",
+    "noAnswer": "没有交付",
+    "checkOk": "检查结果：正确",
+    "checkBad": "检查结果：错误，应为 {want}",
+    "hashOk": "与链上哈希一致",
+    "hashBad": "与链上哈希不一致",
+    "deferred": "待付：代币暂时拒绝了这笔付款",
+    "deadlineDeliver": "如果在 {time} 前没有交付，任何人都可以给雇主退款。",
+    "deadlineDispute": "如果运营方在 {time} 前没有裁决，任何人都可以给雇主退款。",
+    "steps": {
+      "opened": "雇用",
+      "delivered": "交付",
+      "disputed": "拒绝",
+      "closed": "结束",
+      "refused": "拒绝雇用"
+    },
+    "price": "{amount} USDC",
+    "more": "显示最近 {n} 个任务。"
   }
 }

@@ -20,4 +20,10 @@
       refunds); closes earlier slots' due timeouts; publishes spec and result texts to
       `apps/dashboard/src/data/jobs.json`. Rehearsed on a local fork over three slots (all
       outcomes as expected). First live run: the next scheduled run after the push
-- [ ] T012 Dashboard: jobs on the timeline, a "hired agents" card (en/zh)
+- [x] T012 Dashboard: an "Agents hiring agents" section (en/zh) with one card per recent job:
+      what was asked, the answer, the hirer's check, whether the published texts match the
+      hashes on-chain, the outcome in plain language, the next deadline, and every step linked to
+      its transaction. The snapshot reads the escrow's events incrementally (`scripts/lib/jobs.ts`)
+      and joins jobs.json; the wallet timeline labels the escrow and worker-bot-01 as payees. Jobs
+      have their own section rather than rows on the wallet timeline, and update with each
+      snapshot (no live tail)

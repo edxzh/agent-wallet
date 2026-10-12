@@ -15,6 +15,7 @@ import { policyWalletAbi } from '../packages/agent/src/abi.js';
 import { ROOT } from '../packages/agent/src/config.js';
 import { reasonName } from '../packages/agent/src/reasons.js';
 import { assertRegistriesPinned, ERC8004, IDENTITY_REGISTRY, identityAbi, REPUTATION_REGISTRY, reputationAbi } from '../packages/agent/src/registries.js';
+import { mergeJobs, withPublished, type JobHistory, type PublishedJob } from './lib/jobs.js';
 import { appendSnapshot, decodeAgentURI, sinceOf, statusChange, type Erc8004Info, type ReputationRuleView, type ServiceView } from './lib/trust.js';
 
 const OUT = new URL('../apps/dashboard/src/data/history.json', import.meta.url);
@@ -141,7 +142,26 @@ if (gated && gatedHasRule && serviceEntries.some((x) => x.agentId !== null)) {
   console.error(`✓ trust: rule ${enabled ? 'on' : 'off'} (${minAverage}+ from ${minCount}), ${services.length} services, registries ${pinnedOk ? 'pinned' : 'CHANGED'}`);
 }
 
-const history: History = { network: NETWORK, generatedAt: new Date().toISOString(), lastBlock: Number(latest), wallets, erc8004, reputationRule, services };
+// ── 004: jobs through the escrow ────────────────────────────────────────────────────────
+// Incremental like the wallets; each job is joined with the spec and result texts the scheduled
+// run published (jobs.json), checked against the hashes on-chain.
+let jobs: JobHistory[] | undefined;
+const escrow = deployments.escrow ? getAddress(deployments.escrow) : undefined;
+if (escrow) {
+  const from = BigInt(previous?.escrow && previous.jobs ? previous.lastBlock + 1 : (deployments.escrowBlock ?? Number(latest)));
+  const logs: Log[] = [];
+  for (const [fromBlock, toBlock] of from <= latest ? blockRanges(from, latest) : []) logs.push(...(await pub.getLogs({ address: escrow, fromBlock, toBlock })));
+  const times = new Map<number, string>();
+  for (const n of new Set(logs.map((l) => Number(l.blockNumber)))) {
+    times.set(n, new Date(Number((await pub.getBlock({ blockNumber: BigInt(n) })).timestamp) * 1000).toISOString());
+  }
+  const jobsPath = new URL('../apps/dashboard/src/data/jobs.json', import.meta.url);
+  const published: PublishedJob[] = existsSync(jobsPath) ? JSON.parse(readFileSync(jobsPath, 'utf8')).jobs : [];
+  jobs = withPublished(mergeJobs(previous?.jobs ?? [], logs, times), published);
+  console.error(`✓ escrow: +${logs.length} logs, ${jobs.length} jobs`);
+}
+
+const history: History = { network: NETWORK, generatedAt: new Date().toISOString(), lastBlock: Number(latest), wallets, erc8004, reputationRule, services, escrow, jobs };
 mkdirSync(new URL('.', OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(history, null, 2) + '\n');
 console.error(`✓ history.json written at block ${latest}`);

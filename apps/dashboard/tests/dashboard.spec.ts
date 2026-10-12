@@ -146,3 +146,22 @@ test.describe('trust section without JavaScript', () => {
     await expect(page.locator('[data-service="impostor"] [data-svc="reason"]')).toHaveText("Service claimed someone else's identity");
   });
 });
+
+// 004 (T012): jobs through the escrow, when the snapshot has any.
+import history from '../src/data/history.json' with { type: 'json' };
+const jobs = (history as { jobs?: { jobId: string; resultMatches?: boolean }[] }).jobs ?? [];
+for (const path of ['/', '/zh/']) {
+  test(`${path}: one card per recent job, each step linked to its transaction`, async ({ page }) => {
+    await page.goto(path);
+    const section = page.locator('section.jobs');
+    if (!jobs.length) return expect(section).toHaveCount(0);
+    const cards = section.locator('li.job');
+    await expect(cards).toHaveCount(Math.min(jobs.length, 6));
+    await expect(cards.first().locator('[data-job-badge]')).not.toBeEmpty();
+    for (const href of await section.locator('.steps a').evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
+      expect(href).toMatch(/^https:\/\/sepolia\.basescan\.org\/tx\/0x[0-9a-f]{64}$/);
+    }
+    const withResult = jobs.slice(0, 6).filter((j) => j.resultMatches !== undefined).length;
+    await expect(section.locator('[data-job-hash]')).toHaveCount(withResult);
+  });
+}

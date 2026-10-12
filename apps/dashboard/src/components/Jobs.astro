@@ -1,0 +1,139 @@
+---
+import { t, type Lang } from '../i18n';
+import { history, type JobView } from '../lib/history';
+import { formatTime, shortAddress, txLink, usdc } from '../lib/rows';
+
+/** Feature 004: jobs research-bot-01 hired through the escrow, newest first (T012). */
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const tr = d.jobs;
+const reasons = d.reason as Record<string, string>;
+const status = tr.status as Record<string, string>;
+const kinds = tr.kind as Record<string, string>;
+const SHOWN = 6;
+const jobs = (history?.jobs ?? []).slice(0, SHOWN);
+const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+const plus = (iso: string, seconds: number) => new Date(new Date(iso).getTime() + seconds * 1000).toISOString();
+
+function badge(j: JobView): { text: string; tone: 'ok' | 'bad' | 'wait' } {
+  if (j.status === 'closed' && j.closed) {
+    const paidWorker = ['ACCEPTED', 'REVIEW_TIMEOUT', 'ARBITER_PAID'].includes(j.closed.outcome);
+    return { text: status[j.closed.outcome] ?? j.closed.outcome, tone: paidWorker ? 'ok' : 'bad' };
+  }
+  if (j.status === 'refused') return { text: fill(status.refused!, { reason: reasons[j.refused!.reason] ?? j.refused!.reason }), tone: 'bad' };
+  return { text: status[j.status] ?? j.status, tone: 'wait' };
+}
+
+function asked(j: JobView): string | undefined {
+  try {
+    const spec = JSON.parse(j.spec ?? '') as { values?: string[] };
+    return spec.values ? fill(tr.askedValue, { values: spec.values.join(', ') }) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function answer(j: JobView): string {
+  if (!j.result) return tr.noAnswer;
+  try {
+    return (JSON.parse(j.result) as { average?: string }).average ?? j.result;
+  } catch {
+    return j.result;
+  }
+}
+
+/** The hirer's check is stored in English ("average is X, expected Y"): show only the expected value. */
+function wrong(check: string): string {
+  const want = /expected (\S+)/.exec(check)?.[1];
+  return want ? fill(tr.checkBad, { want }) : fill(tr.checkBad, { want: '?' });
+}
+
+function deadline(j: JobView): string | undefined {
+  if (j.status === 'open' && j.opened) return fill(tr.deadlineDeliver, { time: formatTime(new Date(j.opened.deliverBy * 1000).toISOString(), lang) });
+  if (j.status === 'disputed' && j.disputed && j.opened) return fill(tr.deadlineDispute, { time: formatTime(plus(j.disputed.time, j.opened.disputeWindow), lang) });
+  return undefined;
+}
+
+const steps = (j: JobView) =>
+  (['opened', 'delivered', 'disputed', 'closed', 'refused'] as const)
+    .filter((k) => j[k])
+    .map((k) => ({ label: (tr.steps as Record<string, string>)[k]!, step: j[k]! }));
+---
+
+{jobs.length > 0 && (
+  <section class="section jobs" aria-labelledby="jobs-h">
+    <h2 id="jobs-h">{tr.heading}</h2>
+    <p class="lead muted">
+      {tr.intro}{' '}
+      {history?.escrow && <a href={`https://sepolia.basescan.org/address/${history.escrow}`} rel="noopener" target="_blank">{tr.escrow} ↗</a>}
+    </p>
+    <ul class="list" role="list">
+      {jobs.map((j) => {
+        const b = badge(j);
+        const q = asked(j);
+        const late = deadline(j);
+        return (
+          <li class="card job" data-job={j.jobId} data-status={j.status}>
+            <div class="top">
+              <p class="kind">{j.kind ? (kinds[j.kind] ?? j.kind) : shortAddress(j.jobId)}</p>
+              <span class:list={['badge', b.tone]} data-job-badge>{b.text}</span>
+            </div>
+            <p class="meta mono">
+              {fill(tr.price, { amount: usdc(j.amount) })}
+              {(j.opened ?? j.refused) && <> · {formatTime((j.opened ?? j.refused)!.time, lang)}</>}
+            </p>
+            {q && (
+              <dl>
+                <div><dt>{tr.asked}</dt><dd>{q}</dd></div>
+                <div>
+                  <dt>{tr.answer}</dt>
+                  <dd>
+                    <span class="mono">{answer(j)}</span>
+                    {j.check && <span class:list={['check', j.check === 'ok' ? 'ok' : 'bad']}> · {j.check === 'ok' ? tr.checkOk : wrong(j.check)}</span>}
+                    {j.resultMatches !== undefined && <span class:list={['hash', j.resultMatches ? 'ok' : 'bad']} data-job-hash>{j.resultMatches ? `✓ ${tr.hashOk}` : `✗ ${tr.hashBad}`}</span>}
+                  </dd>
+                </div>
+              </dl>
+            )}
+            {j.closed?.deferred && <p class="warn">{tr.deferred}</p>}
+            {late && <p class="muted small">{late}</p>}
+            <ol class="steps" role="list">
+              {steps(j).map((s) => (
+                <li>
+                  <a href={txLink(s.step.txHash)} rel="noopener" target="_blank">{s.label} ↗</a>
+                  <span class="mono muted">{formatTime(s.step.time, lang)}</span>
+                </li>
+              ))}
+            </ol>
+          </li>
+        );
+      })}
+    </ul>
+    <p class="muted small">{fill(tr.more, { n: jobs.length })}</p>
+  </section>
+)}
+
+<style>
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 0; margin: 24px 0 12px; }
+  .job { display: grid; gap: 10px; align-content: start; }
+  .top { display: grid; justify-items: start; gap: 6px; }
+  .kind { font: 600 16px var(--font-heading); }
+  .badge { font: 12px var(--font-mono); padding: 3px 10px; border-radius: 999px; }
+  .badge.ok { color: #34d399; background: rgb(52 211 153 / 0.12); }
+  .badge.bad { color: #fca5a5; background: rgb(252 165 165 / 0.12); }
+  .badge.wait { color: #fbbf24; background: rgb(251 191 36 / 0.12); }
+  .meta { font-size: 13px; color: var(--text-muted); }
+  dl { display: grid; gap: 6px; margin: 0; font-size: 14px; }
+  dl > div { display: grid; grid-template-columns: 64px 1fr; gap: 8px; }
+  dt { color: var(--text-muted); }
+  dd { margin: 0; overflow-wrap: anywhere; }
+  .check.ok, .hash.ok { color: #34d399; }
+  .check.bad, .hash.bad { color: #fca5a5; }
+  .hash { display: block; font-size: 12px; margin-top: 2px; }
+  .steps { display: grid; gap: 4px; padding: 0; margin: 0; font-size: 13px; }
+  .steps li { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .muted { color: var(--text-muted); }
+  .small { font-size: 13px; }
+  .warn { color: #fbbf24; font-size: 13px; }
+</style>

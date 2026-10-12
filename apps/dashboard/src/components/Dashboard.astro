@@ -4,6 +4,7 @@ import RulesCard from './RulesCard.astro';
 import SpendBars from './SpendBars.astro';
 import Timeline from './Timeline.astro';
 import TrustRule from './TrustRule.astro';
+import Jobs from './Jobs.astro';
 import { history, labelsFor, rowTextFor } from '../lib/history';
 import { formatTime } from '../lib/rows';
 
@@ -78,6 +79,8 @@ const liveData = wallet && history && {
 )}
 
 <TrustRule lang={lang} />
+
+<Jobs lang={lang} />
 
 <section class="section" aria-labelledby="how">
   <h2 id="how">{d.how.heading}</h2>

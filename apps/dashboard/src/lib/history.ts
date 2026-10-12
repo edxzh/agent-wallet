@@ -28,6 +28,26 @@ export type ServiceView = {
   since: string;
   snapshots: ServiceSnapshot[];
 };
+/** 004: a job through the escrow (scripts/lib/jobs.ts). */
+type Step = { time: string; block: number; txHash: string };
+export type JobView = {
+  jobId: string;
+  client: string;
+  worker: string;
+  amount: string;
+  status: 'open' | 'delivered' | 'disputed' | 'closed' | 'refused';
+  opened?: Step & { deliverBy: number; reviewWindow: number; disputeWindow: number; specHash: string };
+  refused?: Step & { reason: string };
+  delivered?: Step & { resultHash: string };
+  disputed?: Step & { reasonHash: string };
+  closed?: Step & { outcome: string; to: string; deferred: boolean };
+  kind?: string;
+  spec?: string;
+  result?: string;
+  check?: string;
+  specMatches?: boolean;
+  resultMatches?: boolean;
+};
 export type History = {
   network: string;
   generatedAt: string;
@@ -37,6 +57,8 @@ export type History = {
   erc8004?: { identity: string; reputation: string; implementations: { identity: string; reputation: string }; pinnedOk: boolean };
   reputationRule?: { wallet: string; enabled: boolean; minAverage: number; minCount: number; trustedReviewers: { address: string; label: string }[] };
   services?: ServiceView[];
+  escrow?: string;
+  jobs?: JobView[];
 };
 
 // The snapshot is optional at build time (e.g. before the first deploy).

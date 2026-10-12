@@ -332,5 +332,47 @@
     "title": "Page not found",
     "body": "There's nothing at this address.",
     "back": "Go to the live dashboard"
+  },
+  "jobs": {
+    "heading": "Agents hiring agents",
+    "intro": "Every few hours research-bot-01 hires another agent, worker-bot-01, to average three prices. The price waits in an escrow contract until research-bot-01 checks the answer: a right answer is paid, a wrong one goes to a dispute, and a missed deadline is refunded. Some jobs go wrong on purpose, to show disputes and refunds happening.",
+    "escrow": "Escrow contract",
+    "kind": {
+      "honest": "Honest worker",
+      "dispute": "Sloppy worker (on purpose)",
+      "noshow": "Worker never delivers (on purpose)"
+    },
+    "status": {
+      "open": "Waiting for the work",
+      "delivered": "Delivered, being checked",
+      "disputed": "Disputed: waiting for the operator",
+      "refused": "Not hired: {reason}",
+      "ACCEPTED": "Accepted: the worker was paid",
+      "REVIEW_TIMEOUT": "Paid: the hirer didn't answer in time",
+      "ARBITER_PAID": "Paid: the operator ruled for the worker",
+      "DELIVERY_TIMEOUT": "Refunded: the worker missed the deadline",
+      "ARBITER_REFUNDED": "Refunded: the operator ruled for the hirer",
+      "ARBITER_TIMEOUT": "Refunded: the operator didn't rule in time"
+    },
+    "asked": "Asked",
+    "askedValue": "average of {values} USDC",
+    "answer": "Answer",
+    "noAnswer": "nothing delivered",
+    "checkOk": "checked: correct",
+    "checkBad": "checked: wrong, should be {want}",
+    "hashOk": "matches the hash on-chain",
+    "hashBad": "does not match the hash on-chain",
+    "deferred": "owed: the token refused the payment for now",
+    "deadlineDeliver": "If nothing arrives by {time}, anyone can refund the hirer.",
+    "deadlineDispute": "If the operator doesn't rule by {time}, anyone can refund the hirer.",
+    "steps": {
+      "opened": "Hired",
+      "delivered": "Delivered",
+      "disputed": "Rejected",
+      "closed": "Closed",
+      "refused": "Refused"
+    },
+    "price": "{amount} USDC",
+    "more": "Showing the {n} latest jobs."
   }
 }

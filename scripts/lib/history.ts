@@ -56,6 +56,9 @@ export type History = {
   erc8004?: import('./trust.js').Erc8004Info;
   reputationRule?: import('./trust.js').ReputationRuleView;
   services?: import('./trust.js').ServiceView[];
+  // 004: jobs through the escrow (optional until it is deployed)
+  escrow?: Address;
+  jobs?: import('./jobs.js').JobHistory[];
 };
 
 export const MAX_EVENTS = 500;
