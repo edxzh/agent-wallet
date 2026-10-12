@@ -327,5 +327,10 @@
     },
     "noJs": "This page needs JavaScript to ask the contract. Each attack below shows what the agent is told; the scheduled agent's real refusals are on the dashboard.",
     "cta": "Try to make it overspend"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "There's nothing at this address.",
+    "back": "Go to the live dashboard"
   }
 }

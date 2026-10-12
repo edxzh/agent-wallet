@@ -118,3 +118,12 @@ test.describe('try page without JavaScript', () => {
     await expect(page.locator('button[data-attack]').first()).toBeDisabled();
   });
 });
+
+test('robots.txt, the sitemap and a real 404 (not the dashboard) are served', async ({ request }) => {
+  const robots = await request.get('/robots.txt');
+  expect(await robots.text()).toBe('User-agent: *\nAllow: /\nSitemap: https://demo.yunshu.ai/sitemap.xml\n');
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  for (const p of ['/', '/zh/', '/try/', '/zh/try/']) expect(sitemap).toContain(`<loc>https://demo.yunshu.ai${p}</loc>`);
+  const nf = await (await request.get('/404.html')).text();
+  expect(nf).toContain('noindex');
+});

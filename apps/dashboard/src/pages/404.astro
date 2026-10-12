@@ -1,0 +1,48 @@
+---
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { t } from '../i18n';
+
+// Without a 404 page, Cloudflare Pages answers unknown paths (even /robots.txt) with the dashboard.
+const zh = t('zh').notFound;
+const en = t('en').notFound;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>404 · {en.title} · {zh.title}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <main class="container nf">
+      <p class="eyebrow">404</p>
+      <section lang="en">
+        <h1>{en.title}</h1>
+        <p class="muted">{en.body} <a href="/">{en.back}</a></p>
+      </section>
+      <section lang="zh-Hans">
+        <h2>{zh.title}</h2>
+        <p class="muted">{zh.body} <a href="/zh/">{zh.back}</a></p>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  .nf {
+    min-height: 100vh;
+    display: grid;
+    align-content: center;
+    gap: 32px;
+  }
+  h1,
+  h2 {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+</style>
