@@ -7,7 +7,7 @@
   "banner": "仅测试网络，不涉及真实资金。",
   "eyebrow": "Agent 钱包 · Base Sepolia · x402",
   "heading": "能自主付费、却不会超支的 agent",
-  "intro": "AI agent 拥有自己的钱包，支出上限写在智能合约里。它自己为 API 调用付费。违反规则的付款在资金动用前就被拒绝，每一笔付款和拒绝都记录在任何人都能核对的公开账本上。它也可以向不在名单上的服务付款，但前提是该服务拥有 ERC-8004 身份，并且运营方信任的评价者给出了足够好的评价。",
+  "intro": "AI agent 拥有自己的钱包，支出上限写在智能合约里。它自己为 API 调用付费。违反规则的付款在资金动用前就被拒绝，每一笔付款和拒绝都记录在任何人都能核对的公开账本上。它也可以向不在名单上的服务付款，但前提是该服务拥有 ERC-8004 身份，并且运营方信任的评价方给出了足够好的评价。",
   "statusLabel": "状态",
   "repoCta": "在 GitHub 上查看",
   "specCta": "阅读需求说明",
@@ -62,7 +62,7 @@
       },
       {
         "name": "可信收款方",
-        "body": "不在名单上的服务，如果拥有 ERC-8004 身份，并获得运营方信任的评价者足够多的好评，也可以收到付款。",
+        "body": "不在名单上的服务，如果拥有 ERC-8004 身份，并获得运营方信任的评价方足够多的好评，也可以收到付款。",
         "example": "演示：≥ 3 条可信评价，平均分 ≥ 70"
       },
       {
@@ -98,7 +98,7 @@
       },
       {
         "code": "REPUTATION_UNAVAILABLE",
-        "body": "无法读取信誉注册表，因此不付款，而不是猜测。"
+        "body": "无法读取信誉注册表，因此宁可不付款，也不去猜测。"
       },
       {
         "code": "NOT_ENOUGH_TRUSTED_REVIEWS",
@@ -132,7 +132,7 @@
       "Solidity + Foundry",
       "OpenZeppelin",
       "x402",
-      "USDC on Base Sepolia",
+      "Base Sepolia 上的 USDC",
       "ERC-8004",
       "viem",
       "Cloudflare Workers",
@@ -322,7 +322,7 @@
       "summary": "agent 试图花 {tried} USDC，钱包会放行 {allowed} USDC。",
       "dryRun": "在区块 {block} 上试运行：真实合约，当前链上状态。没有签名、没有发送交易，也没有动用任何资金。",
       "network": "无法连接 Base Sepolia 节点，所以什么都没有运行。请稍后再试。",
-      "record": "试运行不会记录在公开记录上。定时运行的 agent 的真实付款和拒绝会记录：",
+      "record": "试运行不会写入公开记录，但定时运行的 agent 的真实付款和拒绝都会记录在案：",
       "recordLink": "在实时面板上查看"
     },
     "noJs": "这个页面需要 JavaScript 才能询问合约。下面每种攻击都列出了 agent 收到的指令；定时运行的 agent 的真实拒绝记录在实时面板上。",
@@ -338,7 +338,7 @@
     "intro": "每隔几小时，research-bot-01 会雇用另一个 agent（worker-bot-01）计算三个价格的平均值。报酬先存在托管合约里，等 research-bot-01 检查答案：答对就付款，答错就进入争议，错过截止时间就退款。有些任务会故意出错，用来展示争议和退款的过程。",
     "escrow": "托管合约",
     "kind": {
-      "honest": "认真的 worker",
+      "honest": "诚实的 worker",
       "dispute": "马虎的 worker（故意的）",
       "noshow": "worker 没有交付（故意的）"
     },
@@ -368,7 +368,7 @@
     "steps": {
       "opened": "雇用",
       "delivered": "交付",
-      "disputed": "拒绝",
+      "disputed": "驳回",
       "closed": "结束",
       "refused": "拒绝雇用"
     },
