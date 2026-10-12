@@ -14,6 +14,8 @@ have enough.
   contract answers in a dry run.
 - **The story, without code:** [Letting an AI agent pay for itself, without letting it
   overspend](articles/2026-10-agent-pays-safely.md) ([中文](articles/2026-10-agent-pays-safely-zh.md)).
+  The sequel, on agents hiring agents: [When an AI agent hires another agent](articles/2026-10-agent-hires-agent.md)
+  ([中文](articles/2026-10-agent-hires-agent-zh.md)).
 
 ## 1. The problem
 
