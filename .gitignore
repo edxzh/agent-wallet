@@ -31,3 +31,7 @@ contracts/lib/
 # Playwright
 apps/dashboard/test-results/
 apps/dashboard/playwright-report/
+
+# Gas check (scripts/check-gas.ts), per run
+.gas-start.json
+gas-alert.md

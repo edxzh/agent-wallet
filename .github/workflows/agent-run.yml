@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  issues: write # the gas alert (scripts/check-gas.ts)
 
 concurrency: agent-run
 
@@ -44,6 +45,10 @@ jobs:
           cache: npm
       - run: npm ci
         if: steps.setup.outputs.ready == 'true'
+      - name: Gas at start
+        if: steps.setup.outputs.ready == 'true'
+        run: npx tsx scripts/check-gas.ts --start
+        continue-on-error: true
       - name: Run scenario (exit 3 = wallet needs funds; still snapshot)
         if: steps.setup.outputs.ready == 'true'
         id: scenario
@@ -67,6 +72,26 @@ jobs:
       - name: Dashboard numbers equal the registry (FR-015)
         if: steps.setup.outputs.ready == 'true'
         run: npx tsx scripts/check-reputation.ts
+      # Runway per account from this run's own spend; a low account opens (or updates) one issue,
+      # so the owner hears about it before a run fails for lack of gas.
+      - name: Gas check
+        if: steps.setup.outputs.ready == 'true'
+        id: gas
+        run: npx tsx scripts/check-gas.ts
+        continue-on-error: true
+      - name: Gas alert issue
+        if: steps.setup.outputs.ready == 'true' && steps.gas.outputs.low == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create gas-low --color d93f0b --description "An agent-run account is low on test ETH" 2>/dev/null || true
+          open=$(gh issue list --label gas-low --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file gas-alert.md
+          else
+            gh issue create --title "Gas low on the agent-run accounts" --label gas-low --body-file gas-alert.md
+          fi
       - name: Commit snapshot
         if: steps.setup.outputs.ready == 'true'
         run: |
