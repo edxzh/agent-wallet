@@ -1,5 +1,7 @@
 # How the agent wallet works
 
+*[中文](how-it-works-zh.md)*
+
 A guided tour, from the idea to the code. Each section explains one part in a few paragraphs
 and links to the document that covers it in full. Read top to bottom, and stop wherever you
 have enough.
@@ -116,11 +118,10 @@ be bad. The **JobEscrow** contract holds the hirer's money until the work is che
 4. Every step has a deadline, so no job is ever stuck: a late worker means a refund, a silent
    hirer means the worker is paid, and a silent arbiter means a refund.
 
-The scheduled demo run hires `worker-bot-01` every 6 hours: one honest job, plus either a
+The scheduled demo run hires `worker-bot-01` about every 6 hours: one honest job, plus either a
 dispute (a sloppy result the hirer's check catches) or a no-show. It publishes each job's spec
-and result in [`apps/dashboard/src/data/jobs.json`](../apps/dashboard/src/data/jobs.json)
-(written by the first scheduled run after 2026-10-12), so anyone can check them against the
-hashes on-chain.
+and result in [`apps/dashboard/src/data/jobs.json`](../apps/dashboard/src/data/jobs.json), so
+anyone can check them against the hashes on-chain.
 
 Read:
 - [`specs/004-agent-hires-agent/spec.md`](../specs/004-agent-hires-agent/spec.md) and
