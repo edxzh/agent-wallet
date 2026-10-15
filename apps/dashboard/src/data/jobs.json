@@ -2,6 +2,26 @@
   "escrow": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
   "jobs": [
     {
+      "jobId": "0xf674fc130b4375869b1636a80c33a643f3ceb289500a8cf1245f714e662be6c2",
+      "slot": 82964,
+      "kind": "honest",
+      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1066.45\",\"1033.74\",\"1001.03\"]}",
+      "specHash": "0x5baa0811ea180dd2910ab570e243b0c5f43cc46a17aef55dc4878985a917411c",
+      "result": "{\"average\":\"1033.74\"}",
+      "resultHash": "0x484422566cad0093f268f3e672e83c7f81f7d461e860b67a5a230ad9c7153cfb",
+      "check": "ok"
+    },
+    {
+      "jobId": "0xc3a28d8446c8fb5476646e6598ac22b8908b5f99c02004c5a3d317a567e955ac",
+      "slot": 82964,
+      "kind": "dispute",
+      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1066.45\",\"1033.74\",\"1001.03\"]}",
+      "specHash": "0x5baa0811ea180dd2910ab570e243b0c5f43cc46a17aef55dc4878985a917411c",
+      "result": "{\"average\":\"1050.09\"}",
+      "resultHash": "0x1cc9d5e4273a386ad974ba0ac889f83a21476390be854fc8d1d79e493c8b14d3",
+      "check": "average is 1050.09, expected 1033.74"
+    },
+    {
       "jobId": "0xd6b7c4f0721c7760e15f1b000adac4e10ceede990d36143cc1f09f21a564278f",
       "slot": 82963,
       "kind": "honest",
