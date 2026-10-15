@@ -1,7 +1,7 @@
 {
   "network": "eip155:84532",
-  "generatedAt": "2026-10-15T11:45:09.642Z",
-  "lastBlock": 48148199,
+  "generatedAt": "2026-10-15T17:13:01.582Z",
+  "lastBlock": 48158036,
   "wallets": [
     {
       "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
@@ -60,7 +60,7 @@
           "id": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
           "label": "market-research",
           "budget": "10000000",
-          "spent": "570000"
+          "spent": "600000"
         },
         {
           "id": "0xead08f4e28c200ed114a28c17b2374ebe77cddb2c1c4fb36166df1590ed7d468",
@@ -71,10 +71,233 @@
       ],
       "today": {
         "day": 20741,
-        "spent": "140000"
+        "spent": "210000"
       },
-      "balance": "6680000",
+      "balance": "6620000",
       "events": [
+        {
+          "block": 48158028,
+          "logIndex": 207,
+          "txHash": "0x870b3c31961bb8d70d88b8fde075a4a9a1aeb134d4e235603abe2c0caa7cb4fd",
+          "time": "2026-10-15T17:12:24.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xd3fdf8d90072bc0cfe93747d867620d5c4408ba1877760b275eca9a8e703c6f0",
+          "payee": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x2a7e95942846a137c31f96b79a81ed093304be882fb7a937cb3a637c66bf54af"
+        },
+        {
+          "block": 48158022,
+          "logIndex": 118,
+          "txHash": "0xc656cd4b98f281442d70b50178e7f30c86dfe5cbd16c1f9be38021e86b9b2003",
+          "time": "2026-10-15T17:12:12.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xf89b653dd2c79198d0951f164bfcaf67971df3b69ebbe84df8f80d20bd0c9c19",
+          "payee": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0xd358286cee4fc4306f3db137d7caf2e77d94e02e500b8ddb8b960f9aa4183621"
+        },
+        {
+          "block": 48158016,
+          "logIndex": 92,
+          "txHash": "0x897e28542ac5a7b0f147677b2ba1c8dadf7ce1ea02edebdca02ccdd730a2d29e",
+          "time": "2026-10-15T17:12:00.000Z",
+          "kind": "refused",
+          "nonce": "0x13223638b0ea07062beb9cf10303c3d2c4ad2b97cbc5b7277984906e4a0f9e3b",
+          "payee": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
+        },
+        {
+          "block": 48158013,
+          "logIndex": 2,
+          "txHash": "0x569b675ba20288602cec2dc03f9f216c7a5806cdded57952a4e2a4d31b636145",
+          "time": "2026-10-15T17:11:54.000Z",
+          "kind": "refused",
+          "nonce": "0xaad260a2f75995599d1ef3352ecb04ac672d384e3b13407a9aace0c95de71c78",
+          "payee": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "reason": "PAYEE_IDENTITY_MISMATCH"
+        },
+        {
+          "block": 48158012,
+          "logIndex": 9,
+          "txHash": "0x716fc1f3fd86a007f878161baadf6c4387757e506f1af06d2a2ec2a4efd47a35",
+          "time": "2026-10-15T17:11:52.000Z",
+          "kind": "rated",
+          "nonce": "0x59df10c07818a80c7ffd3928d1bfd51ea034a2c85e62de687a5a40b03727057e",
+          "agentId": "9616",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "12"
+        },
+        {
+          "block": 48158006,
+          "logIndex": 7,
+          "txHash": "0xd0d3573cc48a2d5acea8f8c5d0923c008e844c4647c1e481d55c0a38d9a53708",
+          "time": "2026-10-15T17:11:40.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x59df10c07818a80c7ffd3928d1bfd51ea034a2c85e62de687a5a40b03727057e",
+          "payee": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x4ae2a3285cb242fca8eb461bc29d9ec4a1c09e5dd6c318adb30beb6a0fc6fd2c"
+        },
+        {
+          "block": 48158002,
+          "logIndex": 59,
+          "txHash": "0x608a080b85db6c578a05917fd0e3805c423de20d5baeccc712bee4ac7f8db3c4",
+          "time": "2026-10-15T17:11:32.000Z",
+          "kind": "refused",
+          "nonce": "0xd5a87f3348db0be9bd3bdd55e3ad5342bce52de6f275f929ecbf4d623686a029",
+          "payee": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "reason": "PAYEE_REPUTATION_TOO_LOW"
+        },
+        {
+          "block": 48158001,
+          "logIndex": 106,
+          "txHash": "0x57ef1b3d26c422500cd06272d66563e79fdaa0a44c9e6ddf64524aa20c850123",
+          "time": "2026-10-15T17:11:30.000Z",
+          "kind": "rated",
+          "nonce": "0xc30ccbd9787dd3ea1b19881b70191af96d52f13b1756b46606616e6018562c89",
+          "agentId": "9614",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "19"
+        },
+        {
+          "block": 48157995,
+          "logIndex": 227,
+          "txHash": "0xeedb0cdff1f03b1aca11da8ef8f3abce97c149ed242c5e6001a3605ac0309b85",
+          "time": "2026-10-15T17:11:18.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xc30ccbd9787dd3ea1b19881b70191af96d52f13b1756b46606616e6018562c89",
+          "payee": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x756bfbf3b6f4132242ef7198cd3cf2798a604b0a83fb65786f0295354bea0921"
+        },
+        {
+          "block": 48157994,
+          "logIndex": 328,
+          "txHash": "0x4558e7ad73c48c0e7e2027f54d7489e9f2bf80976badddc7553454494abcd3ac",
+          "time": "2026-10-15T17:11:16.000Z",
+          "kind": "refused",
+          "nonce": "0x372d13f7163bdc822dd62400f3634dca6d2b29a15c9dc6339e15b07e14c7e3ad",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "840000",
+          "reason": "OVER_DAILY_BUDGET"
+        },
+        {
+          "block": 48157994,
+          "logIndex": 49,
+          "txHash": "0x6f1358acddfabfcf9d25762b9ed010cfd09fd1111998e01e88476829b351d8b6",
+          "time": "2026-10-15T17:11:16.000Z",
+          "kind": "refused",
+          "nonce": "0xc327fc80bb91f358552deabd687f6f7f0c5d736931371050086d2496315bace0",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0xead08f4e28c200ed114a28c17b2374ebe77cddb2c1c4fb36166df1590ed7d468",
+          "amount": "10000",
+          "reason": "OVER_TASK_BUDGET"
+        },
+        {
+          "block": 48157993,
+          "logIndex": 112,
+          "txHash": "0xf04de441f018470d9c31c2581b7295f980309de593dfb4276d1e50377be777b0",
+          "time": "2026-10-15T17:11:14.000Z",
+          "kind": "refused",
+          "nonce": "0x60acae6000d5aba85e51ab118819b11fc4ca1bf1e2d6eaf2e05ba83c5f18ef73",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "1500000",
+          "reason": "OVER_PER_PAYMENT_CAP"
+        },
+        {
+          "block": 48157992,
+          "logIndex": 209,
+          "txHash": "0x1556d847d3ae9852e1c4963dd69f45eb08058e3ac24a709a5a54cabb18f0e26a",
+          "time": "2026-10-15T17:11:12.000Z",
+          "kind": "rated",
+          "nonce": "0xe7d520198397978d9b71b3d95cff862674c46339c8edfd8c36a2582e204c664f",
+          "agentId": "9613",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "61"
+        },
+        {
+          "block": 48157986,
+          "logIndex": 38,
+          "txHash": "0x9e2dc12c560036d3f7976ceb5416a773984c5ae36b2b35a83a803e11fe9b5809",
+          "time": "2026-10-15T17:11:00.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xe7d520198397978d9b71b3d95cff862674c46339c8edfd8c36a2582e204c664f",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
+          "amount": "10000",
+          "settledTx": "0x5e0030b6ea84fff49a3919092c8f79fe274d1275da4c69e2b76baec545830c3d"
+        },
+        {
+          "block": 48157985,
+          "logIndex": 35,
+          "txHash": "0x75cfb7d90143939d15a9063f7e0849f0c5359f155f2ca0bd555ced1fadabfc25",
+          "time": "2026-10-15T17:10:58.000Z",
+          "kind": "rated",
+          "nonce": "0xcc48c5ca280f62ceb1d61b4c85b8fb2059aa364d870155874c16a35de49ff3ab",
+          "agentId": "9613",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "60"
+        },
+        {
+          "block": 48157980,
+          "logIndex": 258,
+          "txHash": "0xce5b444659e523bff363a17fa78ce36e74845f7d6050939ff147a326276ab00f",
+          "time": "2026-10-15T17:10:48.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xcc48c5ca280f62ceb1d61b4c85b8fb2059aa364d870155874c16a35de49ff3ab",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
+          "amount": "10000",
+          "settledTx": "0x803fd9e78fff88c516f362d65d68410ec21767fe6d1502ffef333a7bbdb1aaa4"
+        },
+        {
+          "block": 48157980,
+          "logIndex": 169,
+          "txHash": "0x848f43c6184c082b08ed9bf5142a65c67bb40c47e1f8bdf10ee58d4fc2437dbb",
+          "time": "2026-10-15T17:10:48.000Z",
+          "kind": "rated",
+          "nonce": "0xe8382277031487aaf9140915cc6747a488a73d96e0d5a66d8eb2bf6580257488",
+          "agentId": "9613",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "59"
+        },
+        {
+          "block": 48157974,
+          "logIndex": 25,
+          "txHash": "0xe05dd09458a1155fb50297d2e13be2399ba8cf0d7461792b3841fda081e1bfa5",
+          "time": "2026-10-15T17:10:36.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xe8382277031487aaf9140915cc6747a488a73d96e0d5a66d8eb2bf6580257488",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x1b12a4d76cfcb5bf46dd128f670d1230cb6e4dcb07d776f1ed512b9029831274",
+          "amount": "10000",
+          "settledTx": "0x07c93b189b0a37ec8b3e06d151211d7168cc92d33e3a20e5bc5ff3a355020c04"
+        },
         {
           "block": 48148193,
           "logIndex": 105,
@@ -4163,10 +4386,97 @@
       ],
       "today": {
         "day": 20741,
-        "spent": "60000"
+        "spent": "90000"
       },
-      "balance": "4490000",
+      "balance": "4460000",
       "events": [
+        {
+          "block": 48157993,
+          "logIndex": 199,
+          "txHash": "0xd97cb0f49dd5d09a135caf2e9da4ef237f9986f5b99539cc4a95134f60828ca3",
+          "time": "2026-10-15T17:11:14.000Z",
+          "kind": "refused",
+          "nonce": "0xb4e1df89a8238c9c593d853319a0dabf833cfd136785f34dd01431a901d632f1",
+          "payee": "0xed9DEE9E5616Be29385A848b6543801AC3E3181c",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "reason": "PAYEE_NOT_ALLOWED"
+        },
+        {
+          "block": 48157956,
+          "logIndex": 233,
+          "txHash": "0xc247153d277284f9bee1a8d64a87562ca63a1cfaeaea332f736e0994f6de2e50",
+          "time": "2026-10-15T17:10:00.000Z",
+          "kind": "rated",
+          "nonce": "0xf951d4ec2c539575e416c3d27b6d53650393f138b6fd1d7ded8db0dd69923aa2",
+          "agentId": "9616",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "14"
+        },
+        {
+          "block": 48157948,
+          "logIndex": 7,
+          "txHash": "0x6327970e51d34b84114503e8c0b265008b33dbc6a038a1ea89373d16cc1fdbde",
+          "time": "2026-10-15T17:09:44.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xf951d4ec2c539575e416c3d27b6d53650393f138b6fd1d7ded8db0dd69923aa2",
+          "payee": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0xf0717c08e7f284d4d51953e322cbfabe5140eecac495b0ba60597cfd99b1941c"
+        },
+        {
+          "block": 48157947,
+          "logIndex": 16,
+          "txHash": "0x5163736149b287e18079392280b6536def51b16d9292e4cac40641c4ab8f9d06",
+          "time": "2026-10-15T17:09:42.000Z",
+          "kind": "rated",
+          "nonce": "0x9d3e6f668a1d74b70a8f38c2a4de08b860a0565c6732604a59ae04b00281553e",
+          "agentId": "9615",
+          "score": 40,
+          "tag": "stale",
+          "feedbackIndex": "19"
+        },
+        {
+          "block": 48157941,
+          "logIndex": 83,
+          "txHash": "0xf5d4df4e60063044d9e1bd9948a958895f35ac42dd5bc3c1edfeff0608d271a4",
+          "time": "2026-10-15T17:09:30.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x9d3e6f668a1d74b70a8f38c2a4de08b860a0565c6732604a59ae04b00281553e",
+          "payee": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x063a1966aaf4558e7a26ced273a6f4d1b1466868ac4cb8fee2d6ce129a4db3fe"
+        },
+        {
+          "block": 48157940,
+          "logIndex": 223,
+          "txHash": "0xbc562fede72da4ddaedea1f0c9aabeeb0a38fb6ac4e611a3b71c62262b820f64",
+          "time": "2026-10-15T17:09:28.000Z",
+          "kind": "rated",
+          "nonce": "0x0810d4c7d434aa95cc67f57bb466227bd7bf2834676aaf6b1cdd8a84d7656c61",
+          "agentId": "9614",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "21"
+        },
+        {
+          "block": 48157933,
+          "logIndex": 27,
+          "txHash": "0x00a04bc5ca19ea4928bcb08b40b0158c318586ec64e92bdd1d9f551bf4fc1584",
+          "time": "2026-10-15T17:09:14.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x0810d4c7d434aa95cc67f57bb466227bd7bf2834676aaf6b1cdd8a84d7656c61",
+          "payee": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0xd31e13bc8b3d31b10822a198ca66679be35d60f881f6ca3cabd2e55ecd396709"
+        },
         {
           "block": 48148164,
           "logIndex": 263,
@@ -5785,10 +6095,85 @@
       ],
       "today": {
         "day": 20741,
-        "spent": "60000"
+        "spent": "90000"
       },
-      "balance": "4470000",
+      "balance": "4440000",
       "events": [
+        {
+          "block": 48157973,
+          "logIndex": 27,
+          "txHash": "0x8a173dc9a8a206ccee507975ab3edf4e31b577d96d232a2b22db15f493459334",
+          "time": "2026-10-15T17:10:34.000Z",
+          "kind": "rated",
+          "nonce": "0xc053a53f8c7dc19b66ed8d2720ae7e857971899ccf7a01ef0e8a0a4a0320e974",
+          "agentId": "9616",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "14"
+        },
+        {
+          "block": 48157968,
+          "logIndex": 299,
+          "txHash": "0x57ab928c47a3ac58d7502fee638de63f713c33e6d668da622c967acae29761e4",
+          "time": "2026-10-15T17:10:24.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xc053a53f8c7dc19b66ed8d2720ae7e857971899ccf7a01ef0e8a0a4a0320e974",
+          "payee": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x657110dd423ee9de7f88f119fd39a4e8fb993868d4d7d58eb32af012303bdb5d"
+        },
+        {
+          "block": 48157968,
+          "logIndex": 169,
+          "txHash": "0x36ed669efc9f909b587289c92d9d845ec666c921274e033bb409f5b527cc1de7",
+          "time": "2026-10-15T17:10:24.000Z",
+          "kind": "rated",
+          "nonce": "0x1f6e9b50be7bd1ea6dc10a7f82a023bfc5bf28eca0a7754251e60c09c3abb160",
+          "agentId": "9615",
+          "score": 40,
+          "tag": "stale",
+          "feedbackIndex": "20"
+        },
+        {
+          "block": 48157962,
+          "logIndex": 81,
+          "txHash": "0x8669b5a38bf54a9ce605fde493a3351266f3cd960dfd70a5b14cc8ac9a4e5c4b",
+          "time": "2026-10-15T17:10:12.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x1f6e9b50be7bd1ea6dc10a7f82a023bfc5bf28eca0a7754251e60c09c3abb160",
+          "payee": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x9c974c16dd3e685b4075a113842de419e4d00442d72f0ca4999a555de3bfbf7a"
+        },
+        {
+          "block": 48157961,
+          "logIndex": 146,
+          "txHash": "0x6be66697cb4da88532ec8a118356eb24b361266b830a905a3be999efa5c32fd3",
+          "time": "2026-10-15T17:10:10.000Z",
+          "kind": "rated",
+          "nonce": "0xa2e38cb035b19d390edc652642e14c36a7bfe07e006cca0dab4284bbd97c3270",
+          "agentId": "9614",
+          "score": 90,
+          "tag": "accurate",
+          "feedbackIndex": "22"
+        },
+        {
+          "block": 48157956,
+          "logIndex": 333,
+          "txHash": "0x00c720b42679648bb34ffc25d0b9580fea41d2ce24206f1ce129395db5e8bc67",
+          "time": "2026-10-15T17:10:00.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0xa2e38cb035b19d390edc652642e14c36a7bfe07e006cca0dab4284bbd97c3270",
+          "payee": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0xc0e7b1cf1cd5446a0866e0ec73424b8d750f5514ccee4ff7bf51608cd194dc29"
+        },
         {
           "block": 48148143,
           "logIndex": 66,
@@ -7219,7 +7604,7 @@
         "day": 20741,
         "spent": "0"
       },
-      "balance": "110000",
+      "balance": "120000",
       "events": []
     }
   ],
@@ -7266,10 +7651,10 @@
       "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
       "registeredWallet": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
       "summary": {
-        "count": 58,
+        "count": 61,
         "average": "87",
         "decimals": 0,
-        "block": 48148199
+        "block": 48158036
       },
       "payable": true,
       "since": "2026-10-10T01:22:34.000Z",
@@ -7425,6 +7810,14 @@
           "average": "87",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-10-15T17:12:40.000Z",
+          "block": 48158036,
+          "count": 61,
+          "average": "87",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -7441,10 +7834,10 @@
       "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
       "registeredWallet": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
       "summary": {
-        "count": 59,
+        "count": 62,
         "average": "90",
         "decimals": 0,
-        "block": 48148199
+        "block": 48158036
       },
       "payable": true,
       "since": "2026-10-10T06:03:52.000Z",
@@ -7601,6 +7994,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-10-15T17:12:40.000Z",
+          "block": 48158036,
+          "count": 62,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -7617,10 +8018,10 @@
       "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
       "registeredWallet": "0x3e7d478D726CF87fb67c727aC99DC6DFC14b2f70",
       "summary": {
-        "count": 40,
+        "count": 42,
         "average": "48",
         "decimals": 0,
-        "block": 48148199
+        "block": 48158036
       },
       "payable": false,
       "reason": "PAYEE_REPUTATION_TOO_LOW",
@@ -7793,6 +8194,15 @@
           "decimals": 0,
           "payable": false,
           "reason": "PAYEE_REPUTATION_TOO_LOW"
+        },
+        {
+          "time": "2026-10-15T17:12:40.000Z",
+          "block": 48158036,
+          "count": 42,
+          "average": "48",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_REPUTATION_TOO_LOW"
         }
       ]
     },
@@ -7809,10 +8219,10 @@
       "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
       "registeredWallet": "0x61AD85e4ec6c6cdf3921aDBAB3F53EaEe1b11D6B",
       "summary": {
-        "count": 37,
+        "count": 40,
         "average": "90",
         "decimals": 0,
-        "block": 48148199
+        "block": 48158036
       },
       "payable": true,
       "since": "2026-10-12T04:21:18.000Z",
@@ -7975,6 +8385,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-10-15T17:12:40.000Z",
+          "block": 48158036,
+          "count": 40,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -7991,10 +8409,10 @@
       "description": "Demo x402 quote service for the Yunshu agent wallet. Test network only.",
       "registeredWallet": "0x9c8824dEB0f2A883E0833AFB2Ef7EE75986E9b3A",
       "summary": {
-        "count": 59,
+        "count": 62,
         "average": "90",
         "decimals": 0,
-        "block": 48148199
+        "block": 48158036
       },
       "payable": false,
       "reason": "PAYEE_IDENTITY_MISMATCH",
@@ -8166,6 +8584,15 @@
           "time": "2026-10-15T11:44:46.000Z",
           "block": 48148199,
           "count": 59,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_MISMATCH"
+        },
+        {
+          "time": "2026-10-15T17:12:40.000Z",
+          "block": 48158036,
+          "count": 62,
           "average": "90",
           "decimals": 0,
           "payable": false,
@@ -8356,6 +8783,15 @@
           "decimals": 0,
           "payable": false,
           "reason": "PAYEE_IDENTITY_UNVERIFIED"
+        },
+        {
+          "time": "2026-10-15T17:12:40.000Z",
+          "block": 48158036,
+          "count": 0,
+          "average": "0",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
         }
       ]
     }
@@ -8363,11 +8799,81 @@
   "escrow": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
   "jobs": [
     {
+      "jobId": "0x446341be8f4469b28564e3c3a591ef8ba464f544bb2349f38d912bed8a65de4a",
+      "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+      "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+      "amount": "10000",
+      "status": "disputed",
+      "opened": {
+        "time": "2026-10-15T17:12:30.000Z",
+        "block": 48158031,
+        "txHash": "0x2a7e95942846a137c31f96b79a81ed093304be882fb7a937cb3a637c66bf54af",
+        "deliverBy": 1792087942,
+        "reviewWindow": 3600,
+        "disputeWindow": 3600,
+        "specHash": "0x388ffbdbf698c48e37f56fa95a8f1006be61e3ba043e2137b401cc24c0bcebf0"
+      },
+      "delivered": {
+        "time": "2026-10-15T17:12:32.000Z",
+        "block": 48158032,
+        "txHash": "0xfcc4c2e66c903e79af1ef73d4f2f934b51401f4456c1e2bc64b742f2600b1c7f",
+        "resultHash": "0xb0ec51c8ef3215182174c216dab71747a32b3c865e67b535d3ceea038c161359"
+      },
+      "disputed": {
+        "time": "2026-10-15T17:12:34.000Z",
+        "block": 48158033,
+        "txHash": "0x1a9d389342dd4531b1147b8d052a8bf2ba27c42b295464b6bf5785a5566fa5bc",
+        "reasonHash": "0x37c1682a19c226b9026c70988e8989beec9fb1b14cd8a862b8c6f981bf7f1a03"
+      },
+      "kind": "dispute",
+      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1044.83\",\"1012.12\",\"1069.41\"]}",
+      "result": "{\"average\":\"1028.47\"}",
+      "check": "average is 1028.47, expected 1042.12",
+      "specMatches": true,
+      "resultMatches": true
+    },
+    {
+      "jobId": "0x266948c838959333443190194e1f4f40486365b2e1d9ab17080384d6823571ba",
+      "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+      "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+      "amount": "10000",
+      "status": "closed",
+      "opened": {
+        "time": "2026-10-15T17:12:18.000Z",
+        "block": 48158025,
+        "txHash": "0xd358286cee4fc4306f3db137d7caf2e77d94e02e500b8ddb8b960f9aa4183621",
+        "deliverBy": 1792087930,
+        "reviewWindow": 3600,
+        "disputeWindow": 3600,
+        "specHash": "0x388ffbdbf698c48e37f56fa95a8f1006be61e3ba043e2137b401cc24c0bcebf0"
+      },
+      "delivered": {
+        "time": "2026-10-15T17:12:20.000Z",
+        "block": 48158026,
+        "txHash": "0x6f4a6492028974895c57b295e8bf12b44fdd7b698af454bc456ff6137c731a2b",
+        "resultHash": "0x6dc0091bc35496fa61340f741053a24c29a0bd77aca2e1334214606818564b23"
+      },
+      "closed": {
+        "time": "2026-10-15T17:12:22.000Z",
+        "block": 48158027,
+        "txHash": "0xbcf0773bec1ab0032f4660333981a1205119467d27bad16eab0870b0126f4f5a",
+        "outcome": "ACCEPTED",
+        "to": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+        "deferred": false
+      },
+      "kind": "honest",
+      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1044.83\",\"1012.12\",\"1069.41\"]}",
+      "result": "{\"average\":\"1042.12\"}",
+      "check": "ok",
+      "specMatches": true,
+      "resultMatches": true
+    },
+    {
       "jobId": "0xd9bc66a23b4b8b14777c9f68219f20028c8efc6c9d01a5d7169b5d57760e5819",
       "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
       "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
       "amount": "10000",
-      "status": "open",
+      "status": "closed",
       "opened": {
         "time": "2026-10-15T11:44:40.000Z",
         "block": 48148196,
@@ -8379,7 +8885,15 @@
       },
       "kind": "noshow",
       "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1055.64\",\"1022.93\",\"1080.22\"]}",
-      "specMatches": true
+      "specMatches": true,
+      "closed": {
+        "time": "2026-10-15T17:12:08.000Z",
+        "block": 48158020,
+        "txHash": "0x1af372d19d281f766513675a7489c9c4b5f50a2b441e25c774153273ab2e9548",
+        "outcome": "DELIVERY_TIMEOUT",
+        "to": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+        "deferred": false
+      }
     },
     {
       "jobId": "0x294758ba60e1388359e616ba781f9f353d7f8f843a7bf912cc8363895bc353a7",
