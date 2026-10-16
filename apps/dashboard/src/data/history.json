@@ -1,7 +1,7 @@
 {
   "network": "eip155:84532",
-  "generatedAt": "2026-10-16T16:48:04.125Z",
-  "lastBlock": 48200480,
+  "generatedAt": "2026-10-16T21:22:24.590Z",
+  "lastBlock": 48208709,
   "wallets": [
     {
       "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
@@ -71,10 +71,84 @@
       ],
       "today": {
         "day": 20742,
-        "spent": "60000"
+        "spent": "80000"
       },
-      "balance": "6530000",
+      "balance": "6520000",
       "events": [
+        {
+          "block": 48208702,
+          "logIndex": 250,
+          "txHash": "0x60cf3d0442f791020ea602aff7d57f73279fc34945659f8bc2cc2f60ee9ae4a6",
+          "time": "2026-10-16T21:21:32.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x85ea1ccf28610eef9af0bba055a9e29417f0defdc0ae5db61153869941db7bd5",
+          "payee": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x7b1fa35089cbc66330bbf88af201820b9185b5652694f85aa0784255d061836c"
+        },
+        {
+          "block": 48208696,
+          "logIndex": 214,
+          "txHash": "0xed9e2f4fdcb073806c53e8fc93a060f78713bf0020896800f2cda6cb0d770a4b",
+          "time": "2026-10-16T21:21:20.000Z",
+          "kind": "authorized",
+          "settled": true,
+          "nonce": "0x2a1623bb1507c5db960c6b302683c32ea270217211d75239afc518aba54aafd0",
+          "payee": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "settledTx": "0x9ec72fde734dcbcf8cd31e1bcbcbd5e318ed801bbb2db76aab2c20bef0df0532"
+        },
+        {
+          "block": 48208690,
+          "logIndex": 98,
+          "txHash": "0xac624c5a2329ae90ba828aad39a3ecb84e46252020f89a4feef6e2c0e728bca8",
+          "time": "2026-10-16T21:21:08.000Z",
+          "kind": "refused",
+          "nonce": "0x85f77196328d35ece7d8ec5898ceea2afb14119b230eb1132c1e070e7bc8dfa4",
+          "payee": "0x7bd4971F48A22f857F9B47472bF305756c1acEb1",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
+        },
+        {
+          "block": 48208688,
+          "logIndex": 40,
+          "txHash": "0x800e843f768658fa5de55026ebc2f1b47aa88a906ea2c7d1a716f4dbc3f3eb19",
+          "time": "2026-10-16T21:21:04.000Z",
+          "kind": "refused",
+          "nonce": "0x9065cb14b34d5e4a2602f1dd422ff5fe9a4702ea1582365f275e3a1271149f3f",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "950000",
+          "reason": "OVER_DAILY_BUDGET"
+        },
+        {
+          "block": 48208687,
+          "logIndex": 61,
+          "txHash": "0x1a92ee926af4e8a98401766e9d2ce5f27d5fee876e4d7ab52d0153d7d9a894cc",
+          "time": "2026-10-16T21:21:02.000Z",
+          "kind": "refused",
+          "nonce": "0x911409d51a23b25aa005764e02d0649f4f05c0a4a1c3310e00c537d6915c2bdb",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0xead08f4e28c200ed114a28c17b2374ebe77cddb2c1c4fb36166df1590ed7d468",
+          "amount": "10000",
+          "reason": "OVER_TASK_BUDGET"
+        },
+        {
+          "block": 48208686,
+          "logIndex": 59,
+          "txHash": "0x782e9cdcb5e1db9f5148e371a8b5ed39e31f7f88382aecffe72ab1fab228935e",
+          "time": "2026-10-16T21:21:00.000Z",
+          "kind": "refused",
+          "nonce": "0xd66661ca994adb3cd2fe850c7b0a6304600d934eac1ffa9f5194a0a67c11fa2d",
+          "payee": "0xD0cf5c6DA15473264a5839f9AD24c014D9f1E1B6",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "1500000",
+          "reason": "OVER_PER_PAYMENT_CAP"
+        },
         {
           "block": 48200471,
           "logIndex": 33,
@@ -4836,6 +4910,18 @@
       "balance": "4430000",
       "events": [
         {
+          "block": 48208687,
+          "logIndex": 5,
+          "txHash": "0x59ad636fb58ac1bead51de4b0eee4bb1136d76aff9b9976def95368b70a1080d",
+          "time": "2026-10-16T21:21:02.000Z",
+          "kind": "refused",
+          "nonce": "0x4d36979f1492f58c79906a2dadee3b3684a73509609cfb785d616c00515b61e1",
+          "payee": "0x32637DCd7F7De6f6b103D53ff953E13b9DC74fEf",
+          "taskId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "amount": "10000",
+          "reason": "PAYEE_NOT_ALLOWED"
+        },
+        {
           "block": 48200454,
           "logIndex": 64,
           "txHash": "0xb3b1ef3ba8d074d9a5a87c4e81f8750f105edb934e1db0a4bb4a4c2a2923bf8d",
@@ -8247,7 +8333,7 @@
         "day": 20742,
         "spent": "0"
       },
-      "balance": "160000",
+      "balance": "170000",
       "events": []
     }
   ],
@@ -8297,7 +8383,7 @@
         "count": 64,
         "average": "87",
         "decimals": 0,
-        "block": 48200480
+        "block": 48208709
       },
       "payable": true,
       "since": "2026-10-10T01:22:34.000Z",
@@ -8493,6 +8579,14 @@
           "average": "87",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-10-16T21:21:46.000Z",
+          "block": 48208709,
+          "count": 64,
+          "average": "87",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -8512,7 +8606,7 @@
         "count": 65,
         "average": "90",
         "decimals": 0,
-        "block": 48200480
+        "block": 48208709
       },
       "payable": true,
       "since": "2026-10-10T06:03:52.000Z",
@@ -8709,6 +8803,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-10-16T21:21:46.000Z",
+          "block": 48208709,
+          "count": 65,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -8728,7 +8830,7 @@
         "count": 44,
         "average": "47",
         "decimals": 0,
-        "block": 48200480
+        "block": 48208709
       },
       "payable": false,
       "reason": "PAYEE_REPUTATION_TOO_LOW",
@@ -8946,6 +9048,15 @@
           "decimals": 0,
           "payable": false,
           "reason": "PAYEE_REPUTATION_TOO_LOW"
+        },
+        {
+          "time": "2026-10-16T21:21:46.000Z",
+          "block": 48208709,
+          "count": 44,
+          "average": "47",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_REPUTATION_TOO_LOW"
         }
       ]
     },
@@ -8965,7 +9076,7 @@
         "count": 43,
         "average": "90",
         "decimals": 0,
-        "block": 48200480
+        "block": 48208709
       },
       "payable": true,
       "since": "2026-10-12T04:21:18.000Z",
@@ -9168,6 +9279,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-10-16T21:21:46.000Z",
+          "block": 48208709,
+          "count": 43,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -9187,7 +9306,7 @@
         "count": 65,
         "average": "90",
         "decimals": 0,
-        "block": 48200480
+        "block": 48208709
       },
       "payable": false,
       "reason": "PAYEE_IDENTITY_MISMATCH",
@@ -9403,6 +9522,15 @@
         {
           "time": "2026-10-16T16:47:28.000Z",
           "block": 48200480,
+          "count": 65,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_MISMATCH"
+        },
+        {
+          "time": "2026-10-16T21:21:46.000Z",
+          "block": 48208709,
           "count": 65,
           "average": "90",
           "decimals": 0,
@@ -9639,6 +9767,15 @@
           "decimals": 0,
           "payable": false,
           "reason": "PAYEE_IDENTITY_UNVERIFIED"
+        },
+        {
+          "time": "2026-10-16T21:21:46.000Z",
+          "block": 48208709,
+          "count": 0,
+          "average": "0",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
         }
       ]
     }
@@ -9646,11 +9783,66 @@
   "escrow": "0xf12B4E917c64Ca692f6af8c635409740e66FF721",
   "jobs": [
     {
+      "jobId": "0xea518d2ced9e80de762f0cf3b9092eda4a631c2458350054fde02ccdd49ce9c8",
+      "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+      "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+      "amount": "10000",
+      "status": "open",
+      "opened": {
+        "time": "2026-10-16T21:21:38.000Z",
+        "block": 48208705,
+        "txHash": "0x7b1fa35089cbc66330bbf88af201820b9185b5652694f85aa0784255d061836c",
+        "deliverBy": 1792189290,
+        "reviewWindow": 3600,
+        "disputeWindow": 3600,
+        "specHash": "0xebcfa0e792ed3e5bb507ad7a1119317f3ba18cf96f76a4101002bcf3834b2b04"
+      },
+      "kind": "noshow",
+      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1080.78\",\"1048.07\",\"1015.36\"]}",
+      "specMatches": true
+    },
+    {
+      "jobId": "0x60290cfcf02e35e5fefa930fb235cbe83a96cad3ec239739481eae962fff27e3",
+      "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+      "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+      "amount": "10000",
+      "status": "closed",
+      "opened": {
+        "time": "2026-10-16T21:21:26.000Z",
+        "block": 48208699,
+        "txHash": "0x9ec72fde734dcbcf8cd31e1bcbcbd5e318ed801bbb2db76aab2c20bef0df0532",
+        "deliverBy": 1792189278,
+        "reviewWindow": 3600,
+        "disputeWindow": 3600,
+        "specHash": "0xebcfa0e792ed3e5bb507ad7a1119317f3ba18cf96f76a4101002bcf3834b2b04"
+      },
+      "delivered": {
+        "time": "2026-10-16T21:21:28.000Z",
+        "block": 48208700,
+        "txHash": "0x8ecbffa585daf289f72d581ecd7d3ac52e13d2dfd2a2c0027ef9200bdc772176",
+        "resultHash": "0x4f62a4e18947959458c3e8dba1942c3ae14c9a2a5f2a936fd6f341d3d17c3508"
+      },
+      "closed": {
+        "time": "2026-10-16T21:21:30.000Z",
+        "block": 48208701,
+        "txHash": "0x39bd728bffedca676f2ce54ef5a89687eaae3aa33b609701201dcd635beda5d9",
+        "outcome": "ACCEPTED",
+        "to": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
+        "deferred": false
+      },
+      "kind": "honest",
+      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1080.78\",\"1048.07\",\"1015.36\"]}",
+      "result": "{\"average\":\"1048.07\"}",
+      "check": "ok",
+      "specMatches": true,
+      "resultMatches": true
+    },
+    {
       "jobId": "0x868e84503ac9e1cf6e10f323638e8f8715ced548f3da47e689e949c19d1a17f6",
       "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
       "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
       "amount": "10000",
-      "status": "disputed",
+      "status": "closed",
       "opened": {
         "time": "2026-10-16T16:47:16.000Z",
         "block": 48200474,
@@ -9677,7 +9869,15 @@
       "result": "{\"average\":\"1030.23\"}",
       "check": "average is 1030.23, expected 1028.88",
       "specMatches": true,
-      "resultMatches": true
+      "resultMatches": true,
+      "closed": {
+        "time": "2026-10-16T21:21:16.000Z",
+        "block": 48208694,
+        "txHash": "0xbf3b02c8e04f33427eb9bd68017920f3da0d061f2ad57c359fe409afa0349681",
+        "outcome": "ARBITER_TIMEOUT",
+        "to": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
+        "deferred": false
+      }
     },
     {
       "jobId": "0x84b8feb35fa3d70330cd6420256b3832eb7d347ffda5a9da2d473d7165afd06e",
@@ -10650,69 +10850,6 @@
       "kind": "honest",
       "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1084.55\",\"1051.84\",\"1019.13\"]}",
       "result": "{\"average\":\"1051.84\"}",
-      "check": "ok",
-      "specMatches": true,
-      "resultMatches": true
-    },
-    {
-      "jobId": "0x8314ce6bc630bee5959f1ebf0e43aeca17bd01b7f6e6b6336e52b10a56881152",
-      "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
-      "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
-      "amount": "10000",
-      "status": "closed",
-      "opened": {
-        "time": "2026-10-12T06:11:34.000Z",
-        "block": 48008603,
-        "txHash": "0x1a3339ae43cc6fe15fc97b7bb02c6c0647261d120cc37ef5e2eb8f1a47b0416c",
-        "deliverBy": 1791789086,
-        "reviewWindow": 3600,
-        "disputeWindow": 3600,
-        "specHash": "0x9ca080e60253b2ddce8146d533c3c62ac78efdacd6567f76fa6438698771ccd4"
-      },
-      "kind": "noshow",
-      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1005.36\",\"1062.65\",\"1029.94\"]}",
-      "specMatches": true,
-      "closed": {
-        "time": "2026-10-12T15:44:46.000Z",
-        "block": 48025799,
-        "txHash": "0xef7035a71307ecea1d40f71bacaafa73f374853a3aa88b99d2b14d2122bb4786",
-        "outcome": "DELIVERY_TIMEOUT",
-        "to": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
-        "deferred": false
-      }
-    },
-    {
-      "jobId": "0xbd3cd5ba77f387d1ba0bbcba1d6b4a395c5aa8ee00c4c2d999192e6b13c0e337",
-      "client": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
-      "worker": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
-      "amount": "10000",
-      "status": "closed",
-      "opened": {
-        "time": "2026-10-12T06:11:22.000Z",
-        "block": 48008597,
-        "txHash": "0x6fd19c7b94aa830b230760903749d4591a77ed2efa1370754d0e9fb81c51e611",
-        "deliverBy": 1791789074,
-        "reviewWindow": 3600,
-        "disputeWindow": 3600,
-        "specHash": "0x9ca080e60253b2ddce8146d533c3c62ac78efdacd6567f76fa6438698771ccd4"
-      },
-      "delivered": {
-        "time": "2026-10-12T06:11:24.000Z",
-        "block": 48008598,
-        "txHash": "0xcfea519d55aa2eba4a88691de912bf3e2c136b1e9bfebff48174d4bde8b8db2c",
-        "resultHash": "0x06391227092d4546e6b50b7881494af87947d7087e945c6637ff3a96bcf6e42a"
-      },
-      "closed": {
-        "time": "2026-10-12T06:11:26.000Z",
-        "block": 48008599,
-        "txHash": "0xf92dd553b8b6d5c3deeebaaf707721e822d60e73aeb2bb6e7ca8f734720db26b",
-        "outcome": "ACCEPTED",
-        "to": "0x6D964D762C6610DCb9f5eD380591d5E8B3B15bce",
-        "deferred": false
-      },
-      "kind": "honest",
-      "spec": "{\"task\":\"average\",\"unit\":\"USDC\",\"values\":[\"1005.36\",\"1062.65\",\"1029.94\"]}",
-      "result": "{\"average\":\"1032.65\"}",
       "check": "ok",
       "specMatches": true,
       "resultMatches": true
