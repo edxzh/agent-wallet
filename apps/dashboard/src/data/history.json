@@ -1,7 +1,7 @@
 {
   "network": "eip155:84532",
-  "generatedAt": "2026-11-16T06:50:15.490Z",
-  "lastBlock": 59448313,
+  "generatedAt": "2026-11-16T22:36:14.691Z",
+  "lastBlock": 59727911,
   "wallets": [
     {
       "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
@@ -8443,7 +8443,7 @@
         "count": 64,
         "average": "87",
         "decimals": 0,
-        "block": 59448313
+        "block": 59727911
       },
       "payable": true,
       "since": "2026-10-10T01:22:34.000Z",
@@ -9351,6 +9351,14 @@
           "average": "87",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-11-16T22:17:31.000Z",
+          "block": 59727911,
+          "count": 64,
+          "average": "87",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -9370,7 +9378,7 @@
         "count": 65,
         "average": "90",
         "decimals": 0,
-        "block": 59448313
+        "block": 59727911
       },
       "payable": true,
       "since": "2026-10-10T06:03:52.000Z",
@@ -10279,6 +10287,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-11-16T22:17:31.000Z",
+          "block": 59727911,
+          "count": 65,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -10298,7 +10314,7 @@
         "count": 44,
         "average": "47",
         "decimals": 0,
-        "block": 59448313
+        "block": 59727911
       },
       "payable": false,
       "reason": "PAYEE_REPUTATION_TOO_LOW",
@@ -11317,6 +11333,15 @@
           "decimals": 0,
           "payable": false,
           "reason": "PAYEE_REPUTATION_TOO_LOW"
+        },
+        {
+          "time": "2026-11-16T22:17:31.000Z",
+          "block": 59727911,
+          "count": 44,
+          "average": "47",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_REPUTATION_TOO_LOW"
         }
       ]
     },
@@ -11336,7 +11361,7 @@
         "count": 43,
         "average": "90",
         "decimals": 0,
-        "block": 59448313
+        "block": 59727911
       },
       "payable": true,
       "since": "2026-10-12T04:21:18.000Z",
@@ -12251,6 +12276,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-11-16T22:17:31.000Z",
+          "block": 59727911,
+          "count": 43,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -12270,7 +12303,7 @@
         "count": 65,
         "average": "90",
         "decimals": 0,
-        "block": 59448313
+        "block": 59727911
       },
       "payable": false,
       "reason": "PAYEE_IDENTITY_MISMATCH",
@@ -13287,6 +13320,15 @@
         {
           "time": "2026-11-16T06:45:31.000Z",
           "block": 59448313,
+          "count": 65,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_MISMATCH"
+        },
+        {
+          "time": "2026-11-16T22:17:31.000Z",
+          "block": 59727911,
           "count": 65,
           "average": "90",
           "decimals": 0,
@@ -14319,6 +14361,15 @@
         {
           "time": "2026-11-16T06:45:31.000Z",
           "block": 59448313,
+          "count": 0,
+          "average": "0",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
+        },
+        {
+          "time": "2026-11-16T22:17:31.000Z",
+          "block": 59727911,
           "count": 0,
           "average": "0",
           "decimals": 0,
