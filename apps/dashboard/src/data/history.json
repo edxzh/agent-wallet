@@ -1,7 +1,7 @@
 {
   "network": "eip155:84532",
-  "generatedAt": "2026-11-18T20:52:02.353Z",
-  "lastBlock": 60562827,
+  "generatedAt": "2026-11-19T07:42:11.495Z",
+  "lastBlock": 60759905,
   "wallets": [
     {
       "address": "0xC788272Fe9c76810ef1bA2539B56822405eDb0Fc",
@@ -70,7 +70,7 @@
         }
       ],
       "today": {
-        "day": 20775,
+        "day": 20776,
         "spent": "0"
       },
       "balance": "6520000",
@@ -4952,7 +4952,7 @@
         }
       ],
       "today": {
-        "day": 20775,
+        "day": 20776,
         "spent": "0"
       },
       "balance": "4430000",
@@ -6808,7 +6808,7 @@
         }
       ],
       "today": {
-        "day": 20775,
+        "day": 20776,
         "spent": "0"
       },
       "balance": "4410000",
@@ -8390,7 +8390,7 @@
         }
       ],
       "today": {
-        "day": 20775,
+        "day": 20776,
         "spent": "0"
       },
       "balance": "170000",
@@ -8443,7 +8443,7 @@
         "count": 64,
         "average": "87",
         "decimals": 0,
-        "block": 60562827
+        "block": 60759905
       },
       "payable": true,
       "since": "2026-10-10T01:22:34.000Z",
@@ -9391,6 +9391,14 @@
           "average": "87",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-11-19T07:37:29.000Z",
+          "block": 60759905,
+          "count": 64,
+          "average": "87",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -9410,7 +9418,7 @@
         "count": 65,
         "average": "90",
         "decimals": 0,
-        "block": 60562827
+        "block": 60759905
       },
       "payable": true,
       "since": "2026-10-10T06:03:52.000Z",
@@ -10359,6 +10367,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-11-19T07:37:29.000Z",
+          "block": 60759905,
+          "count": 65,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -10378,7 +10394,7 @@
         "count": 44,
         "average": "47",
         "decimals": 0,
-        "block": 60562827
+        "block": 60759905
       },
       "payable": false,
       "reason": "PAYEE_REPUTATION_TOO_LOW",
@@ -11442,6 +11458,15 @@
           "decimals": 0,
           "payable": false,
           "reason": "PAYEE_REPUTATION_TOO_LOW"
+        },
+        {
+          "time": "2026-11-19T07:37:29.000Z",
+          "block": 60759905,
+          "count": 44,
+          "average": "47",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_REPUTATION_TOO_LOW"
         }
       ]
     },
@@ -11461,7 +11486,7 @@
         "count": 43,
         "average": "90",
         "decimals": 0,
-        "block": 60562827
+        "block": 60759905
       },
       "payable": true,
       "since": "2026-10-12T04:21:18.000Z",
@@ -12416,6 +12441,14 @@
           "average": "90",
           "decimals": 0,
           "payable": true
+        },
+        {
+          "time": "2026-11-19T07:37:29.000Z",
+          "block": 60759905,
+          "count": 43,
+          "average": "90",
+          "decimals": 0,
+          "payable": true
         }
       ]
     },
@@ -12435,7 +12468,7 @@
         "count": 65,
         "average": "90",
         "decimals": 0,
-        "block": 60562827
+        "block": 60759905
       },
       "payable": false,
       "reason": "PAYEE_IDENTITY_MISMATCH",
@@ -13497,6 +13530,15 @@
         {
           "time": "2026-11-18T20:40:34.000Z",
           "block": 60562827,
+          "count": 65,
+          "average": "90",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_MISMATCH"
+        },
+        {
+          "time": "2026-11-19T07:37:29.000Z",
+          "block": 60759905,
           "count": 65,
           "average": "90",
           "decimals": 0,
@@ -14574,6 +14616,15 @@
         {
           "time": "2026-11-18T20:40:34.000Z",
           "block": 60562827,
+          "count": 0,
+          "average": "0",
+          "decimals": 0,
+          "payable": false,
+          "reason": "PAYEE_IDENTITY_UNVERIFIED"
+        },
+        {
+          "time": "2026-11-19T07:37:29.000Z",
+          "block": 60759905,
           "count": 0,
           "average": "0",
           "decimals": 0,
